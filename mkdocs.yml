@@ -1,4 +1,4 @@
-site_name: rcmedeiros/template
+site_name: rcmedeiros/saphira
 site_description:
       A TBD
 repo_url: https://github.com/rcmedeiros/saphira/
@@ -12,8 +12,9 @@ markdown_extensions:
       - nl2br
       - codehilite:
               linenums: None
-              noclasses: True
+              noclasses: false
               guess_lang: False
+              css_class: codehilite
               use_pygments: True
               pygments_style: monokai
       - smarty:
@@ -26,6 +27,7 @@ markdown_extensions:
       - toc
 nav:
       - Home: index.md
-theme: readthedocs
+theme: material
 extra_css:
-      - /css/monokai.css
+      - css/theme.css
+      - css/codehilite.css
