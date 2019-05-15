@@ -1,7 +1,8 @@
-import { before, after, describe } from "mocha"
-import { DummyServer } from '../src/dummy_server';
+import { before, after } from "mocha"
+import { Saphira } from '../src';
+import { Probe } from './sample_server/probe';
 
-let s: DummyServer = new DummyServer();
+let s: Saphira = new Saphira([Probe]);
 before((done) => {
     s.listen().then(() => {
         done();

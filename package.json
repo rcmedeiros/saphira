@@ -6,8 +6,8 @@
   "scripts": {
     "audit": "snyk test && npm audit",
     "tslint": "tslint --project tsconfig.json --config src/tslint.json",
-    "test": "nyc mocha --require ts-node/register --check-leaks --timeout 300 --recursive -exit test/*-test.ts",
-    "coverage": "nyc --reporter=html mocha --require ts-node/register --check-leaks --timeout 300 --recursive -exit test/**/*-test.ts",
+    "test": "set TS_NODE_PROJECT=test/tsconfig.json&& nyc mocha --require ts-node/register --check-leaks --recursive -exit test/**/*-test.ts",
+    "coverage": "set TS_NODE_PROJECT=test/tsconfig.json&& nyc --reporter=html mocha --require ts-node/register --check-leaks --recursive -exit test/**/*-test.ts",
     "docs": "python -m mkdocs serve"
   },
   "nyc": {
@@ -69,6 +69,7 @@
     "chai-http": "^4.3.0",
     "mocha": "^6.1.4",
     "nyc": "^14.1.1",
+    "selfsigned": "^1.10.4",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
     "typescript": "^3.4.5"

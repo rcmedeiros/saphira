@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "Jinja",
+        "PEMs",
         "Pygments",
         "livereload",
         "logform",
@@ -9,7 +10,8 @@
         "preflight",
         "pymdown",
         "rcmedeiros",
-        "saphira"
+        "saphira",
+        "selfsigned"
     ],
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
