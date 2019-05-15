@@ -1,8 +1,13 @@
 {
     "cSpell.words": [
+        "Jinja",
+        "Pygments",
+        "livereload",
         "logform",
+        "mkdocs",
         "openapi",
         "preflight",
+        "pymdown",
         "rcmedeiros",
         "saphira"
     ],
