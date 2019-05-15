@@ -1,0 +1,6 @@
+{
+    "extends": "@rcmedeiros/tslint-config",
+    "rules": {
+        "no-unused-expression": false,
+    }
+}

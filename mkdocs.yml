@@ -1,0 +1,31 @@
+site_name: rcmedeiros/template
+site_description:
+      A TBD
+repo_url: https://github.com/rcmedeiros/saphira/
+edit_uri: edit/develop/mkdocs
+dev_addr: 127.0.0.1:80
+
+docs_dir: mkdocs
+site_dir: docs
+
+markdown_extensions:
+      - nl2br
+      - codehilite:
+              linenums: None
+              noclasses: True
+              guess_lang: False
+              use_pygments: True
+              pygments_style: monokai
+      - smarty:
+              smart_angled_quotes: True
+      - admonition
+      - abbr
+      - def_list
+      - footnotes
+      - attr_list
+      - toc
+nav:
+      - Home: index.md
+theme: readthedocs
+extra_css:
+      - /css/monokai.css

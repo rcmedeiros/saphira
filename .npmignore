@@ -1,0 +1,12 @@
+.circleci
+.npmignore
+.vscode
+.snyk
+.codeclimate.yml
+src
+dist
+tsconfig.json
+tslint.json
+mkdocs*
+test
+docs
