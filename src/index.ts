@@ -72,7 +72,6 @@ export class Saphira {
     private readonly app: core.Express;
     private server: http.Server;
     private readonly httpsOptions: HttpsOptions;
-    private readonly logger: Logger;
 
     private moduleInfo: ModuleInfo;
 
@@ -82,7 +81,7 @@ export class Saphira {
         }
         this.loadModuleInfo();
 
-        this.logger = setupLogging(options ? options.logOptions : undefined);
+        setupLogging(options ? options.logOptions : undefined);
 
         this.httpsOptions = options.https || undefined;
         this.app = express();
@@ -232,13 +231,10 @@ export class Saphira {
             verticalLayout: 'default',
         }, (err: Error, data: string) => {
             if (err) {
-                this.logger.error('Figlet failed...', err);
                 console.error('Figlet failed...', err);
             } else {
-                console.info(`..::## ${this.moduleInfo.name.toUpperCase()}##::..\nv${this.moduleInfo.version}\n`);
-                this.logger.info(`${data}\nv${this.moduleInfo.version}\n`);
+                console.info(`${data}\nv${this.moduleInfo.version}\n`);
                 if (afterText) {
-                    this.logger.info(afterText);
                     console.info(afterText);
                 }
             }
