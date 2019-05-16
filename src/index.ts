@@ -8,12 +8,17 @@ import * as core from 'express-serve-static-core';
 import figlet from 'figlet';
 import fs from 'fs';
 import helmet from 'helmet';
+import * as http from 'http';
 import https from 'https';
 import path from 'path';
 import prettyHrtime from 'pretty-hrtime';
 import swaggerUiExpress from 'swagger-ui-express';
 import { URL } from 'url';
-import { DEFAULTS, ENDPOINTS } from './constants';
+import { MSG_HTTP_UNEXPECTED_ERROR } from './constants/messages';
+import {
+    DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, DEFAULT_PACKAGE, DEFAULT_UTF8, ENDPOINT_HEALTH_CHECK,
+    ENDPOINT_OPEN_API, HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_SUMMARY,
+} from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method, Type } from './controller/controller';
 import { DTO } from './dto/dto';
 import { BadGatewayError } from './errors/bad_gateway-error';
@@ -61,26 +66,27 @@ export interface AtlasOptions {
     logOptions?: LogOptions;
 }
 
-const X_PAGINATION: string = 'x-pagination';
-const X_SUMMARY: string = 'x-summary';
-
 export class Saphira {
     public static readonly PRODUCTION: boolean = (process.env.NODE_ENV || '').toLowerCase() === 'production';
 
     private readonly app: core.Express;
+    private server: http.Server;
     private readonly httpsOptions: HttpsOptions;
     private readonly logger: Logger;
 
     private moduleInfo: ModuleInfo;
 
     constructor(controllerTypes: Array<typeof Controller>, options?: AtlasOptions) {
+        if (!options) {
+            options = {};
+        }
         this.loadModuleInfo();
 
         this.logger = setupLogging(options ? options.logOptions : undefined);
 
-        this.httpsOptions = options ? options.https : undefined;
+        this.httpsOptions = options.https || undefined;
         this.app = express();
-        this.app.set('port', options.port || (this.httpsOptions ? DEFAULTS.HTTPS_PORT : DEFAULTS.HTTP_PORT));
+        this.app.set('port', options.port || (options.https ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
 
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded(options.urlencodedOptions || { extended: false }));
@@ -90,19 +96,22 @@ export class Saphira {
 
         if (!options.corsOptions) {
             options.corsOptions = {
-                exposedHeaders: [X_PAGINATION, X_SUMMARY],
+                exposedHeaders: [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME],
             };
         } else if (!options.corsOptions.exposedHeaders) {
-            options.corsOptions.exposedHeaders = [X_PAGINATION, X_SUMMARY];
+            options.corsOptions.exposedHeaders = [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME];
         } else {
             if (typeof options.corsOptions.exposedHeaders === 'string') {
                 options.corsOptions.exposedHeaders = [options.corsOptions.exposedHeaders];
             }
-            if (options.corsOptions.exposedHeaders.indexOf(X_PAGINATION) === -1) {
-                options.corsOptions.exposedHeaders.push(X_PAGINATION);
+            if (options.corsOptions.exposedHeaders.indexOf(HEADER_X_PAGINATION) === -1) {
+                options.corsOptions.exposedHeaders.push(HEADER_X_PAGINATION);
             }
-            if (options.corsOptions.exposedHeaders.indexOf(X_SUMMARY) === -1) {
-                options.corsOptions.exposedHeaders.push(X_SUMMARY);
+            if (options.corsOptions.exposedHeaders.indexOf(HEADER_X_SUMMARY) === -1) {
+                options.corsOptions.exposedHeaders.push(HEADER_X_SUMMARY);
+            }
+            if (options.corsOptions.exposedHeaders.indexOf(HEADER_X_HRTIME) === -1) {
+                options.corsOptions.exposedHeaders.push(HEADER_X_HRTIME);
             }
         }
 
@@ -110,7 +119,7 @@ export class Saphira {
 
         const expressRouter: Router = express.Router();
 
-        expressRouter.use(ENDPOINTS.HEALTH_CHECK, (_request: Request, response: Response) => {
+        expressRouter.use(ENDPOINT_HEALTH_CHECK, (_request: Request, response: Response) => {
             response.sendStatus(HttpStatusCode.OK);
         });
 
@@ -134,8 +143,6 @@ export class Saphira {
                             // tslint:disable-next-line:no-any
                             c.handler(handler, request).then((result: any) => {
                                 if (!result || (result && !(result as UnknownObj).handlerRejected)) {
-                                    response.setHeader('handled', 'true');
-
                                     if (// if result is null or empty, send HTTP NO_CONTENT
                                         !result
                                         || (Array.isArray(result) && !result.length)
@@ -148,19 +155,16 @@ export class Saphira {
                                         );
                                     } else {
                                         if ((result as PagedResult<unknown>).entriesCount) {
-                                            response.setHeader(X_PAGINATION, `{Count: ${(result as PagedResult<unknown>).entriesCount},` +
+                                            response.setHeader(HEADER_X_PAGINATION, `{Count: ${(result as PagedResult<unknown>).entriesCount},` +
                                                 ` Pages: ${(result as PagedResult<unknown>).pagesCount}}`);
                                             result = (result as PagedResult<unknown>).entries;
                                         } else {
                                             // tslint:disable-next-line:no-null-keyword
                                             result = result !== undefined ? result : null;
                                         }
-                                        //
-                                        response.json({
-                                            result: result,
-                                            timeStamp: new Date(),
-                                            performance: prettyHrtime(process.hrtime(t), { precise: true }),
-                                        });
+                                        response.setHeader(
+                                            HEADER_X_HRTIME, prettyHrtime(process.hrtime(t), { precise: true }).toString().safeReplace('μ', 'u'));
+                                        response.json(result);
                                     }
                                 }
                             }).catch((err: Error) => {
@@ -168,11 +172,11 @@ export class Saphira {
                                 const code: number = (err as HttpError).status ? (err as HttpError).status : HttpStatusCode.INTERNAL_SERVER_ERROR;
 
                                 if (code >= HttpStatusCode.INTERNAL_SERVER_ERROR && process.env.NODE_ENV && Saphira.PRODUCTION) {
-                                    response.status(code).json({ error: 'An unexpected error has ocurred', timeStamp: new Date() });
+                                    response.status(code).json({ error: MSG_HTTP_UNEXPECTED_ERROR });
                                 } else {
-                                    response.status(code).json({ error: err, timeStamp: new Date() });
+                                    response.status(code).json({ message: err.message, stack: err.stack });
                                 }
-                            }).then(next).catch((err: Error) => console.error(err));
+                            }).then(next).catch((err: Error) => console.error({ err }));
                         });
                     }
                 });
@@ -186,12 +190,15 @@ export class Saphira {
         if (options.servers) {
             servers = options.servers;
         } else {
+            const port: number = this.app.get('port') as number;
+            const strPort: string =
+                (options.https && (port === DEFAULT_HTTPS_PORT)) || (!options.https && (port === DEFAULT_HTTP_PORT)) ? '' : port.toString();
             servers = [{
-                url: new URL(`http${options.https ? 's' : ''}://localhost:${options.port}/api`), description: 'Local Server',
+                url: new URL(`http${options.https ? 's' : ''}://localhost:${strPort}/api`), description: 'Local Server',
             }];
         }
 
-        if (process.env.NODE_ENV === 'production' || !options.suppressOpenApi) {
+        if (!(Saphira.PRODUCTION || options.suppressOpenApi)) {
             const apiDocs: Info = {
                 module: this.moduleInfo,
                 servers: servers,
@@ -199,20 +206,16 @@ export class Saphira {
                 components: options.openApiComponents,
             };
             const doc: OpenAPI = OpenAPIHelper.buildOpenApi(apiDocs);
-            this.app.use(ENDPOINTS.OPEN_API, swaggerUiExpress.serve, swaggerUiExpress.setup(doc));
+            this.app.use(ENDPOINT_OPEN_API, swaggerUiExpress.serve, swaggerUiExpress.setup(doc));
         }
 
     }
 
     private loadModuleInfo(): void {
-        let filename: string = 'package.json';
-
-        while (!fs.existsSync(path.join(__dirname, filename))) {
-            filename = '../' + filename;
-        }
+        const filename: string = path.join(process.cwd(), DEFAULT_PACKAGE);
 
         const packageJson: Buffer = fs.readFileSync(filename);
-        const project: unknown = JSON.parse(packageJson.toString('utf-8'));
+        const project: unknown = JSON.parse(packageJson.toString(DEFAULT_UTF8));
 
         this.moduleInfo = {
             name: (project as ModuleInfo).name,
@@ -242,26 +245,37 @@ export class Saphira {
         });
     }
 
-    public listen = async (): Promise<void> =>
-        new Promise<void>((resolve: Function): void => {
+    public listen = async (): Promise<void> => new Promise<void>((resolve: Function): void => {
 
-            if (!this.httpsOptions) {
-                this.app.listen(this.app.get('port'), () => {
-                    this.banner(`Server listening on port ${this.app.get('port')}`);
+        if (!this.httpsOptions) {
+            this.server = this.app.listen(this.app.get('port'), () => {
+                this.banner(`Server listening on port ${this.app.get('port')}`);
+                resolve();
+            });
+        } else {
+            this.server = https.createServer({
+                key: this.httpsOptions.key,
+                cert: this.httpsOptions.cert,
+            }, this.app).listen(this.app.get('port'), () => {
+                this.banner(`Server listening on port ${this.app.get('port')} (HTTPS)`);
+                resolve();
+            });
+        }
+    })
+
+    public async close(): Promise<void> {
+        return new Promise((resolve: Function, reject: Function): void => {
+            this.server.close((err: Error) => {
+                if (err) {/* istanbul ignore next */
+                    reject(err);
+                } else {
                     resolve();
-                });
-            } else {
-                https.createServer({
-                    key: this.httpsOptions.key,
-                    cert: this.httpsOptions.cert,
-                }, this.app).listen(this.app.get('port'), () => {
-                    this.banner(`Server listening on port ${this.app.get('port')} (HTTPS)`);
-                    resolve();
-                });
-            }
-        })
+                }
+            });
+        });
+    }
 }
 
 export {
-    BadRequestError, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, NameValue, PagedResult, Type, Vault,
+    BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, NameValue, PagedResult, Type, Vault,
 };

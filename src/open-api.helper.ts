@@ -443,8 +443,7 @@ export class OpenAPIHelper {
                     'application/json': {
                         schema: {
                             properties: {
-                                error: { type: 'string', example: 'You\'ve send incorrect data' },
-                                timeStamp: { type: 'string', example: '2019-05-07T22:41:39.714Z' },
+                                message: { type: 'string', example: 'You\'ve send incorrect data' },
                             },
                         },
                     },
@@ -456,8 +455,13 @@ export class OpenAPIHelper {
                     'application/json': {
                         schema: {
                             properties: {
-                                error: { type: 'string', example: 'Something went wrong in the system' },
-                                timeStamp: { type: 'string', example: '2019-05-07T22:41:39.714Z' },
+                                message: { type: 'string', example: 'Cannot read property \'toString\' of undefined' },
+                                stack: {
+                                    type: 'string', example: `Error: Cannot read property \'toString\' of undefined
+    at constructor.handler.route.action.apply.then.catch
+    (C:\\...\\src\\controller\\controller.ts:425:70)
+    at process._tickCallback (internal/process/next_tick.js:68:7)`,
+                                },
                             },
                         },
                     },
