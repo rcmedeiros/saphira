@@ -55,7 +55,7 @@ interface CorsOptions {
     optionsSuccessStatus?: number;
 }
 
-export interface AtlasOptions {
+export interface SaphiraOptions {
     port?: number;
     https?: HttpsOptions;
     urlencodedOptions?: OptionsUrlencoded;
@@ -75,7 +75,7 @@ export class Saphira {
 
     private moduleInfo: ModuleInfo;
 
-    constructor(controllerTypes: Array<typeof Controller>, options?: AtlasOptions) {
+    constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
         if (!options) {
             options = {};
         }
