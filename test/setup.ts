@@ -1,6 +1,6 @@
 import { before, after } from "mocha"
-import { Saphira } from '../src/index';
-import { Probe } from './probe';
+import { Saphira } from '../src';
+import { Probe } from './sample_server/probe';
 
 let s: Saphira = new Saphira([Probe]);
 before((done) => {

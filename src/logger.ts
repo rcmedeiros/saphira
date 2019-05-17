@@ -6,7 +6,7 @@ import util from 'util';
 import winston, { format } from 'winston';
 import DailyRotateFile, { DailyRotateFileTransportOptions } from 'winston-daily-rotate-file';
 import Transport from 'winston-transport';
-import { DEFAULT_PACKAGE, DEFAULT_UTF8 } from './constants/settings';
+import { DEFAULT_PACKAGE, UTF8 } from './constants/settings';
 import { Saphira } from './index';
 
 const stringFormat: Function = (message: any, optionalParams: Array<any>): string =>
@@ -32,7 +32,7 @@ export function setupLogging(logOptions?: LogOptions): Logger {
     const filename: string = path.join(process.cwd(), DEFAULT_PACKAGE);
 
     const packageJson: Buffer = fs.readFileSync(filename);
-    const project: { name: string } = JSON.parse(packageJson.toString(DEFAULT_UTF8));
+    const project: { name: string } = JSON.parse(packageJson.toString(UTF8));
     const transports: Array<Transport> = [new winston.transports.Console({ level: 'silly' })];
     const logFormat: logform.Format = format.combine(
         format.timestamp({ format: 'YYYY-MM-DD hh:mm:ss.SSS ZZ' }),

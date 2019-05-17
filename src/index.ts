@@ -16,8 +16,8 @@ import swaggerUiExpress from 'swagger-ui-express';
 import { URL } from 'url';
 import { MSG_HTTP_UNEXPECTED_ERROR } from './constants/messages';
 import {
-    DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, DEFAULT_PACKAGE, DEFAULT_UTF8, ENDPOINT_HEALTH_CHECK,
-    ENDPOINT_OPEN_API, HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_SUMMARY,
+    DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, DEFAULT_PACKAGE, ENDPOINT_HEALTH_CHECK, ENDPOINT_OPEN_API,
+    HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_SUMMARY, UTF8,
 } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method, Type } from './controller/controller';
 import { DTO } from './dto/dto';
@@ -37,9 +37,11 @@ export interface ServerInfo {
     description: string;
 }
 
-interface HttpsOptions {
-    key: string;
-    cert: string;
+interface SSLOptions {
+    key?: string;
+    keyPath?: string;
+    cert?: string;
+    certPath?: string;
 }
 
 /* == cors.CorsOptions == */
@@ -57,10 +59,10 @@ interface CorsOptions {
 
 export interface SaphiraOptions {
     port?: number;
-    https?: HttpsOptions;
+    https?: SSLOptions;
     urlencodedOptions?: OptionsUrlencoded;
     servers?: Array<ServerInfo>;
-    suppressOpenApi?: boolean;
+    concealApiDocs?: boolean;
     openApiComponents?: { [index: string]: unknown };
     corsOptions?: CorsOptions;
     logOptions?: LogOptions;
@@ -71,7 +73,7 @@ export class Saphira {
 
     private readonly app: core.Express;
     private server: http.Server;
-    private readonly httpsOptions: HttpsOptions;
+    private readonly sslOptions: SSLOptions;
 
     private moduleInfo: ModuleInfo;
 
@@ -79,11 +81,11 @@ export class Saphira {
         if (!options) {
             options = {};
         }
+
+        this.sslOptions = options.https || undefined;
         this.loadModuleInfo();
+        setupLogging(options.logOptions);
 
-        setupLogging(options ? options.logOptions : undefined);
-
-        this.httpsOptions = options.https || undefined;
         this.app = express();
         this.app.set('port', options.port || (options.https ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
 
@@ -94,24 +96,19 @@ export class Saphira {
         this.app.use(helmet());
 
         if (!options.corsOptions) {
-            options.corsOptions = {
-                exposedHeaders: [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME],
-            };
-        } else if (!options.corsOptions.exposedHeaders) {
+            options.corsOptions = {};
+        }
+        if (!options.corsOptions.exposedHeaders) {
             options.corsOptions.exposedHeaders = [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME];
         } else {
             if (typeof options.corsOptions.exposedHeaders === 'string') {
                 options.corsOptions.exposedHeaders = [options.corsOptions.exposedHeaders];
             }
-            if (options.corsOptions.exposedHeaders.indexOf(HEADER_X_PAGINATION) === -1) {
-                options.corsOptions.exposedHeaders.push(HEADER_X_PAGINATION);
-            }
-            if (options.corsOptions.exposedHeaders.indexOf(HEADER_X_SUMMARY) === -1) {
-                options.corsOptions.exposedHeaders.push(HEADER_X_SUMMARY);
-            }
-            if (options.corsOptions.exposedHeaders.indexOf(HEADER_X_HRTIME) === -1) {
-                options.corsOptions.exposedHeaders.push(HEADER_X_HRTIME);
-            }
+            [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME].forEach((header: string) => {
+                if (options.corsOptions.exposedHeaders.indexOf(header) === -1) {
+                    (options.corsOptions.exposedHeaders as Array<string>).push(header);
+                }
+            });
         }
 
         this.app.use(cors(options.corsOptions));
@@ -128,8 +125,7 @@ export class Saphira {
             try {
                 c = new controller();
             } catch (e) {
-                console.error(e);
-                process.exit(1);
+                throw new Error((e as Error).message);
             }
             controllers.push(c);
             c.paths.forEach((cPath: string): void => {
@@ -197,7 +193,7 @@ export class Saphira {
             }];
         }
 
-        if (!(Saphira.PRODUCTION || options.suppressOpenApi)) {
+        if (!(Saphira.PRODUCTION || options.concealApiDocs)) {
             const apiDocs: Info = {
                 module: this.moduleInfo,
                 servers: servers,
@@ -214,13 +210,23 @@ export class Saphira {
         const filename: string = path.join(process.cwd(), DEFAULT_PACKAGE);
 
         const packageJson: Buffer = fs.readFileSync(filename);
-        const project: unknown = JSON.parse(packageJson.toString(DEFAULT_UTF8));
+        const project: unknown = JSON.parse(packageJson.toString(UTF8));
 
         this.moduleInfo = {
             name: (project as ModuleInfo).name,
             version: (project as ModuleInfo).version,
             description: (project as ModuleInfo).description,
         };
+    }
+
+    private resolveContent(data: { path: string; content: string }): string {
+        if (data.path) {
+            if (!path.isAbsolute(data.path)) {
+                data.path = path.join(process.cwd(), data.path);
+            }
+            data.content = fs.readFileSync(data.path, UTF8);
+        }
+        return data.content;
     }
 
     private banner(afterText?: string): void {
@@ -230,10 +236,12 @@ export class Saphira {
             horizontalLayout: 'default',
             verticalLayout: 'default',
         }, (err: Error, data: string) => {
+            /* istanbul ignore if */
             if (err) {
                 console.error('Figlet failed...', err);
             } else {
                 console.info(`${data}\nv${this.moduleInfo.version}\n`);
+                /* istanbul ignore else */
                 if (afterText) {
                     console.info(afterText);
                 }
@@ -241,28 +249,35 @@ export class Saphira {
         });
     }
 
-    public listen = async (): Promise<void> => new Promise<void>((resolve: Function): void => {
+    public listen = async (): Promise<void> => new Promise<void>((resolve: Function, reject: Function): void => {
+        try {
+            if (!this.sslOptions) {
+                this.server = this.app.listen(this.app.get('port'), () => {
+                    this.banner(`Server listening on port ${this.app.get('port')}`);
+                    resolve();
+                });
+            } else {
 
-        if (!this.httpsOptions) {
-            this.server = this.app.listen(this.app.get('port'), () => {
-                this.banner(`Server listening on port ${this.app.get('port')}`);
-                resolve();
-            });
-        } else {
-            this.server = https.createServer({
-                key: this.httpsOptions.key,
-                cert: this.httpsOptions.cert,
-            }, this.app).listen(this.app.get('port'), () => {
-                this.banner(`Server listening on port ${this.app.get('port')} (HTTPS)`);
-                resolve();
-            });
+                this.server = https.createServer({
+                    key: this.resolveContent({ path: this.sslOptions.keyPath, content: this.sslOptions.key }),
+                    cert: this.resolveContent({ path: this.sslOptions.certPath, content: this.sslOptions.cert }),
+                }, this.app).listen(this.app.get('port'), () => {
+                    this.banner(`Server listening on port ${this.app.get('port')} (HTTPS)`);
+                    resolve();
+                });
+            }
+        } catch (e) {
+            /* istanbul ignore next */
+            reject(e);
         }
+
     })
 
     public async close(): Promise<void> {
         return new Promise((resolve: Function, reject: Function): void => {
             this.server.close((err: Error) => {
-                if (err) {/* istanbul ignore next */
+                /* istanbul ignore next */
+                if (err) {
                     reject(err);
                 } else {
                     resolve();
