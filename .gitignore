@@ -35,3 +35,7 @@ node_modules/
 
 # Sonar scanner folder
 .scannerwork
+
+#Test leftovers
+test/sample_server/*.crt
+test/sample_server/*.key
