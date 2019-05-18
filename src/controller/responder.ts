@@ -6,9 +6,9 @@ import { MSG_HTTP_UNEXPECTED_ERROR } from '../constants/messages';
 import { HEADER_X_HRTIME, HEADER_X_PAGINATION } from '../constants/settings';
 import { HttpError } from '../errors/http-error';
 import { HttpStatusCode } from '../errors/http_status_codes';
-import { UnknownObj } from '../unknown-obj';
 import { Controller, Handler, Type } from './controller';
-import { PagedResult } from './paged-result';
+import { PagedResult } from './paged_result';
+import { UnknownObj } from './unknown-obj';
 
 export class Responder {
 

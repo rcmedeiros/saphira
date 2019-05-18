@@ -4,7 +4,7 @@ import v4 from 'uuid/v4';
 import { BadRequestError } from '../errors/bad_request-error';
 import { HttpError } from '../errors/http-error';
 import { ServerError } from '../errors/server.error';
-import { UnknownObj } from '../unknown-obj';
+import { UnknownObj } from './unknown-obj';
 
 export interface Param {
     name: string;

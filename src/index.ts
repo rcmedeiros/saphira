@@ -18,6 +18,7 @@ import {
     HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_SUMMARY, UTF8,
 } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method, Type } from './controller/controller';
+import { PagedResult } from './controller/paged_result';
 import { Responder } from './controller/responder';
 import { DTO } from './dto/dto';
 import { BadGatewayError } from './errors/bad_gateway-error';
@@ -26,7 +27,6 @@ import { HttpStatusCode } from './errors/http_status_codes';
 import { ServerError } from './errors/server.error';
 import { LogOptions, setupLogging } from './logger';
 import { Info, ModuleInfo, OpenAPI, OpenAPIHelper } from './open-api.helper';
-import { PagedResult } from './paged_result';
 import { NameValue, Vault } from './vault';
 
 export interface ServerInfo {
