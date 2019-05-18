@@ -2,7 +2,7 @@ import '@rcmedeiros/prototypes';
 import bodyParser, { OptionsUrlencoded } from 'body-parser';
 import compression from 'compression';  // compresses requests
 import cors from 'cors';
-import express, { NextFunction, Request, Response, Router } from 'express';
+import express, { Request, Response, Router } from 'express';
 // tslint:disable-next-line: no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 import figlet from 'figlet';
@@ -11,25 +11,22 @@ import helmet from 'helmet';
 import * as http from 'http';
 import https from 'https';
 import path from 'path';
-import prettyHrtime from 'pretty-hrtime';
 import swaggerUiExpress from 'swagger-ui-express';
 import { URL } from 'url';
-import { MSG_HTTP_UNEXPECTED_ERROR } from './constants/messages';
 import {
     DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, DEFAULT_PACKAGE, ENDPOINT_HEALTH_CHECK, ENDPOINT_OPEN_API,
     HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_SUMMARY, UTF8,
 } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method, Type } from './controller/controller';
+import { Responder } from './controller/responder';
 import { DTO } from './dto/dto';
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
-import { HttpError } from './errors/http-error';
 import { HttpStatusCode } from './errors/http_status_codes';
 import { ServerError } from './errors/server.error';
-import { Logger, LogOptions, setupLogging } from './logger';
+import { LogOptions, setupLogging } from './logger';
 import { Info, ModuleInfo, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { PagedResult } from './paged_result';
-import { UnknownObj } from './unknown-obj';
 import { NameValue, Vault } from './vault';
 
 export interface ServerInfo {
@@ -131,49 +128,8 @@ export class Saphira {
             c.paths.forEach((cPath: string): void => {
                 const handlersByMethod: HandlersByMethod = c.getHandler(cPath);
                 Object.keys(handlersByMethod).forEach((method: string) => {
-                    if (handlersByMethod[method]) {
-                        const handler: Handler = handlersByMethod[method];
-                        expressRouter[handler.method](cPath, (request: Request, response: Response, next: NextFunction) => {
-                            const t: [number, number] = process.hrtime();
-                            // tslint:disable-next-line:no-any
-                            c.handler(handler, request).then((result: any) => {
-                                if (!result || (result && !(result as UnknownObj).handlerRejected)) {
-                                    if (// if result is null or empty, send HTTP NO_CONTENT
-                                        !result
-                                        || (Array.isArray(result) && !result.length)
-                                        || ((result as PagedResult<unknown>).pageNumber && !(result as PagedResult<unknown>).entries.length)
-                                    ) {
-                                        response.sendStatus(
-                                            handler.response.type === Type.HttpAccepted ? HttpStatusCode.ACCEPTED
-                                                : handler.response.type === Type.HttpCreated ? HttpStatusCode.CREATED
-                                                    : HttpStatusCode.NO_CONTENT,
-                                        );
-                                    } else {
-                                        if ((result as PagedResult<unknown>).entriesCount) {
-                                            response.setHeader(HEADER_X_PAGINATION, `{Count: ${(result as PagedResult<unknown>).entriesCount},` +
-                                                ` Pages: ${(result as PagedResult<unknown>).pagesCount}}`);
-                                            result = (result as PagedResult<unknown>).entries;
-                                        } else {
-                                            // tslint:disable-next-line:no-null-keyword
-                                            result = result !== undefined ? result : null;
-                                        }
-                                        response.setHeader(
-                                            HEADER_X_HRTIME, prettyHrtime(process.hrtime(t), { precise: true }).toString().safeReplace('μ', 'u'));
-                                        response.json(result);
-                                    }
-                                }
-                            }).catch((err: Error) => {
-                                console.error(JSON.stringify(err));
-                                const code: number = (err as HttpError).status ? (err as HttpError).status : HttpStatusCode.INTERNAL_SERVER_ERROR;
-
-                                if (code >= HttpStatusCode.INTERNAL_SERVER_ERROR && process.env.NODE_ENV && Saphira.PRODUCTION) {
-                                    response.status(code).json({ error: MSG_HTTP_UNEXPECTED_ERROR });
-                                } else {
-                                    response.status(code).json({ message: err.message, stack: err.stack });
-                                }
-                            }).then(next).catch((err: Error) => console.error({ err }));
-                        });
-                    }
+                    const handler: Handler = handlersByMethod[method];
+                    expressRouter[handler.method](cPath, Responder.route(c, handler));
                 });
             });
         });

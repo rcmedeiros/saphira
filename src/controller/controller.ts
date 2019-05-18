@@ -143,7 +143,7 @@ export class Controller {
         return this._tag;
     }
 
-    public handler = async (route: Handler, request: Request): Promise<unknown> =>
+    public handle = async (route: Handler, request: Request): Promise<unknown> =>
         new Promise<unknown>((resolve: Function, reject: Function): void => {
 
             if (!route.params) {
