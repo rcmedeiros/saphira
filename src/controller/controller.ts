@@ -117,9 +117,8 @@ export class Controller {
             handler.uuid = v4();
 
             paths.forEach((p: string) => {
-                if (!this.handlers[p]) {
-                    this.handlers[p] = {};
-                }
+                this.handlers[p] = this.handlers[p] || {};
+
                 if (!this.handlers[p][handler.method]) {
                     this.handlers[p][handler.method] = handler;
                 } else {

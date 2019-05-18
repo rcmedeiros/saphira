@@ -75,9 +75,7 @@ export class Saphira {
     private moduleInfo: ModuleInfo;
 
     constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
-        if (!options) {
-            options = {};
-        }
+        options = options || {};
 
         this.sslOptions = options.https || undefined;
         this.loadModuleInfo();
@@ -92,9 +90,8 @@ export class Saphira {
         this.app.use(compression());
         this.app.use(helmet());
 
-        if (!options.corsOptions) {
-            options.corsOptions = {};
-        }
+        options.corsOptions = options.corsOptions || {};
+
         if (!options.corsOptions.exposedHeaders) {
             options.corsOptions.exposedHeaders = [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME];
         } else {

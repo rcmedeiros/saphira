@@ -320,9 +320,7 @@ export class OpenAPIHelper {
                             const schema: Schema = {};
                             action.handler.params.forEach((param: Param) => {
                                 if (param.path || param.parentPath) {
-                                    if (endpoint.parameters) {
-                                        endpoint.parameters = [];
-                                    }
+                                    endpoint.parameters = endpoint.parameters || [];
                                     endpoint.parameters.push({
                                         in: 'path',
                                         name: param.name,
@@ -374,9 +372,7 @@ export class OpenAPIHelper {
 
                     }
 
-                    if (!openAPI.paths[action.path]) {
-                        openAPI.paths[action.path] = {};
-                    }
+                    openAPI.paths[action.path] = openAPI.paths[action.path] || {};
 
                     endpoint.responses = {};
                     switch (action.handler.response.type) {

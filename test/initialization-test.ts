@@ -20,9 +20,7 @@ const healthyStart = (done: Function, opts?: SaphiraOptions) => {
     const s: Saphira = new Saphira([Probe], opts);
     s.listen().then(() => {
 
-        if (!opts) {
-            opts = {};
-        }
+        opts = opts || {};
         chai.request(`http${opts.https ? 's' : ''}://localhost:${
             opts.port || (opts.https ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT)}`
         ).get(ENDPOINT_HEALTH_CHECK)

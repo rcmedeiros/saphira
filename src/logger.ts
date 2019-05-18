@@ -40,15 +40,12 @@ export function setupLogging(logOptions?: LogOptions): Logger {
         format.metadata(),
     );
 
-    if (!logOptions) {
-        logOptions = {};
-    }
+    logOptions = logOptions || {};
 
-    if (!logOptions.outputDir) {
-        logOptions.outputDir = process.env[`${project.name.toUpperCase()}_LOG_FOLDER`] ||
-            process.env.LOG_FOLDER ||
-            `/var/log/${project.name.toLowerCase()}`;
-    }
+    logOptions.outputDir = logOptions.outputDir ||
+        process.env[`${project.name.toUpperCase()}_LOG_FOLDER`] ||
+        process.env.LOG_FOLDER ||
+        `/var/log/${project.name.toLowerCase()}`;
 
     // TODO: https://github.com/palantir/tslint/issues/3704
 
