@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch",
             "args": [
-                "${workspaceRoot}/test/server.ts"
+                "${workspaceRoot}/test/sample_server/server.ts"
             ],
             "runtimeArgs": [
                 "--nolazy",
