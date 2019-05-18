@@ -8,7 +8,7 @@ import { Saphira, SaphiraOptions, Controller } from '../src';
 import { ENDPOINT_HEALTH_CHECK, DEFAULT_HTTPS_PORT, DEFAULT_HTTP_PORT, UTF8, HEADER_X_HRTIME } from "../src/constants/settings";
 import { HttpStatusCode } from "../src/errors/http_status_codes";
 import selfSigned, { SelfSignedPEMs } from 'selfsigned';
-import { BadController } from './sample_server/BadController';
+import { BadController } from './sample_server/bad-controller';
 import { WriteStream } from 'tty';
 
 chai.should();
