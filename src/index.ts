@@ -67,6 +67,7 @@ export interface SaphiraOptions {
 
 export class Saphira {
     public static readonly PRODUCTION: boolean = (process.env.NODE_ENV || '').toLowerCase() === 'production';
+    public static readonly VERBOSE: boolean = ['production', 'test'].indexOf((process.env.NODE_ENV || '').toLowerCase()) === -1;
 
     private readonly app: core.Express;
     private server: http.Server;
@@ -119,6 +120,7 @@ export class Saphira {
             try {
                 c = new controller();
             } catch (e) {
+                console.error(e);
                 throw new Error((e as Error).message);
             }
             controllers.push(c);
@@ -154,6 +156,7 @@ export class Saphira {
                 components: options.openApiComponents,
             };
             const doc: OpenAPI = OpenAPIHelper.buildOpenApi(apiDocs);
+            // fs.writeFileSync('swagger.json', JSON.stringify(doc));
             this.app.use(ENDPOINT_OPEN_API, swaggerUiExpress.serve, swaggerUiExpress.setup(doc));
         }
 

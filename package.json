@@ -4,10 +4,11 @@
   "description": "",
   "main": "index",
   "scripts": {
+    "dist": "tsc -p tsconfig.json & cp \"package.json\" \"dist/\"",
     "audit": "snyk test && npm audit",
     "tslint": "tslint --project tsconfig.json --config src/tslint.json",
-    "test": "set TS_NODE_PROJECT=test/tsconfig.json&& nyc mocha --require ts-node/register --check-leaks --recursive -exit test/**/*-test.ts",
-    "coverage": "set TS_NODE_PROJECT=test/tsconfig.json&& nyc --reporter=html mocha --require ts-node/register --check-leaks --recursive -exit test/**/*-test.ts",
+    "test": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc mocha --trace-warnings --require ts-node/register --check-leaks --recursive -exit test/**/*-test.ts",
+    "coverage": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc --reporter=html mocha --require ts-node/register --check-leaks --recursive -exit test/**/*-test.ts",
     "docs": "python -m mkdocs serve"
   },
   "nyc": {
@@ -77,7 +78,7 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "@rcmedeiros/prototypes": "^1.0.0",
+    "@rcmedeiros/prototypes": "^1.0.1-232",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",

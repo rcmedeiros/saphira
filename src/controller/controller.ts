@@ -46,21 +46,21 @@ export enum Method {
 }
 
 export enum Type {
-    NumberArray = 'NumberArray',
-    StringArray = 'StringArray',
-    Object = 'Object',
-    ObjectArray = 'ObjectArray',
-    Boolean = 'Boolean',
-    Number = 'Number',
-    String = 'String',
-    Date = 'Date',
-    DateTime = 'DateTime',
-    Password = 'Password',
     Base64 = 'Base64',
     Binary = 'Binary',
-    HttpCreated = 'Http201',
+    Boolean = 'Boolean',
+    Date = 'Date',
+    DateTime = 'DateTime',
     HttpAccepted = 'Http202',
+    HttpCreated = 'Http201',
     HttpModified = 'Http204',
+    Number = 'Number',
+    NumberArray = 'NumberArray',
+    Object = 'Object',
+    ObjectArray = 'ObjectArray',
+    Password = 'Password',
+    String = 'String',
+    StringArray = 'StringArray',
 }
 
 export interface Handler {
@@ -154,238 +154,166 @@ export class Controller {
             } else {
                 const args: Array<unknown> = [];
 
-                if (request.headers['content-type'] && request.headers['content-type'].includes('application/json')) {
-                    if (route.params.every((param: Param) => {
-                        const v: unknown = param.path || param.parentPath ? (request.params as UnknownObj)[param.name]
-                            : route.method === Method.GET || route.method === Method.DELETE ? (request.query as UnknownObj)[param.name]
-                                : (request.body as UnknownObj)[param.name];
-                        if (v === null || v === undefined) {
-                            if (param.required) {
-                                reject(param.name + ' is required');
-                                return false;
-                            } else {
-                                args.push(undefined);
-                                return true;
-                            }
-                        } else if (param.ignore && param.ignore.indexOf((v as string).toString().toLocaleLowerCase()) >= 0) {
-                            resolve({ handlerRejected: 'FALSE_PATH_PARAM' });
+                if (route.params.every((param: Param) => {
+                    const v: unknown = param.path || param.parentPath ? (request.params as UnknownObj)[param.name]
+                        : route.method === Method.GET || route.method === Method.DELETE ? (request.query as UnknownObj)[param.name]
+                            : (request.body as UnknownObj)[param.name];
+                    if (v === null || v === undefined) {
+                        if (param.required) {
+                            reject(param.name + ' is required');
+                            return false;
                         } else {
-                            let invalid: boolean = false;
-                            switch (param.type) {
-                                case Type.StringArray: {
-                                    if (typeof v === 'object' && v.constructor === Array
-                                        && (v as Array<unknown>).every((e: unknown) => typeof e === 'string')) {
-                                        args.push(v);
-                                        return true;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.NumberArray: {
-                                    if (typeof v === 'object' && v.constructor === Array
-                                        && (v as Array<unknown>).every((e: unknown) => typeof e === 'number')) {
-                                        args.push(v);
-                                        return true;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.Object: {
-                                    if (typeof v === 'object' && v.constructor === Object) {
-                                        args.push(v);
-                                        return true;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.ObjectArray: {
-                                    if (typeof v === 'object' && v.constructor === Array
-                                        && (v as Array<unknown>).every((e: unknown) =>
-                                            typeof e === 'object' && e.constructor === Object)) {
-                                        args.push(v);
-                                        return true;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.Date:
-                                case Type.DateTime: {
-                                    if (typeof v === 'string') {
-
-                                        // assure string is UTC if GMT not specified
-                                        const j2: string = v + (v.indexOf('+') < 0 && v.indexOf('-', 10) < 0 && v.indexOf('Z', 10) < 0 ? 'Z' : '');
-                                        const n: number = Date.parse(j2);
-                                        invalid = isNaN(n);
-                                        if (!invalid) {
-                                            args.push(new Date(n));
-                                            return true;
-                                        }
-                                        break;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.String:
-                                case Type.Password:
-                                case Type.Base64:
-                                case Type.Binary: {
-                                    if (typeof v === 'string') {
-                                        args.push(v);
-                                        return true;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.Number: {
-                                    if (typeof v === 'string' && v.isNumeric()) {
-                                        args.push(parseFloat(v));
-                                        return true;
-                                    } else if (typeof v === 'number') {
-                                        args.push(v);
-                                        return true;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.Boolean: {
-                                    if (typeof v === 'boolean') {
-                                        args.push(v);
-                                        return true;
-                                    } else {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.HttpCreated:
-                                case Type.HttpModified:
-                                case Type.HttpAccepted: {
-                                    invalid = true;
-                                    break;
-                                }
-                                default:
-                                    invalid = typeof v !== param.type;
-                            }
-
-                            if (invalid) {
-                                reject(new BadRequestError(`'${param.name}' should be of type '${param.type}'`));
-                                return false;
-                            }
+                            args.push(undefined);
+                            return true;
                         }
-                    })) {
-                        (route.action.apply(this, args) as Promise<unknown>).then((result: unknown) => {
-                            resolve(result);
-                        }).catch((err: Error) => {
-                            console.error(err);
-                            reject((err as HttpError).status ? err : new ServerError(err));
-                        });
-                    }
-                } else {
-                    if (route.params.every((param: Param) => {
-                        const v: string = param.path || param.parentPath
-                            ? (request.params as UnknownObj)[param.name] as string
-                            : route.method === Method.GET || route.method === Method.DELETE
-                                ? (request.query as UnknownObj)[param.name] as string
-                                : (request.body as UnknownObj)[param.name] as string;
-                        if (v === null || v === undefined) {
-                            if (param.required) {
-                                reject(param.name + ' is required');
-                                return false;
-                            } else {
-                                args.push(undefined);
-                                return true;
-                            }
-                        } else if (param.ignore && param.ignore.indexOf(v.toString().toLocaleLowerCase()) >= 0) {
-                            resolve({ handlerRejected: 'FALSE_PATH_PARAM' });
-                        } else {
-                            let invalid: boolean = false;
-                            let failedParsing: boolean = false;
-                            switch (param.type) {
-                                case Type.StringArray:
-                                    try {
-                                        args.push(v.split(','));
-                                        return true;
-                                    } catch (e) {
-                                        return false;
-                                    }
-                                case Type.NumberArray: {
-                                    try {
-                                        const a: Array<string> = v.split(',');
-                                        const b: Array<number> = [];
-                                        a.forEach((e: string) => { b.push(parseFloat(e)); });
-                                        args.push(b);
-                                        return true;
-                                    } catch (e) {
-                                        return false;
-                                    }
-                                }
-                                case Type.Object: {
-                                    let o: object;
-                                    try {
-                                        o = JSON.parse(v) as object;
-                                    } catch (e) {
-                                        invalid = true;
-                                        failedParsing = true;
-                                    }
-                                    try {
-                                        invalid = typeof o !== 'object' || o.constructor !== Object;
-                                        if (!invalid) {
-                                            args.push(o);
-                                            return true;
-                                        }
-                                    } catch (e) {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.ObjectArray: {
-                                    let a: Array<unknown>;
-                                    try {
-                                        a = JSON.parse(`[${v}]`) as Array<unknown>;
-                                    } catch (e) {
-                                        invalid = true;
-                                        failedParsing = true;
-                                    }
-                                    try {
-                                        invalid = typeof a !== 'object' || a.constructor !== Array;
-                                        if (!invalid) {
-                                            args.push(a);
-                                            return true;
-                                        }
-                                    } catch (e) {
-                                        invalid = true;
-                                    }
-                                    break;
-                                }
-                                case Type.Date:
-                                case Type.DateTime:
-                                    invalid = isNaN(Date.parse(v));
-                                    if (!invalid) {
-                                        args.push(new Date(v));
-                                        return true;
-                                    }
-                                    break;
-                                case Type.String:
-                                case Type.Password:
-                                case Type.Base64:
-                                case Type.Binary:
+                    } else if (param.ignore && param.ignore.indexOf((v as string).toString().toLocaleLowerCase()) >= 0) {
+                        resolve({ handlerRejected: 'FALSE_PATH_PARAM' });
+                    } else {
+                        let invalid: boolean = false;
+                        let failedParsing: boolean = false;
+                        switch (param.type) {
+                            case Type.StringArray: {
+                                if (typeof v === 'string') {
+                                    args.push(v.split(','));
+                                    return true;
+                                } else if (typeof v === 'object' && v.constructor === Array
+                                    && (v as Array<unknown>).every((e: unknown) => typeof e === 'string')) {
                                     args.push(v);
                                     return true;
-                                case Type.Number:
-                                    invalid = !v.isNumeric();
-                                    if (!invalid) {
-                                        args.push(parseFloat(v));
+                                } else {
+                                    invalid = true;
+                                }
+                                break;
+                            }
+                            case Type.NumberArray: {
+                                const x: Array<number> = [];
+                                if (typeof v === 'object' && v.constructor === Array) {
+                                    invalid = !((v as Array<number>).every((e: unknown) => {
+                                        if (typeof e === 'number') {
+                                            x.push(e);
+                                            return true;
+                                        } else if (typeof e === 'string' && e.isNumeric()) {
+                                            try {
+                                                x.push(parseFloat(e));
+                                                return true;
+                                            } catch {
+                                                failedParsing = true;
+                                                return false;
+                                            }
+                                        } else {
+                                            return false;
+                                        }
+                                    }));
+                                } else if (typeof v === 'string') {
+                                    const w: Array<string> = v.split(',');
+                                    invalid = !(w.every((e: string) => {
+                                        if (e.isNumeric()) {
+                                            x.push(parseFloat(e));
+                                            return true;
+                                        } else {
+                                            return false;
+                                        }
+                                    }));
+                                } else {
+                                    return false;
+                                }
+                                if (!invalid) {
+                                    args.push(x);
+                                    return true;
+                                }
+                                break;
+                            }
+                            case Type.Object: {
+                                if (typeof v === 'object' && v.constructor === Object) {
+                                    args.push(v);
+                                    return true;
+                                } else if (typeof v === 'string') {
+                                    try {
+                                        args.push(JSON.parse(v) as object);
                                         return true;
+                                    } catch {
+                                        failedParsing = true;
+                                        invalid = true;
                                     }
-                                    break;
-                                case Type.Boolean:
-                                    switch (v.toString().toLowerCase()) {
+                                } else {
+                                    invalid = true;
+                                }
+                                break;
+                            }
+                            case Type.ObjectArray: {
+                                let w: Array<object> = [];
+                                if (typeof v === 'object' && v.constructor === Array) {
+                                    invalid = !((v as Array<unknown>).every((e: unknown) => {
+                                        if (typeof e === 'string') {
+                                            try {
+                                                w.push(JSON.parse(e) as object);
+                                            } catch {
+                                                failedParsing = true;
+                                                return false;
+                                            }
+                                            return true;
+                                        } else if (typeof e === 'object' && e.constructor === Object) {
+                                            args.push(v);
+                                            return true;
+                                        } else {
+                                            return false;
+                                        }
+                                    }));
+                                } else if (typeof v === 'string') {
+                                    try {
+                                        w = v.firstChar() !== '[' && v.lastChar() !== ']'
+                                            ? JSON.parse(`[${v}]`) as Array<object>
+                                            : JSON.parse(v) as Array<object>;
+                                    } catch {
+                                        invalid = true;
+                                        failedParsing = true;
+                                    }
+                                } else {
+                                    invalid = true;
+                                }
+                                if (!invalid) {
+                                    args.push(w);
+                                    return true;
+                                }
+                                break;
+                            }
+                            case Type.Date:
+                            case Type.DateTime: {
+                                const n: number = typeof v === 'string' ? Date.parse(v) : v as number;
+                                invalid = isNaN(n);
+                                if (!invalid) {
+                                    args.push(new Date(n));
+                                    return true;
+                                }
+                                break;
+                            }
+                            case Type.String:
+                            case Type.Password:
+                            case Type.Base64:
+                            case Type.Binary: {
+                                if (typeof v === 'string') {
+                                    args.push(v);
+                                    return true;
+                                } else {
+                                    invalid = true;
+                                }
+                                break;
+                            }
+                            case Type.Number: {
+                                if (typeof v === 'string' && v.isNumeric()) {
+                                    args.push(parseFloat(v));
+                                    return true;
+                                } else if (typeof v === 'number') {
+                                    args.push(v);
+                                    return true;
+                                } else {
+                                    invalid = true;
+                                }
+                                break;
+                            }
+                            case Type.Boolean: {
+                                if (typeof v === 'string') {
+                                    switch (v.toLowerCase()) {
                                         case 'true':
                                         case '1':
                                             args.push(true);
@@ -397,33 +325,36 @@ export class Controller {
                                         default:
                                             invalid = true;
                                     }
-                                    break;
-                                case Type.HttpCreated:
-                                case Type.HttpModified:
-                                case Type.HttpAccepted: {
+                                } else if (typeof v === 'boolean') {
+                                    args.push(v);
+                                    return true;
+                                } else {
                                     invalid = true;
-                                    break;
                                 }
-                                default:
-                                    invalid = typeof v !== param.type;
+                                break;
                             }
-
-                            if (invalid) {
-                                reject(new BadRequestError(
-                                    failedParsing
-                                        ? `${param.name}:${param.type} is not a valid JSON object.`
-                                        : `'${param.name}' should be of type '${param.type}'`));
-                                return false;
+                            case Type.HttpCreated:
+                            case Type.HttpModified:
+                            case Type.HttpAccepted: {
+                                invalid = true;
+                                break;
                             }
+                            default:
+                                invalid = typeof v !== param.type;
                         }
-                    })) {
-                        (route.action.apply(this, args) as Promise<unknown>).then((result: unknown) => {
-                            resolve(result);
-                        }).catch((err: Error) => {
-                            console.error(err);
-                            reject((err as HttpError).status ? err : new ServerError(err));
-                        });
+
+                        if (invalid) {
+                            reject(new BadRequestError(`'${param.name}' should be of type '${param.type}'`));
+                            return false;
+                        }
                     }
+                })) {
+                    (route.action.apply(this, args) as Promise<unknown>).then((result: unknown) => {
+                        resolve(result);
+                    }).catch((err: Error) => {
+                        console.error(err);
+                        reject((err as HttpError).status ? err : new ServerError(err));
+                    });
                 }
             }
         })

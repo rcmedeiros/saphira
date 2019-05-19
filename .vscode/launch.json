@@ -19,6 +19,7 @@
             "sourceMaps": true,
             "cwd": "${workspaceRoot}",
             "protocol": "inspector",
+            "outputCapture": "std",
         },
         {
             "type": "node",

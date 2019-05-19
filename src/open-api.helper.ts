@@ -54,6 +54,19 @@ interface Parameter {
     required?: boolean;
     description?: string;
     example?: unknown;
+    style?: ParameterStyle;
+    explode?: boolean;
+    allowReserved?: boolean;
+}
+
+enum ParameterStyle {
+    simple = 'simple',
+    form = 'form',
+    label = 'label',
+    matrix = 'matrix',
+    pipeDelimited = 'pipeDelimited',
+    spaceDelimited = 'spaceDelimited',
+    deepObject = 'deepObject',
 }
 interface SchemaType {
     type?: string;
@@ -314,11 +327,11 @@ export class OpenAPIHelper {
                     }
 
                     if (action.handler.params) {
-
-                        // TODO: Took the fast route. Eliminate this repeated code in the future
+                        // If expects a body, parameters are actually items in the schema of a single content object
                         if (requestBody) {
                             const schema: Schema = {};
                             action.handler.params.forEach((param: Param) => {
+                                // except for path parameters. Those goes separated.
                                 if (param.path || param.parentPath) {
                                     endpoint.parameters = endpoint.parameters || [];
                                     endpoint.parameters.push({
@@ -330,7 +343,6 @@ export class OpenAPIHelper {
                                         example: param.example,
                                     });
                                 } else {
-
                                     if (param.reference) {
                                         schema[param.name] = { $ref: '#/components/schemas/' + param.reference };
                                     } else {
@@ -359,6 +371,7 @@ export class OpenAPIHelper {
                         } else {
                             endpoint.parameters = [];
                             action.handler.params.forEach((param: Param) => {
+                                // SEE: https://swagger.io/docs/specification/serialization/
                                 endpoint.parameters.push({
                                     in: param.path || param.parentPath ? 'path' : 'query',
                                     name: param.name,
@@ -366,10 +379,14 @@ export class OpenAPIHelper {
                                     required: param.required || param.path || param.parentPath,
                                     description: param.description,
                                     example: param.example,
+                                    style: param.type === Type.Object ? ParameterStyle.deepObject : undefined,
+                                    explode: param.type === Type.Object ? true
+                                        : param.type === Type.StringArray || param.type === Type.NumberArray ? false
+                                            : undefined,
+                                    allowReserved: param.type === Type.ObjectArray ? true : undefined,
                                 });
                             });
                         }
-
                     }
 
                     openAPI.paths[action.path] = openAPI.paths[action.path] || {};

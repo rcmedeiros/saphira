@@ -1,8 +1,11 @@
 import { before, after } from "mocha"
 import { Saphira } from '../src';
-import { Probe } from './sample_server/probe';
+import { Service1 } from './sample_server/service_1';
 
-let s: Saphira = new Saphira([Probe]);
+const PORT = 8080;
+export const URI = `http://localhost:${PORT}`;
+
+let s: Saphira = new Saphira([Service1], { port: PORT });
 before((done) => {
     s.listen().then(() => {
         done();

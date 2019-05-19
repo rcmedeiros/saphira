@@ -16,6 +16,14 @@ export class Responder {
 
     public static route = (controller: Controller, handler: Handler): RequestHandler =>
         (request: Request, response: Response, next: NextFunction): void => {
+            console.log(Saphira.VERBOSE);
+            if (Saphira.VERBOSE) {
+                console.debug(request.path);
+                console.debug('headers', request.headers);
+                console.debug('params', request.params);
+                console.debug('query', request.query);
+                console.debug('body', request.body);
+            }
             const t: [number, number] = process.hrtime();
             controller.handle(handler, request).then((result: unknown) => {
                 if (!result || (result && !(result as UnknownObj).handlerRejected)) {
@@ -43,15 +51,16 @@ export class Responder {
                         response.json(result);
                     }
                 }
+                if (Saphira.VERBOSE) {
+                    console.debug('response:', result);
+                }
             }).catch((err: Error) => {
                 console.error(JSON.stringify(err));
                 const code: number = (err as HttpError).status ? (err as HttpError).status : HttpStatusCode.INTERNAL_SERVER_ERROR;
-
-                if (code >= HttpStatusCode.INTERNAL_SERVER_ERROR && process.env.NODE_ENV && Saphira.PRODUCTION) {
-                    response.status(code).json({ error: MSG_HTTP_UNEXPECTED_ERROR });
-                } else {
-                    response.status(code).json({ message: err.message, stack: err.stack });
-                }
+                const json: object = code >= HttpStatusCode.INTERNAL_SERVER_ERROR && process.env.NODE_ENV && Saphira.PRODUCTION
+                    ? { error: MSG_HTTP_UNEXPECTED_ERROR }
+                    : { message: err.message, stack: err.stack };
+                response.status(code).json(json);
             }).then(next).catch((err: Error) => console.error({ err }));
         }
 }

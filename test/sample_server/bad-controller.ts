@@ -3,7 +3,7 @@ import { Controller, Method, Type } from '../../src/index';
 export class BadController extends Controller {
 
     public constructor(apiPath?: string) {
-        super(apiPath, { description: 'Test Probe' });
+        super(apiPath, { description: 'Test BadController' });
 
         this.route('doSomething', {
             tag: {
