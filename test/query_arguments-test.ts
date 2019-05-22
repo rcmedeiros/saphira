@@ -3,159 +3,149 @@ import './setup';
 import { it, describe } from "mocha"
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
-import { URI } from './setup';
+import { SERVICE_1_GET_OPTIONAL, URI } from './setup';
+import { testSuccess } from './template';
 chai.should();
 
 chai.use(chaiHttp)
 
 
-describe('Argument Types for queries', () => {
+describe('Argument types for queries', () => {
 
     it('should serialize boolean', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?a=true').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [true, null, null, null, null, null, null, null, null, null]
-                ].toString());
-            };
-            chai.request(URI).get('/api/Service1/getOptional?a=1').end((err, res) => {
-                if (!err) {
-                    expect(res.body.toString()).to.be.equal([
-                        [true, null, null, null, null, null, null, null, null, null]
-                    ].toString());
-                };
-                chai.request(URI).get('/api/Service1/getOptional?a=false').end((err, res) => {
-                    if (!err) {
-                        expect(res.body.toString()).to.be.equal([
-                            [false, null, null, null, null, null, null, null, null, null]
-                        ].toString());
-                    };
-                    chai.request(URI).get('/api/Service1/getOptional?a=0').end((err, res) => {
-                        if (!err) {
-                            expect(res.body.toString()).to.be.equal([
-                                [false, null, null, null, null, null, null, null, null, null]
-                            ].toString());
-                        };
-                        done(err);
-                    });
-                });
-            });
-        });
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=0`, [false, null, null, null, null, null, null, null, null, null], 'accept 0'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=f`, [false, null, null, null, null, null, null, null, null, null], 'accept f'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=false`, [false, null, null, null, null, null, null, null, null, null], 'accept false'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=No`, [false, null, null, null, null, null, null, null, null, null], 'accept No'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=n`, [false, null, null, null, null, null, null, null, null, null], 'accept n'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=T`, [true, null, null, null, null, null, null, null, null, null], 'accept T'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=true`, [true, null, null, null, null, null, null, null, null, null], 'accept true'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=Y`, [true, null, null, null, null, null, null, null, null, null], 'accept Y'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=yes`, [true, null, null, null, null, null, null, null, null, null], 'accept yes'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?a=1`, [true, null, null, null, null, null, null, null, null, null], 'accept 1'));
+
+        Promise.all(promises).then(() => done(), done);
     });
+
     it('should serialize Date', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?b=1980-06-09').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [null, '1980-06-09T00:00:00.000Z', null, null, null, null, null, null, null, null]
-                ].toString());
-            };
-            done(err);
-        });
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?b=1980-06-09`,
+            [null, '1980-06-09T00:00:00.000Z', null, null, null, null, null, null, null, null],
+            'accept ISO 8601 date part'));
+
+        Promise.all(promises).then(() => done(), done);
     });
+
     it('should serialize DateTime', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?c=1980-06-09T16:00Z').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [null, null, '1980-06-09T16:00:00.000Z', null, null, null, null, null, null, null]
-                ].toString());
-            };
-            done(err);
-        });
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?c=1980-06-09T16:00Z`,
+            [null, null, '1980-06-09T16:00:00.000Z', null, null, null, null, null, null, null],
+            'accept ISO 8601'));
+
+        Promise.all(promises).then(() => done(), done);
     });
+
     it('should serialize number', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?d=12.34').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [null, null, null, 12.34, null, null, null, null, null, null]
-                ].toString());
-            };
-            done(err);
-        });
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?d=12.34`,
+            [null, null, null, 12.34, null, null, null, null, null, null],
+            'float'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?d=13`,
+            [null, null, null, 13, null, null, null, null, null, null],
+            'integer'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?d=-5`,
+            [null, null, null, -5, null, null, null, null, null, null],
+            'negative'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?d=0`,
+            [null, null, null, 0, null, null, null, null, null, null],
+            'zero'));
+
+        Promise.all(promises).then(() => done(), done);
     });
+
     it('should serialize array of numbers', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?e=0,1,2.34,-1').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [null, null, null, null, [0, 1, 2.34, -1], null, null, null, null, null]
-                ].toString());
-            };
-            chai.request(URI).get('/api/Service1/getOptional?e=0&e=1&e=2.34&e=-1').end((err, res) => {
-                if (!err) {
-                    expect(res.body.toString()).to.be.equal([
-                        [null, null, null, null, [0, 1, 2.34, -1], null, null, null, null, null]
-                    ].toString());
-                };
-                done(err);
-            });
-        });
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?e=0,1,2.34,-1`,
+            [null, null, null, null, [0, 1, 2.34, -1], null, null, null, null, null],
+            'comma separated'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?e=0&e=1&e=2.34&e=-1`,
+            [null, null, null, null, [0, 1, 2.34, -1], null, null, null, null, null],
+            'OpenAPI default'));
+
+        Promise.all(promises).then(() => done(), done);
     });
+
     it('should serialize objects', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?f[name]=Kaladin&f[age]=20').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [null, null, null, null, null, { name: 'Kaladin', age: 20 }, null, null, null, null]
-                ].toString());
-            };
-            chai.request(URI).get('/api/Service1/getOptional?f={"name":"Kaladin","age":20,"inner":{"name":"Kaladin","age":20}}').end((err, res) => {
-                if (!err) {
-                    expect(res.body.toString()).to.be.equal([
-                        [null, null, null, null, null, { name: 'Kaladin', age: 20, inner: { name: 'Kaladin', age: 20 } }, null, null, null, null]
-                    ].toString());
-                };
-                done(err);
-            });
-        });
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?f[name]=Kaladin&f[age]=20`,
+            [null, null, null, null, null, { name: 'Kaladin', age: "20" }, null, null, null, null],
+            'OpenAPI default'));
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?f={"name":"Kaladin","age":20,"inner":{"name":"Kaladin","age":20}}`,
+            [null, null, null, null, null, { name: 'Kaladin', age: 20, inner: { name: 'Kaladin', age: 20 } }, null, null, null, null],
+            'JSON stringified'));
+
+        Promise.all(promises).then(() => done(), done);
     });
+
     it('should serialize array of objects', (done) => {
 
-        const objects: Array<object> = [{ name: 'Dalinar', age: 53, inner: { name: 'Dalinar', age: 53 } },
-        { name: 'Adolin', age: 25, inner: { name: 'Adolin', age: 25 } },
-        { name: 'Renarin', age: 21, inner: { name: 'Renarin', age: 21 } }];
-        const stringResult: string = JSON.stringify(
-            [null, null, null, null, null, null, objects, null, null, null]);
+        const objects: Array<object> = [
+            { name: 'Dalinar', age: 53, surgeBinding: { order: 'BondSmith', bond: 'Stormfather', surges: ['Tension', 'Adhesion'] } },
+            { name: 'Adolin', age: 20, surgeBinding: undefined },
+            { name: 'Renarin', age: 21, surgeBinding: { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] } }];
+        const expected: unknown = [null, null, null, null, null, null, objects, null, null, null];
 
-        chai.request(URI).get('/api/Service1/getOptional?' +
-            'g=%7B%20%22name%22:%20%22Dalinar%22,%20%22age%22:%2053,%20%22inner%22:%7B%20%22name%22:%20%22Dalinar%22,%20%22age%22:%2053%20%7D%20%7D&' +
-            'g=%7B%20%22name%22:%20%22Adolin%22,%20%22age%22:%2025,%20%22inner%22:%7B%20%22name%22:%20%22Adolin%22,%20%22age%22:%2025%20%7D%20%7D&' +
-            'g=%7B%20%22name%22:%20%22Renarin%22,%20%22age%22:%2021,%20%22inner%22:%7B%20%22name%22:%20%22Renarin%22,%20%22age%22:%2021%20%7D%20%7D'
-        ).end((err, res) => {
-            if (!err) {
-                expect(JSON.stringify(res.body)).to.be.equal(stringResult);
-            };
-            const easyQuery: string = '/api/Service1/getOptional?g=' + JSON.stringify(objects);
-            chai.request(URI).get(easyQuery).end((err, res) => {
-                if (!err) {
-                    expect(JSON.stringify(res.body)).to.be.equal(stringResult);
-                };
-                chai.request(URI).get(easyQuery.safeReplace('[', '').safeReplace(']', '')).end((err, res) => {
-                    if (!err) {
-                        expect(JSON.stringify(res.body)).to.be.equal(stringResult);
-                    };
-                    done(err);
-                });
-            });
-        });
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?` +
+            'g={"name":"Dalinar","age":53,"surgeBinding":{"order":"BondSmith","bond":"Stormfather","surges":["Tension","Adhesion"]}}&' +
+            'g={"name":"Adolin","age":20}&' +
+            'g={"name":"Renarin","age":21,"surgeBinding":{"order":"TruthWatchers","bond":"Glys","surges":["Progression","Illumination"]}}'
+            //.replace('"', '%22').replace('{', '%7B').replace('}', '%7D')
+            , expected, 'OpenAPI default'));
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?g=${JSON.stringify(objects)}`, expected, 'JSON stringified'));
+        promises.push(testSuccess(
+            `${SERVICE_1_GET_OPTIONAL}?g=${JSON.stringify(objects[0])},${JSON.stringify(objects[1])},${JSON.stringify(objects[2])}`,
+            expected, 'JSON stringified without []s'));
+
+
+        Promise.all(promises).then(() => done(), done);
     });
+
     it('should serialize strings', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?h=abc123&i=Sylphrena').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [null, null, null, null, null, null, null, 'abc123', 'Sylphrena', null]
-                ].toString());
-                done(err);
-            };
-        });
-    });
-    it('should serialize Array of strings', (done) => {
-        chai.request(URI).get('/api/Service1/getOptional?j=Sylphrena,Pattern,Ivory,Glys,Wyndle,Stormfather').end((err, res) => {
-            if (!err) {
-                expect(res.body.toString()).to.be.equal([
-                    [null, null, null, null, null, null, null, null, null,
-                        ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather']]
-                ].toString());
-                done(err);
-            };
-        });
+
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?h=~%21%40%23%24%25%5E%26%2A%28%29_%2B%7B%7D%3A%22%3C%3E%3F%7C-%3D%5B%5D%5C%3B%27%2C.%2F&i=Sylphrena`,
+            [null, null, null, null, null, null, null, '~!@#$%^&*()_+{}:"<>?|-=[]\\;\',./', 'Sylphrena', null],
+            'strings and passwords'));
+
+
+        Promise.all(promises).then(() => done(), done);
     });
 
+    it('should serialize Array of strings', (done) => {
+        const promises: Array<Promise<void>> = [];
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?j=Sylphrena&j=Pattern&j=Ivory&j=Glys&j=Wyndle&j=Stormfather`,
+            [null, null, null, null, null, null, null, null, null,
+                ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather']],
+            'OpenAPI default'));
+
+        promises.push(testSuccess(`${SERVICE_1_GET_OPTIONAL}?j=Sylphrena,Pattern,Ivory,Glys,Wyndle,Stormfather`,
+            [null, null, null, null, null, null, null, null, null,
+                ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather']],
+            'OpenAPI default'));
+
+
+        Promise.all(promises).then(() => done(), done);
+    });
 });

@@ -170,7 +170,6 @@ export class Controller {
                         resolve({ handlerRejected: 'FALSE_PATH_PARAM' });
                     } else {
                         let invalid: boolean = false;
-                        let failedParsing: boolean = false;
                         switch (param.type) {
                             case Type.StringArray: {
                                 if (typeof v === 'string') {
@@ -197,7 +196,6 @@ export class Controller {
                                                 x.push(parseFloat(e));
                                                 return true;
                                             } catch {
-                                                failedParsing = true;
                                                 return false;
                                             }
                                         } else {
@@ -227,12 +225,11 @@ export class Controller {
                                 if (typeof v === 'object' && v.constructor === Object) {
                                     args.push(v);
                                     return true;
-                                } else if (typeof v === 'string') {
+                                } else if (typeof v === 'string' && v.trim().firstChar() === '{') {
                                     try {
                                         args.push(JSON.parse(v) as object);
                                         return true;
                                     } catch {
-                                        failedParsing = true;
                                         invalid = true;
                                     }
                                 } else {
@@ -248,7 +245,6 @@ export class Controller {
                                             try {
                                                 w.push(JSON.parse(e) as object);
                                             } catch {
-                                                failedParsing = true;
                                                 return false;
                                             }
                                             return true;
@@ -261,12 +257,17 @@ export class Controller {
                                     }));
                                 } else if (typeof v === 'string') {
                                     try {
-                                        w = v.firstChar() !== '[' && v.lastChar() !== ']'
-                                            ? JSON.parse(`[${v}]`) as Array<object>
-                                            : JSON.parse(v) as Array<object>;
+                                        const x: string = v.trim();
+                                        if (x.firstChar() !== '[' && x.lastChar() !== ']' && x.firstChar() === '{') {
+                                            w = JSON.parse(`[${x}]`) as Array<object>;
+                                        } else if (x.firstChar() === '[') {
+                                            w = JSON.parse(x) as Array<object>;
+                                        } else {
+                                            invalid = true;
+                                        }
+
                                     } catch {
                                         invalid = true;
-                                        failedParsing = true;
                                     }
                                 } else {
                                     invalid = true;
@@ -279,12 +280,21 @@ export class Controller {
                             }
                             case Type.Date:
                             case Type.DateTime: {
-                                const n: number = typeof v === 'string' ? Date.parse(v) : v as number;
-                                invalid = isNaN(n);
-                                if (!invalid) {
-                                    args.push(new Date(n));
-                                    return true;
+                                if (typeof v === 'string') {
+                                    if (!v.replaceAll('-', '').replaceAll(':', '').replace('T', '').replaceIgnoreCase('Z', '').replace('+', '').isNumeric()) {
+                                        invalid = true;
+                                    } else {
+                                        const n: number = typeof v === 'string' ? Date.parse(v) : v as number;
+                                        invalid = isNaN(n);
+                                        if (!invalid) {
+                                            args.push(new Date(n));
+                                            return true;
+                                        }
+                                    }
+                                } else {
+                                    invalid = true;
                                 }
+
                                 break;
                             }
                             case Type.String:
@@ -314,11 +324,17 @@ export class Controller {
                             case Type.Boolean: {
                                 if (typeof v === 'string') {
                                     switch (v.toLowerCase()) {
+                                        case 't':
                                         case 'true':
+                                        case 'y':
+                                        case 'yes':
                                         case '1':
                                             args.push(true);
                                             return true;
+                                        case 'f':
                                         case 'false':
+                                        case 'n':
+                                        case 'no':
                                         case '0':
                                             args.push(false);
                                             return true;

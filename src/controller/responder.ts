@@ -16,7 +16,6 @@ export class Responder {
 
     public static route = (controller: Controller, handler: Handler): RequestHandler =>
         (request: Request, response: Response, next: NextFunction): void => {
-            console.log(Saphira.VERBOSE);
             if (Saphira.VERBOSE) {
                 console.debug(request.path);
                 console.debug('headers', request.headers);
