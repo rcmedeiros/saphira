@@ -2,8 +2,6 @@ import '@rcmedeiros/prototypes';
 import { Request } from 'express';
 import v4 from 'uuid/v4';
 import { BadRequestError } from '../errors/bad_request-error';
-import { HttpError } from '../errors/http-error';
-import { ServerError } from '../errors/server.error';
 import { UnknownObj } from './unknown-obj';
 
 export interface Param {
@@ -93,24 +91,28 @@ export class Controller {
             let parentPathParameter: string;
             if (handler.params) {
                 handler.params.forEach((parameter: Param) => {
-                    if (parameter.path) {
-                        paths.push(`${paths.last()}/:${parameter.name}`);
-                        paths.shift();
-                    } else if (parameter.parentPath) {
-                        if (!parentPathParameter) {
-                            paths.push(`/${this.apiPath}/${this.constructor.name}/:${parameter.name}${path !== '' ? '/' + path : ''}`);
+                    if ([Type.HttpAccepted, Type.HttpCreated, Type.HttpModified].indexOf(parameter.type) === -1) {
+                        if (parameter.path) {
+                            paths.push(`${paths.last()}/:${parameter.name}`);
                             paths.shift();
-                            parentPathParameter = parameter.name;
-                        } else {
-                            throw new Error(`Only one path parameter allowed between. ${parentPathParameter} and ${parameter.name} are conflicting.`);
+                        } else if (parameter.parentPath) {
+                            if (!parentPathParameter) {
+                                paths.push(`/${this.apiPath}/${this.constructor.name}/:${parameter.name}${path !== '' ? '/' + path : ''}`);
+                                paths.shift();
+                                parentPathParameter = parameter.name;
+                            } else {
+                                throw new Error(`Only one path parameter allowed between. ${parentPathParameter} and ${parameter.name} are conflicting`);
+                            }
                         }
-                    }
-                    if (!parameter.ignore) {
-                        parameter.ignore = [];
-                    } else if (parameter.ignore.length) { // FIXME: This should be calculated, not declared
-                        for (let i: number = 0; i < parameter.ignore.length; i++) {
-                            parameter.ignore[i] = parameter.ignore[i].toLowerCase();
+                        if (!parameter.ignore) {
+                            parameter.ignore = [];
+                        } else { // FIXME: This should be calculated, not declared
+                            for (let i: number = 0; i < parameter.ignore.length; i++) {
+                                parameter.ignore[i] = parameter.ignore[i].toLowerCase();
+                            }
                         }
+                    } else {
+                        throw new Error(`${parameter.type} is not a valid parameter type`);
                     }
                 });
             }
@@ -122,11 +124,11 @@ export class Controller {
                 if (!this.handlers[p][handler.method]) {
                     this.handlers[p][handler.method] = handler;
                 } else {
-                    throw new Error(`The route for ${(handler.method.toUpperCase())} ${p} is already handled.`);
+                    throw new Error(`The route for ${(handler.method.toUpperCase())} ${p} is already handled`);
                 }
             });
         } else {
-            throw new Error('The number of method arguments must match then number of declared parameters.');
+            throw new Error('The operation and its method must declare the same parameters');
         }
     }
 
@@ -143,14 +145,12 @@ export class Controller {
     }
 
     public handle = async (route: Handler, request: Request): Promise<unknown> =>
-        new Promise<unknown>((resolve: Function, reject: Function): void => {
+        new Promise<unknown>((resolve: Function, reject: (reason: unknown) => void): void => {
 
             if (!route.params) {
                 (route.action.apply(this) as Promise<unknown>).then((result: unknown) => {
                     resolve(result);
-                }).catch((err: Error) => {
-                    reject(new ServerError(err));
-                });
+                }, reject);
             } else {
                 const args: Array<unknown> = [];
 
@@ -158,9 +158,9 @@ export class Controller {
                     const v: unknown = param.path || param.parentPath ? (request.params as UnknownObj)[param.name]
                         : route.method === Method.GET || route.method === Method.DELETE ? (request.query as UnknownObj)[param.name]
                             : (request.body as UnknownObj)[param.name];
-                    if (v === null || v === undefined) {
+                    if (v === null || v === undefined || v === '') {
                         if (param.required) {
-                            reject(param.name + ' is required');
+                            reject(new BadRequestError(param.name + ' is required'));
                             return false;
                         } else {
                             args.push(undefined);
@@ -169,7 +169,6 @@ export class Controller {
                     } else if (param.ignore && param.ignore.indexOf((v as string).toString().toLocaleLowerCase()) >= 0) {
                         resolve({ handlerRejected: 'FALSE_PATH_PARAM' });
                     } else {
-                        let invalid: boolean = false;
                         switch (param.type) {
                             case Type.StringArray: {
                                 if (typeof v === 'string') {
@@ -179,12 +178,11 @@ export class Controller {
                                     && (v as Array<unknown>).every((e: unknown) => typeof e === 'string')) {
                                     args.push(v);
                                     return true;
-                                } else {
-                                    invalid = true;
                                 }
                                 break;
                             }
                             case Type.NumberArray: {
+                                let invalid: boolean = false;
                                 const x: Array<number> = [];
                                 if (typeof v === 'object' && v.constructor === Array) {
                                     invalid = !((v as Array<number>).every((e: unknown) => {
@@ -192,18 +190,14 @@ export class Controller {
                                             x.push(e);
                                             return true;
                                         } else if (typeof e === 'string' && e.isNumeric()) {
-                                            try {
-                                                x.push(parseFloat(e));
-                                                return true;
-                                            } catch {
-                                                return false;
-                                            }
+                                            x.push(parseFloat(e));
+                                            return true;
                                         } else {
                                             return false;
                                         }
                                     }));
                                 } else if (typeof v === 'string') {
-                                    const w: Array<string> = v.split(',');
+                                    const w: Array<string> = v.strip('[', ']').split(',');
                                     invalid = !(w.every((e: string) => {
                                         if (e.isNumeric()) {
                                             x.push(parseFloat(e));
@@ -213,7 +207,7 @@ export class Controller {
                                         }
                                     }));
                                 } else {
-                                    return false;
+                                    invalid = true;
                                 }
                                 if (!invalid) {
                                     args.push(x);
@@ -230,14 +224,13 @@ export class Controller {
                                         args.push(JSON.parse(v) as object);
                                         return true;
                                     } catch {
-                                        invalid = true;
+                                        //
                                     }
-                                } else {
-                                    invalid = true;
                                 }
                                 break;
                             }
                             case Type.ObjectArray: {
+                                let invalid: boolean = false;
                                 let w: Array<object> = [];
                                 if (typeof v === 'object' && v.constructor === Array) {
                                     invalid = !((v as Array<unknown>).every((e: unknown) => {
@@ -249,7 +242,7 @@ export class Controller {
                                             }
                                             return true;
                                         } else if (typeof e === 'object' && e.constructor === Object) {
-                                            args.push(v);
+                                            w.push(e);
                                             return true;
                                         } else {
                                             return false;
@@ -262,10 +255,10 @@ export class Controller {
                                             w = JSON.parse(`[${x}]`) as Array<object>;
                                         } else if (x.firstChar() === '[') {
                                             w = JSON.parse(x) as Array<object>;
+                                            invalid = !w.every((f: unknown) => typeof f === 'object');
                                         } else {
                                             invalid = true;
                                         }
-
                                     } catch {
                                         invalid = true;
                                     }
@@ -280,33 +273,24 @@ export class Controller {
                             }
                             case Type.Date:
                             case Type.DateTime: {
+                                let invalid: boolean = false;
+                                let d: Date;
                                 if (typeof v === 'string') {
-                                    if (!v.replaceAll('-', '').replaceAll(':', '').replace('T', '').replaceIgnoreCase('Z', '').replace('+', '').isNumeric()) {
-                                        invalid = true;
-                                    } else {
-                                        const n: number = typeof v === 'string' ? Date.parse(v) : v as number;
-                                        invalid = isNaN(n);
-                                        if (!invalid) {
-                                            args.push(new Date(n));
-                                            return true;
-                                        }
+                                    if (v.isNumeric() && Number.isInteger(parseFloat(v))) {
+                                        d = new Date(parseInt(v));
+                                    } else if (v.stripIgnoreCase('-', ':', '.', '+', 'T', 'Z').isNumeric()) {
+                                        d = new Date(Date.parse(v));
                                     }
-                                } else {
-                                    invalid = true;
+                                } else if (typeof v === 'number' && Number.isInteger(v)) {
+                                    d = new Date(v);
                                 }
 
-                                break;
-                            }
-                            case Type.String:
-                            case Type.Password:
-                            case Type.Base64:
-                            case Type.Binary: {
-                                if (typeof v === 'string') {
-                                    args.push(v);
+                                invalid = !d || isNaN(d.getTime());
+                                if (!invalid) {
+                                    args.push(d);
                                     return true;
-                                } else {
-                                    invalid = true;
                                 }
+
                                 break;
                             }
                             case Type.Number: {
@@ -316,61 +300,43 @@ export class Controller {
                                 } else if (typeof v === 'number') {
                                     args.push(v);
                                     return true;
-                                } else {
-                                    invalid = true;
                                 }
                                 break;
                             }
                             case Type.Boolean: {
-                                if (typeof v === 'string') {
+                                if (typeof v === 'boolean') {
+                                    args.push(v);
+                                    return true;
+                                } else if (typeof v === 'string') {
                                     switch (v.toLowerCase()) {
-                                        case 't':
-                                        case 'true':
-                                        case 'y':
-                                        case 'yes':
-                                        case '1':
+                                        case 't': case 'true': case 'y': case 'yes': case '1':
                                             args.push(true);
                                             return true;
-                                        case 'f':
-                                        case 'false':
-                                        case 'n':
-                                        case 'no':
-                                        case '0':
+                                        case 'f': case 'false': case 'n': case 'no': case '0':
                                             args.push(false);
                                             return true;
                                         default:
-                                            invalid = true;
                                     }
-                                } else if (typeof v === 'boolean') {
-                                    args.push(v);
-                                    return true;
-                                } else {
-                                    invalid = true;
                                 }
                                 break;
                             }
-                            case Type.HttpCreated:
-                            case Type.HttpModified:
-                            case Type.HttpAccepted: {
-                                invalid = true;
-                                break;
+                            default: {
+                                if (typeof v === 'string') {
+                                    args.push(v);
+                                    return true;
+                                }
                             }
-                            default:
-                                invalid = typeof v !== param.type;
+
                         }
 
-                        if (invalid) {
-                            reject(new BadRequestError(`'${param.name}' should be of type '${param.type}'`));
-                            return false;
-                        }
+                        reject(new BadRequestError(`${param.name} should be of type ${param.type}`));
+                        return false;
+
                     }
                 })) {
                     (route.action.apply(this, args) as Promise<unknown>).then((result: unknown) => {
                         resolve(result);
-                    }).catch((err: Error) => {
-                        console.error(err);
-                        reject((err as HttpError).status ? err : new ServerError(err));
-                    });
+                    }, reject);
                 }
             }
         })

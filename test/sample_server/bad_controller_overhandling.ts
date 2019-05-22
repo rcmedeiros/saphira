@@ -1,6 +1,6 @@
 import { Controller, Method, Type } from '../../src/index';
 
-export class BadController extends Controller {
+export class BadControllerOverhandling extends Controller {
 
     public constructor(apiPath?: string) {
         super(apiPath, { description: 'Test BadController' });

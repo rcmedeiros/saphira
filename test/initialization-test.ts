@@ -1,15 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import { it, describe, beforeEach, afterEach } from "mocha"
+import { it, describe } from "mocha"
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import { Service1 } from './sample_server/service_1';
-import { Saphira, SaphiraOptions, Controller } from '../src';
+import { Saphira, SaphiraOptions } from '../src';
 import { ENDPOINT_HEALTH_CHECK, DEFAULT_HTTPS_PORT, DEFAULT_HTTP_PORT, UTF8, HEADER_X_HRTIME } from "../src/constants/settings";
 import { HttpStatusCode } from "../src/errors/http_status_codes";
 import selfSigned, { SelfSignedPEMs } from 'selfsigned';
-import { BadController } from './sample_server/bad-controller';
-import { WriteStream } from 'tty';
+import { BadControllerOverhandling } from './sample_server/bad_controller_overhandling';
+import { BadControllerInvalidParameterType } from './sample_server/bad_controller_invalid_parameter_type';
+import { BadControllerParametersMismatch } from './sample_server/bad_controller_parameters_mismatch';
+import { BadControllerTwoParentPathParameters } from './sample_server/bad_controller_two_parent_path_parameters';
 
 chai.should();
 chai.use(chaiHttp)
@@ -80,8 +82,6 @@ describe('Healthy Initialization', () => {
         healthyStart(done, { servers: [{ url: new URL('http://localhost'), description: 'Test Description' }] })
     });
 
-
-
     it('Should work with SSL', (done) => {
         selfSigned.generate([{ name: 'commonName', value: 'localhost' }], { days: 365 }, (err: Error, pems: SelfSignedPEMs) => {
             healthyStart(done, { https: { cert: pems.cert, key: pems.private } });
@@ -92,9 +92,18 @@ describe('Healthy Initialization', () => {
 
 describe('Problems', () => {
 
-    it('Should fail with a wrong controller', () => {
-        expect(() => new Saphira([BadController])).to.throw('The route for GET /api/BadController/doSomething is already handled.')
+    it('Should fail with when assigning a route twice', () => {
+        expect(() => new Saphira([BadControllerOverhandling])).to.throw('The route for GET /api/BadControllerOverhandling/doSomething is already handled')
     });
 
+    it('Should fail when using invalid parameter type', () => {
+        expect(() => new Saphira([BadControllerInvalidParameterType])).to.throw('Http202 is not a valid parameter type')
+    });
+    it('Should fail when using invalid parameter type', () => {
+        expect(() => new Saphira([BadControllerParametersMismatch])).to.throw('The operation and its method must declare the same parameters')
+    });
+    it('Should fail when declaring two parent path parameters', () => {
+        expect(() => new Saphira([BadControllerTwoParentPathParameters])).to.throw('Only one path parameter allowed between. a and b are conflicting')
+    });
 
 })

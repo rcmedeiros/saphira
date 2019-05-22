@@ -17,7 +17,7 @@ export class Responder {
     public static route = (controller: Controller, handler: Handler): RequestHandler =>
         (request: Request, response: Response, next: NextFunction): void => {
             if (Saphira.VERBOSE) {
-                console.debug(request.path);
+                console.debug(`${request.method} ${request.path}`);
                 console.debug('headers', request.headers);
                 console.debug('params', request.params);
                 console.debug('query', request.query);
@@ -56,7 +56,7 @@ export class Responder {
             }).catch((err: Error) => {
                 console.error(JSON.stringify(err));
                 const code: number = (err as HttpError).status ? (err as HttpError).status : HttpStatusCode.INTERNAL_SERVER_ERROR;
-                const json: object = code >= HttpStatusCode.INTERNAL_SERVER_ERROR && process.env.NODE_ENV && Saphira.PRODUCTION
+                const json: object = code >= HttpStatusCode.INTERNAL_SERVER_ERROR && Saphira.PRODUCTION
                     ? { error: MSG_HTTP_UNEXPECTED_ERROR }
                     : { message: err.message, stack: err.stack };
                 response.status(code).json(json);

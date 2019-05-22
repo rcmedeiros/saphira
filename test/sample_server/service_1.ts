@@ -1,135 +1,167 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import { Controller, Method, Type } from '../../src/index';
+import { Controller, Method, Type, BadRequestError, ServerError, BadGatewayError } from '../../src/index';
+import { SampleObject } from '../template';
 
-interface SampleObject {
-    name: string;
-    age: number;
-    active: boolean;
-}
 export class Service1 extends Controller {
 
     public constructor(apiPath?: string) {
-        super(apiPath, { description: 'Test Service1' });
+        super(apiPath, { description: 'Test Service 1' });
 
-        this.route('getOptional', {
+        this.route('queryParameters', {
             tag: {
-                summary: `Do that thing`,
-                description: 'Does the thing you think it\'s done',
+                summary: `Service 1's query parameters operation`,
+                description: 'Accepts all data types in the query and returns an array of the results',
             },
             method: Method.GET,
-            action: this.getOptionalReturnArray,
+            action: this.operation1,
             params:
                 [{
                     name: 'a',
                     type: Type.Boolean,
-                    description: 'Boolean',
+                    description: 'Boolean parameter',
                     example: false,
                 }, {
                     name: 'b', type: Type.Date,
-                    description: 'Date',
+                    description: 'Date parameter',
                     example: new Date(Date.UTC(1980, 5, 9)),
                 }, {
                     name: 'c', type: Type.DateTime,
-                    description: 'DateTime',
-                    example: new Date(Date.UTC(1980, 5, 9, 16, 0)),
+                    description: 'DateTime parameter',
+                    example: new Date(Date.UTC(1980, 5, 9, 19, 0)),
                 }, {
                     name: 'd', type: Type.Number,
-                    description: 'Number',
+                    description: 'Number parameter',
                     example: 123,
                 }, {
                     name: 'e', type: Type.NumberArray,
-                    description: 'NumberArray',
+                    description: 'NumberArray parameter',
                     example: [1, 2, 3],
                 }, {
                     name: 'f', type: Type.Object,
-                    description: 'Object',
+                    description: 'Object parameter',
                     example: { name: 'Kaladin', age: 20 },
                 }, {
                     name: 'g', type: Type.ObjectArray,
-                    description: 'ObjectArray',
-                    example: [{ name: 'Dalinar', age: 53 }, { name: 'Adolin', age: 25 }, { name: 'Renarin', age: 21 }],
+                    description: 'ObjectArray parameter',
+                    example: [{ name: 'Dalinar', age: 53, surgeBinding: { order: 'BondSmith', bond: 'Stormfather', surges: ['Tension', 'Adhesion'] } },
+                    { name: 'Adolin', age: 20, surgeBinding: undefined },
+                    { name: 'Renarin', age: 21, surgeBinding: { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] } }],
                 }, {
                     name: 'h', type: Type.Password,
-                    description: 'Password',
-                    example: 'abc123'
+                    description: 'Password parameter',
+                    example: '~!@#$%^&*()_+{}:"<>?|-=[]\\;\',./'
                 }, {
                     name: 'i', type: Type.String,
-                    description: 'String',
+                    description: 'String parameter',
                     example: 'Sylphrena',
                 }, {
                     name: 'j', type: Type.StringArray,
-                    description: 'StringArray',
+                    description: 'StringArray parameter',
                     example: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather']
                 }],
-            response: { type: Type.ObjectArray, description: 'The Thing' },
+            response: { type: Type.ObjectArray, description: 'An array representing all the parameters' },
         });
 
-        this.route('getRequired', {
+        this.route('noParameter', {
             tag: {
-                summary: `Do that thing`,
-                description: 'Does the thing you think it\'s done',
+                summary: `Service 1's parameter-less operation`,
+                description: 'No parameter in, nothing out',
             },
             method: Method.GET,
-            action: this.getRequiredReturnObject,
-            params:
-                [{
-                    name: 'a',
-                    type: Type.Boolean,
-                    description: 'Boolean',
-                    example: false,
-                    required: true,
-                }, {
-                    name: 'b', type: Type.Date,
-                    description: 'Date',
-                    example: new Date(Date.UTC(1980, 5, 9)),
-                    required: true
-                }, {
-                    name: 'c', type: Type.DateTime,
-                    description: 'DateTime',
-                    example: new Date(Date.UTC(1980, 5, 9, 16, 0)),
-                    required: true
-                }, {
-                    name: 'd', type: Type.Number,
-                    description: 'Number',
-                    example: 123,
-                    required: true
-                }, {
-                    name: 'e', type: Type.NumberArray,
-                    description: 'NumberArray',
-                    example: [1, 2, 3],
-                    required: true,
-                }, {
-                    name: 'f', type: Type.Object,
-                    description: 'Object',
-                    example: { name: 'Kaladin', age: 20 },
-                    required: true,
-                }, {
-                    name: 'g', type: Type.ObjectArray,
-                    description: 'ObjectArray',
-                    example: [{ name: 'Dalinar', age: 53 }, { name: 'Adolin', age: 25 }, { name: 'Renarin', age: 21 }],
-                    required: true,
-                }, {
-                    name: 'h', type: Type.Password,
-                    description: 'Password',
-                    example: 'abc123',
-                    required: true,
-                }, {
-                    name: 'i', type: Type.String,
-                    description: 'String',
-                    example: 'Sylphrena',
-                    required: true,
-                }, {
-                    name: 'j', type: Type.StringArray,
-                    description: 'StringArray',
-                    example: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],
-                    required: true,
-                }],
-            response: { type: Type.Object, description: 'The arguments' },
+            action: this.noParameter,
+            response: { type: Type.HttpAccepted, description: 'An acknowledgment' },
+        });
+
+        this.route('pathParameter', {
+            tag: {
+                summary: `Service 1's operation with path parameter`,
+            },
+            params: [{
+                name: 'id', type: Type.Number,
+                path: true,
+                description: 'ID',
+                example: 1234,
+            }, {
+                name: 'sure', type: Type.Boolean,
+                description: 'Are you sure?',
+                required: true,
+                example: true,
+            }],
+            method: Method.DELETE,
+            action: this.deleteWithPathParameter,
+            response: { type: Type.HttpModified, description: 'An acknowledgment' },
+        });
+
+        this.route('parentPathParameter', {
+            tag: {
+                summary: `Service 1's with path parameter before operation`,
+            },
+            params: [{
+                name: 'id', type: Type.Number,
+                parentPath: true,
+                description: 'ID',
+                example: 6789,
+            }, {
+                name: 'what', type: Type.String,
+                description: 'Are do you with to append?',
+                required: true,
+                example: 'Hello World',
+            }],
+            method: Method.PUT,
+            action: this.putWithParentPathParameter,
+            response: { type: Type.HttpModified },
+        });
+
+        this.route('willThrowError1', {
+            method: Method.GET,
+            action: this.willThrowError1,
+            response: { type: Type.HttpAccepted },
+        });
+        this.route('willThrowError2', {
+            method: Method.GET,
+            action: this.willThrowError2,
+            response: { type: Type.HttpAccepted },
+        });
+
+        this.route('willThrowError3', {
+            method: Method.GET,
+            params: [
+                {
+                    name: 'id', type: Type.Number,
+                    description: 'ID',
+                    example: 1,
+                }
+            ],
+            action: this.willThrowError3,
+            response: { type: Type.HttpAccepted },
+        });
+        this.route('willThrowError4', {
+            method: Method.GET,
+            params: [
+                {
+                    name: 'id', type: Type.Number,
+                    description: 'ID',
+                    example: 1,
+                }
+            ],
+            action: this.willThrowError4,
+            response: { type: Type.HttpAccepted },
+        });
+        this.route('willThrowError5', {
+            method: Method.GET,
+            params: [
+                {
+                    name: 'id', type: Type.Number,
+                    description: 'ID',
+                    example: 1,
+                }
+            ],
+            action: this.willThrowError5,
+            response: { type: Type.HttpAccepted },
         });
     }
 
-
-    public getOptionalReturnArray = (
+    public operation1 = (
         a?: boolean,
         b?: Date,
         c?: Date,
@@ -143,19 +175,29 @@ export class Service1 extends Controller {
     ): Promise<Array<unknown>> =>
         Promise.resolve([a, b, c, d, e, f, g, h, i, j]);
 
-    public getRequiredReturnObject = (
-        a?: boolean,
-        b?: Date,
-        c?: Date,
-        d?: number,
-        e?: Array<number>,
-        f?: SampleObject,
-        g?: Array<SampleObject>,
-        h?: string,
-        i?: string,
-        j?: Array<string>
-    ): Promise<unknown> =>
-        Promise.resolve({ a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h, i: i, j: j });
+    public noParameter = (): Promise<void> =>
+        Promise.resolve();
 
+    public deleteWithPathParameter = (_id: number, _sure: boolean): Promise<void> =>
+        Promise.resolve();
 
+    public putWithParentPathParameter = (_id: number, _what: string): Promise<void> =>
+        Promise.resolve();
+
+    public willThrowError1 = (): Promise<void> => {
+        throw new Error('Something wrong. Throwing.');
+    }
+    public willThrowError2 = (): Promise<void> => {
+        return Promise.reject(new ServerError('Something wrong. Rejecting.'));
+    }
+    public willThrowError3 = (_id: number): Promise<void> => {
+        throw new Error('Something wrong. Throwing.');
+    }
+    public willThrowError4 = (_id: number): Promise<void> => {
+        return Promise.reject(new BadGatewayError('Something wrong. Rejecting.'));
+    }
+
+    public willThrowError5 = (_id: number): Promise<void> => {
+        return Promise.reject(new ServerError(new Error('Something wrong. Rejecting.')));
+    }
 }
