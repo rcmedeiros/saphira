@@ -1,6 +1,7 @@
 
 import { URL } from 'url';
-import { Controller, Handler, HandlersByMethod, Method, Param, ServiceTag, Type } from './controller/controller';
+import { Controller, Handler, HandlersByMethod, Method, Param, ServiceTag } from './controller/controller';
+import { Type } from './data-types';
 
 export interface ModuleInfo {
     name: string;

@@ -17,9 +17,10 @@ import {
     DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, DEFAULT_PACKAGE, ENDPOINT_HEALTH_CHECK, ENDPOINT_OPEN_API,
     HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_SUMMARY, UTF8,
 } from './constants/settings';
-import { Controller, Handler, HandlersByMethod, Method, Type } from './controller/controller';
+import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
 import { PagedResult } from './controller/paged_result';
 import { Responder } from './controller/responder';
+import { Type } from './data-types';
 import { DTO } from './dto/dto';
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
