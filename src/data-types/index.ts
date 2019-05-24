@@ -9,8 +9,8 @@ import { StringDataType } from './string-data_type';
 import { StringArrayDataType } from './string_array-data_type';
 
 export const enum Type {
-    Base64 = 'Base64',
-    Binary = 'Binary',
+    // Base64 = 'Base64',
+    // Binary = 'Binary',
     Boolean = 'Boolean',
     Date = 'Date',
     DateTime = 'DateTime',
@@ -44,8 +44,8 @@ export abstract class DataTypes {
             this.instances[Type.StringArray] = new StringArrayDataType();
             this.instances[Type.NumberArray] = new NumberArrayDataType();
             this.instances[Type.Password] = new StringDataType();
-            this.instances[Type.Base64] = new StringDataType();
-            this.instances[Type.Binary] = new StringDataType();
+            // this.instances[Type.Base64] = new StringDataType();
+            // this.instances[Type.Binary] = new StringDataType();
         }
 
         return this.instances[type];

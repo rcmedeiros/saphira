@@ -178,24 +178,27 @@ export class OpenAPIHelper {
                 return { type: 'boolean' };
             case Type.Number:
                 return { type: 'number' };
-            case Type.String:
-                return { type: 'string' };
             case Type.Date:
                 return { type: 'string', format: 'date' };
             case Type.DateTime:
                 return { type: 'string', format: 'date-time' };
             case Type.Password:
                 return { type: 'string', format: 'password' };
-            case Type.Base64:
-                return { type: 'string', format: 'byte' };
-            case Type.Binary:
-                return { type: 'string', format: 'binary' };
+            // case Type.Base64:
+            //     return { type: 'string', format: 'byte' };
+            // case Type.Binary:
+            //     return { type: 'string', format: 'binary' };
             default:
+                return { type: 'string' };
         }
     }
 
     private static getResponseType(type: Type): string {
         switch (type) {
+            // FIXME: Schemas with 'type: array', require a sibling 'items: ' field
+            case Type.NumberArray:
+            case Type.StringArray:
+            case Type.ObjectArray:
             case Type.Object:
                 return 'object';
             case Type.Boolean:
@@ -286,8 +289,8 @@ export class OpenAPIHelper {
 
         // header
         openAPI.info = {
-            version: info.module.version || '',
-            title: info.module.name || '',
+            version: info.module.version,
+            title: info.module.name,
             description: info.module.description || '',
         };
         openAPI.servers = info.servers;
@@ -495,7 +498,5 @@ export class OpenAPIHelper {
 
             return openAPI;
         }
-        return undefined;
     }
-
 }
