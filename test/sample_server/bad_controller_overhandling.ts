@@ -7,7 +7,7 @@ export class BadControllerOverhandling extends Controller {
 
         this.route('doSomething', {
             tag: {
-                summary: `Do that thing`,
+                summary: 'Do that thing',
                 description: 'Does the thing you think it\'s done',
             },
             method: Method.GET,
@@ -24,7 +24,7 @@ export class BadControllerOverhandling extends Controller {
         });
         this.route('doSomething', {
             tag: {
-                summary: `Do that thing`,
+                summary: 'Do that thing',
                 description: 'Does the thing you think it\'s done',
             },
             method: Method.GET,
@@ -41,15 +41,13 @@ export class BadControllerOverhandling extends Controller {
         });
     }
 
-    public doSomething = (stringValue: string, numberValue: number): Promise<Array<string>> => {
-        return new Promise((resolve: Function): void => {
+    public doSomething = async (stringValue: string, numberValue: number): Promise<Array<string>> =>
+        new Promise((resolve: Function): void => {
 
             setTimeout(() => {
                 resolve(['The', 'Thing', stringValue, numberValue ? numberValue.toString() : undefined]);
             }, numberValue);
 
-
-        });
-    }
+        })
 
 }

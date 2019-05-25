@@ -7,7 +7,7 @@ export class BadControllerTwoParentPathParameters extends Controller {
 
         this.route('operation2', {
             tag: {
-                summary: `Service 1's operation 1`,
+                summary: 'Service 1\'s operation 1',
             },
             method: Method.GET,
             action: this.operation2,
@@ -30,7 +30,6 @@ export class BadControllerTwoParentPathParameters extends Controller {
     }
 
     public operation2 = (a?: unknown, b?: unknown): Promise<Array<unknown>> =>
-        Promise.reject(new Error('Should never be possible'));
-
+        Promise.reject(new Error('Should never be possible'))
 
 }

@@ -57,7 +57,7 @@ export class Responder {
                 console.error(JSON.stringify(err));
                 const code: number = (err as HttpError).status ? (err as HttpError).status : HttpStatusCode.INTERNAL_SERVER_ERROR;
                 const json: object = code >= HttpStatusCode.INTERNAL_SERVER_ERROR && Saphira.PRODUCTION
-                    ? { error: MSG_HTTP_UNEXPECTED_ERROR }
+                    ? { message: MSG_HTTP_UNEXPECTED_ERROR }
                     : { message: err.message, stack: err.stack };
                 response.status(code).json(json);
             }).then(next).catch((err: Error) => console.error({ err }));

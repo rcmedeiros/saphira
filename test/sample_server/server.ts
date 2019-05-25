@@ -7,4 +7,4 @@ const s: Saphira = new Saphira([Service1, Service2, Service3]);
 
 s.listen().then(() => {
     console.info('server started');
-});
+}).catch(console.error);

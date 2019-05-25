@@ -9,7 +9,7 @@ export class Service3 extends Controller {
 
         this.route('', {
             tag: {
-                summary: `Get an instance`,
+                summary: 'Get an instance',
             },
             method: Method.GET,
             action: this.getInstance,
@@ -17,17 +17,17 @@ export class Service3 extends Controller {
                 [{
                     name: 'id',
                     type: Type.Number,
+                    ignore: ['subInstances'],
                     parentPath: true,
                     description: 'Instance ID',
                     example: 1234,
-                    ignore: ['subInstances']
                 }],
             response: { type: Type.Object },
         });
 
         this.route('subInstances', {
             tag: {
-                summary: `List sub-instances`,
+                summary: 'List sub-instances',
             },
             method: Method.GET,
             action: this.listSubInstances,
@@ -43,9 +43,9 @@ export class Service3 extends Controller {
     }
 
     public getInstance = (id: number): Promise<object> =>
-        Promise.resolve({ id: 1, name: 'Alpha' });
+        Promise.resolve({ id: 1, name: 'Alpha' })
 
     public listSubInstances = (_id: number): Promise<Array<object>> =>
-        Promise.resolve([{ id: 2, name: 'Beta' }, { id: 3, name: 'Gamma' }, { id: 4, name: 'Delta' }]);
+        Promise.resolve([{ id: 2, name: 'Beta' }, { id: 3, name: 'Gamma' }, { id: 4, name: 'Delta' }])
 
 }

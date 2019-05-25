@@ -9,7 +9,7 @@ export class Service2 extends Controller {
 
         this.route('bodyParameters', {
             tag: {
-                summary: `Service 2's body parameters operation`,
+                summary: 'Service 2\'s body parameters operation',
                 description: 'Accepts all data types in the body and returns an object with the results',
             },
             method: Method.POST,
@@ -47,7 +47,7 @@ export class Service2 extends Controller {
                 }, {
                     name: 'h', type: Type.Password,
                     description: 'Password parameter',
-                    example: 'abc123'
+                    example: 'abc123',
                 }, {
                     name: 'i', type: Type.String,
                     description: 'String parameter',
@@ -55,7 +55,7 @@ export class Service2 extends Controller {
                 }, {
                     name: 'j', type: Type.StringArray,
                     description: 'StringArray parameter',
-                    example: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather']
+                    example: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],
                 }],
             response: { type: Type.ObjectArray, description: 'An object containing all present parameters' },
         });
@@ -71,9 +71,8 @@ export class Service2 extends Controller {
         g?: Array<SampleObject>,
         h?: string,
         i?: string,
-        j?: Array<string>
+        j?: Array<string>,
     ): Promise<unknown> =>
-        Promise.resolve({ a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h, i: i, j: j });
-
+        Promise.resolve({ a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h, i: i, j: j })
 
 }

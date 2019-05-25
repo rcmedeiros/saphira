@@ -1,5 +1,5 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import { Controller, Method, Type, BadRequestError, ServerError, BadGatewayError } from '../../src/index';
+import { BadGatewayError, Controller, Method, ServerError, Type } from '../../src/index';
 import { SampleObject } from '../template';
 
 export class Service1 extends Controller {
@@ -9,7 +9,7 @@ export class Service1 extends Controller {
 
         this.route('queryParameters', {
             tag: {
-                summary: `Service 1's query parameters operation`,
+                summary: "Service 1's query parameters operation",
                 description: 'Accepts all data types in the query and returns an array of the results',
             },
             method: Method.GET,
@@ -49,7 +49,7 @@ export class Service1 extends Controller {
                 }, {
                     name: 'h', type: Type.Password,
                     description: 'Password parameter',
-                    example: '~!@#$%^&*()_+{}:"<>?|-=[]\\;\',./'
+                    example: '~!@#$%^&*()_+{}:"<>?|-=[]\\;\',./',
                 }, {
                     name: 'i', type: Type.String,
                     description: 'String parameter',
@@ -57,14 +57,14 @@ export class Service1 extends Controller {
                 }, {
                     name: 'j', type: Type.StringArray,
                     description: 'StringArray parameter',
-                    example: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather']
+                    example: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],
                 }],
             response: { type: Type.ObjectArray, description: 'An array representing all the parameters' },
         });
 
         this.route('noParameter', {
             tag: {
-                summary: `Service 1's parameter-less operation`,
+                summary: "Service 1's parameter-less operation",
                 description: 'No parameter in, nothing out',
             },
             method: Method.GET,
@@ -74,8 +74,10 @@ export class Service1 extends Controller {
 
         this.route('pathParameter', {
             tag: {
-                summary: `Service 1's operation with path parameter`,
+                summary: "Service 1's operation with path parameter",
             },
+            method: Method.DELETE,
+            action: this.deleteWithPathParameter,
             params: [{
                 name: 'id', type: Type.Number,
                 path: true,
@@ -83,19 +85,19 @@ export class Service1 extends Controller {
                 example: 1234,
             }, {
                 name: 'sure', type: Type.Boolean,
-                description: 'Are you sure?',
                 required: true,
+                description: 'Are you sure?',
                 example: true,
             }],
-            method: Method.DELETE,
-            action: this.deleteWithPathParameter,
             response: { type: Type.HttpModified, description: 'An acknowledgment' },
         });
 
         this.route('parentPathParameter', {
             tag: {
-                summary: `Service 1's with path parameter before operation`,
+                summary: "Service 1's with path parameter before operation",
             },
+            method: Method.PUT,
+            action: this.putWithParentPathParameter,
             params: [{
                 name: 'id', type: Type.Number,
                 parentPath: true,
@@ -103,12 +105,10 @@ export class Service1 extends Controller {
                 example: 6789,
             }, {
                 name: 'what', type: Type.String,
-                description: 'Are do you with to append?',
                 required: true,
+                description: 'Are do you with to append?',
                 example: 'Hello World',
             }],
-            method: Method.PUT,
-            action: this.putWithParentPathParameter,
             response: { type: Type.HttpModified },
         });
 
@@ -125,38 +125,38 @@ export class Service1 extends Controller {
 
         this.route('willThrowError3', {
             method: Method.GET,
+            action: this.willThrowError3,
             params: [
                 {
                     name: 'id', type: Type.Number,
                     description: 'ID',
                     example: 1,
-                }
+                },
             ],
-            action: this.willThrowError3,
             response: { type: Type.HttpAccepted },
         });
         this.route('willThrowError4', {
             method: Method.GET,
+            action: this.willThrowError4,
             params: [
                 {
                     name: 'id', type: Type.Number,
                     description: 'ID',
                     example: 1,
-                }
+                },
             ],
-            action: this.willThrowError4,
             response: { type: Type.HttpAccepted },
         });
         this.route('willThrowError5', {
             method: Method.GET,
+            action: this.willThrowError5,
             params: [
                 {
                     name: 'id', type: Type.Number,
                     description: 'ID',
                     example: 1,
-                }
+                },
             ],
-            action: this.willThrowError5,
             response: { type: Type.HttpAccepted },
         });
     }
@@ -171,33 +171,30 @@ export class Service1 extends Controller {
         g?: Array<SampleObject>,
         h?: string,
         i?: string,
-        j?: Array<string>
+        j?: Array<string>,
     ): Promise<Array<unknown>> =>
-        Promise.resolve([a, b, c, d, e, f, g, h, i, j]);
+        Promise.resolve([a, b, c, d, e, f, g, h, i, j])
 
     public noParameter = (): Promise<void> =>
-        Promise.resolve();
+        Promise.resolve()
 
     public deleteWithPathParameter = (_id: number, _sure: boolean): Promise<void> =>
-        Promise.resolve();
+        Promise.resolve()
 
     public putWithParentPathParameter = (_id: number, _what: string): Promise<void> =>
-        Promise.resolve();
+        Promise.resolve()
 
-    public willThrowError1 = (): Promise<void> => {
+    public willThrowError1 = async (): Promise<void> => {
         throw new Error('Something wrong. Throwing.');
     }
-    public willThrowError2 = (): Promise<void> => {
-        return Promise.reject(new ServerError('Something wrong. Rejecting.'));
-    }
-    public willThrowError3 = (_id: number): Promise<void> => {
+    public willThrowError2 = (): Promise<void> =>
+        Promise.reject(new ServerError('Something wrong. Rejecting.'))
+    public willThrowError3 = async (_id: number): Promise<void> => {
         throw new Error('Something wrong. Throwing.');
     }
-    public willThrowError4 = (_id: number): Promise<void> => {
-        return Promise.reject(new BadGatewayError('Something wrong. Rejecting.'));
-    }
+    public willThrowError4 = (_id: number): Promise<void> =>
+        Promise.reject(new BadGatewayError('Something wrong. Rejecting.'))
 
-    public willThrowError5 = (_id: number): Promise<void> => {
-        return Promise.reject(new ServerError(new Error('Something wrong. Rejecting.')));
-    }
+    public willThrowError5 = (_id: number): Promise<void> =>
+        Promise.reject(new ServerError(new Error('Something wrong. Rejecting.')))
 }

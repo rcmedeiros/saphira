@@ -1,17 +1,15 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import './setup';
-import { it, describe } from "mocha"
 import chai from 'chai';
 import chaiHttp from 'chai-http';
+import { describe, Done, it } from 'mocha';
 import { SERVICE_1_QUERY_PARAMETERS } from './setup';
 import { testFailedGET } from './template';
-chai.should();
 
-chai.use(chaiHttp)
+chai.use(chaiHttp);
 
 describe('Invalid parameters for queries', () => {
 
-    it('should deny invalid boolean', (done) => {
+    it('should deny invalid boolean', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedGET(`${SERVICE_1_QUERY_PARAMETERS}?a=2.1`, 'a should be of type Boolean', 'deny floats'));
@@ -22,7 +20,7 @@ describe('Invalid parameters for queries', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid Date', (done) => {
+    it('should deny invalid Date', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedGET(`${SERVICE_1_QUERY_PARAMETERS}?b=19.0001`, 'b should be of type Date', 'deny float'));
@@ -35,7 +33,7 @@ describe('Invalid parameters for queries', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid DateTime', (done) => {
+    it('should deny invalid DateTime', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedGET(`${SERVICE_1_QUERY_PARAMETERS}?c=19.0001`, 'c should be of type DateTime', 'deny float'));
@@ -47,7 +45,7 @@ describe('Invalid parameters for queries', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid number', (done) => {
+    it('should deny invalid number', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedGET(`${SERVICE_1_QUERY_PARAMETERS}?d=False`, 'd should be of type Number', 'deny Booleans'));
@@ -58,7 +56,7 @@ describe('Invalid parameters for queries', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid array of numbers', (done) => {
+    it('should deny invalid array of numbers', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedGET(`${SERVICE_1_QUERY_PARAMETERS}?e=someString`, 'e should be of type NumberArray', 'deny string'));
@@ -68,7 +66,7 @@ describe('Invalid parameters for queries', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid objects', (done) => {
+    it('should deny invalid objects', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedGET(`${SERVICE_1_QUERY_PARAMETERS}?f=3`, 'f should be of type Object', 'deny numbers'));
@@ -80,7 +78,7 @@ describe('Invalid parameters for queries', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid array of objects', (done) => {
+    it('should deny invalid array of objects', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedGET(`${SERVICE_1_QUERY_PARAMETERS}?g=3`, 'g should be of type ObjectArray', 'deny numbers'));

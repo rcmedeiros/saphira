@@ -1,17 +1,15 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import './setup';
-import { it, describe } from "mocha"
-import chai, { expect } from 'chai';
+import chai from 'chai';
 import chaiHttp from 'chai-http';
+import { describe, Done, it } from 'mocha';
 import { SERVICE_2_BODY_PARAMETERS } from './setup';
 import { testFailedPOST } from './template';
-chai.should();
 
-chai.use(chaiHttp)
+chai.use(chaiHttp);
 
 describe('Invalid parameters for body', () => {
 
-    it('should deny invalid boolean', (done) => {
+    it('should deny invalid boolean', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { a: 'invalid' }, 'a should be of type Boolean', 'deny invalid string'));
@@ -20,7 +18,7 @@ describe('Invalid parameters for body', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid Date', (done) => {
+    it('should deny invalid Date', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { b: 123.45 }, 'b should be of type Date', 'deny float'));
@@ -33,7 +31,7 @@ describe('Invalid parameters for body', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid DateTime', (done) => {
+    it('should deny invalid DateTime', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { c: 123.45 }, 'c should be of type DateTime', 'deny float'));
@@ -46,7 +44,7 @@ describe('Invalid parameters for body', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid number', (done) => {
+    it('should deny invalid number', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { d: true }, 'd should be of type Number', 'deny Booleans'));
@@ -57,7 +55,7 @@ describe('Invalid parameters for body', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid array of numbers', (done) => {
+    it('should deny invalid array of numbers', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { e: 'invalid' }, 'e should be of type NumberArray', 'deny string'));
@@ -68,7 +66,7 @@ describe('Invalid parameters for body', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid objects', (done) => {
+    it('should deny invalid objects', (done: Done) => {
         const promises: Array<Promise<void>> = [];
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { f: 3 }, 'f should be of type Object', 'deny numbers'));
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { f: false }, 'f should be of type Object', 'deny Booleans'));
@@ -80,7 +78,7 @@ describe('Invalid parameters for body', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid array of objects', (done) => {
+    it('should deny invalid array of objects', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { g: 3 }, 'g should be of type ObjectArray', 'deny numbers'));
@@ -88,13 +86,14 @@ describe('Invalid parameters for body', () => {
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { g: 'invalid' }, 'g should be of type ObjectArray', 'deny string'));
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { g: new Date() }, 'g should be of type ObjectArray', 'deny dates'));
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { g: [3] }, 'g should be of type ObjectArray', 'deny array of non-objects'));
-        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { g: [new Date()] }, 'g should be of type ObjectArray', 'deny arrays of dates (which is another kind of object)'));
+        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { g: [new Date()] },
+            'g should be of type ObjectArray', 'deny arrays of dates (which is another kind of object)'));
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { g: '[{e.g.: invalid)]' }, 'g should be of type ObjectArray', 'deny false ObjectArray'));
 
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid string', (done) => {
+    it('should deny invalid string', (done: Done) => {
         const promises: Array<Promise<void>> = [];
         /* NOTE:
             Everything in a form is URL encoded and primary a string, thus pointless to deny.
@@ -102,17 +101,21 @@ describe('Invalid parameters for body', () => {
         */
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { i: true }, 'i should be of type String', { description: 'deny booleans', ignoreForm: true }));
         promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { i: 2 }, 'i should be of type String', { description: 'deny numbers', ignoreForm: true }));
-        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { i: { d: 2 } }, 'i should be of type String', { description: 'deny objects', ignoreForm: true }));
+        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { i: { d: 2 } },
+            'i should be of type String', { description: 'deny objects', ignoreForm: true }));
 
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should deny invalid array of strings', (done) => {
+    it('should deny invalid array of strings', (done: Done) => {
         const promises: Array<Promise<void>> = [];
 
-        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { j: 3 }, 'j should be of type StringArray', { description: 'deny numbers', ignoreForm: true }));
-        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { j: true }, 'j should be of type StringArray', { description: 'deny booleans', ignoreForm: true }));
-        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { j: [3] }, 'j should be of type StringArray', { description: 'deny array of non-strings', ignoreForm: true }));
+        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { j: 3 },
+            'j should be of type StringArray', { description: 'deny numbers', ignoreForm: true }));
+        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { j: true },
+            'j should be of type StringArray', { description: 'deny booleans', ignoreForm: true }));
+        promises.push(testFailedPOST(SERVICE_2_BODY_PARAMETERS, { j: [3] },
+            'j should be of type StringArray', { description: 'deny array of non-strings', ignoreForm: true }));
 
         Promise.all(promises).then(() => done(), done);
     });

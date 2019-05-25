@@ -7,7 +7,7 @@ export class BadControllerParametersMismatch extends Controller {
 
         this.route('operation2', {
             tag: {
-                summary: `Service 1's operation 1`,
+                summary: "Service 1's operation 1",
                 description: 'Accepts all data types in the query and returns an array of the results',
             },
             method: Method.GET,
@@ -24,7 +24,6 @@ export class BadControllerParametersMismatch extends Controller {
     }
 
     public operation2 = (a?: unknown, b?: unknown): Promise<Array<unknown>> =>
-        Promise.reject(new Error('Should never be possible'));
-
+        Promise.reject(new Error('Should never be possible'))
 
 }
