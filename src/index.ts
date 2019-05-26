@@ -26,7 +26,7 @@ import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
 import { HttpStatusCode } from './errors/http_status_codes';
 import { ServerError } from './errors/server.error';
-import { LogOptions, setupLogging } from './logger';
+import { Logger, LogLevel, LogOptions } from './logger';
 import { Info, ModuleInfo, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { NameValue, Vault } from './vault';
 
@@ -68,7 +68,6 @@ export interface SaphiraOptions {
 
 export class Saphira {
     public static readonly PRODUCTION: boolean = (process.env.NODE_ENV || '').toLowerCase() === 'production';
-    public static readonly VERBOSE: boolean = ['production', 'test'].indexOf((process.env.NODE_ENV || '').toLowerCase()) === -1;
 
     private readonly app: core.Express;
     private server: http.Server;
@@ -78,10 +77,29 @@ export class Saphira {
 
     constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
         options = options || {};
+        options.logOptions = options.logOptions || {};
+
+        if (!options.logOptions.logLevel) {
+            switch ((process.env.NODE_ENV || '').toLowerCase()) {
+                case 'production':
+                    options.logOptions.logLevel = LogLevel.warn;
+                    options.logOptions.winston = true;
+                    break;
+                case 'staging':
+                    options.logOptions.logLevel = LogLevel.info;
+                    options.logOptions.winston = true;
+                    break;
+                case 'test':
+                    options.logOptions.logLevel = LogLevel.off;
+                    break;
+                default:
+                    options.logOptions.logLevel = LogLevel.debug;
+            }
+        }
+        Logger.getInstance(options.logOptions);
 
         this.sslOptions = options.https || undefined;
         this.loadModuleInfo();
-        setupLogging(options.logOptions);
 
         this.app = express();
         this.app.set('port', options.port || (options.https ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
