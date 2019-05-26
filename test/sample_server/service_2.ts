@@ -1,5 +1,5 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import { Controller, Method, Type } from '../../src/index';
+import { Controller, Method, NameValue, Type, Vault } from '../../src/index';
 import { SampleObject } from '../template';
 
 export class Service2 extends Controller {
@@ -59,6 +59,16 @@ export class Service2 extends Controller {
                 }],
             response: { type: Type.ObjectArray, description: 'An object containing all present parameters' },
         });
+
+        this.route('primeVault', {
+            tag: { summary: 'stuff some values into the vault' },
+            method: Method.GET, action: this.primeVault, response: { type: Type.HttpCreated },
+        });
+        this.route('retrieveVaultValues', {
+            tag: { summary: 'retrieve those values from the vault' },
+            method: Method.GET, action: this.retrieveVaultValues, response: { type: Type.Object },
+        });
+
     }
 
     public operation1 = (
@@ -74,5 +84,30 @@ export class Service2 extends Controller {
         j?: Array<string>,
     ): Promise<unknown> =>
         Promise.resolve({ a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h, i: i, j: j })
+
+    public primeVault = async (): Promise<void> => {
+        const vault: Vault = Vault.getInstance();
+        vault.set('v1', 'abc');
+        vault.setString('v2', 'def');
+        vault.setNumber('v3', 123.456);
+        vault.setBoolean('v4', true);
+
+        return Promise.resolve();
+    }
+
+    public retrieveVaultValues = async (): Promise<NameValue> => {
+        const vault: Vault = Vault.getInstance();
+        vault.set('v1', 'abc');
+        vault.setString('v2', 'def');
+        vault.setNumber('v3', 123.456);
+        vault.setBoolean('v4', true);
+
+        return Promise.resolve({
+            v1: vault.get('v1') as string,
+            v2: vault.getString('v2'),
+            v3: vault.getNumber('v3'),
+            v4: vault.getBoolean('v4'),
+        });
+    }
 
 }

@@ -2,13 +2,13 @@ export interface NameValue { [name: string]: string | number | boolean | NameVal
 
 export class Vault {
     private static readonly instance: Vault = new Vault();
-    private readonly parameters: NameValue = {};
-
-    private constructor() { }
 
     public static getInstance(): Vault {
         return Vault.instance;
     }
+    private readonly parameters: NameValue = {};
+
+    private constructor() { }
 
     public get(name: string): string | number | boolean | NameValue {
         return this.parameters[name];

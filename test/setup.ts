@@ -15,6 +15,8 @@ export const SERVICE_1_PATH_PARAMETER: string = `${SERVICE_1}/pathParameter`;
 export const SERVICE_1_THROW_ERROR: string = `${SERVICE_1}/willThrowError`;
 export const SERVICE_1_WILL_RETURN: string = `${SERVICE_1}/willReturn`;
 export const SERVICE_2_BODY_PARAMETERS: string = `${SERVICE_2}/bodyParameters`;
+export const SERVICE_2_PRIME_VAULT: string = `${SERVICE_2}/primeVault`;
+export const SERVICE_2_RETRIEVE_VAULT_VALUES: string = `${SERVICE_2}/retrieveVaultValues`;
 export const SERVICE_3_PAGED_LIST: string = `${SERVICE_3}/pagedList`;
 
 const s: Saphira = new Saphira([Service1, Service2, Service3], { port: PORT });
