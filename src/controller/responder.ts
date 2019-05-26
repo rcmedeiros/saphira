@@ -38,8 +38,8 @@ export class Responder {
                         );
                     } else {
                         if ((result as PagedResult<unknown>).entriesCount) {
-                            response.setHeader(HEADER_X_PAGINATION, `{Count: ${(result as PagedResult<unknown>).entriesCount},` +
-                                ` Pages: ${(result as PagedResult<unknown>).pagesCount}}`);
+                            response.setHeader(HEADER_X_PAGINATION, `{"count": ${(result as PagedResult<unknown>).entriesCount},` +
+                                ` "pages": ${(result as PagedResult<unknown>).pagesCount}}`);
                             result = (result as PagedResult<unknown>).entries;
                         } else {
                             // tslint:disable-next-line:no-null-keyword

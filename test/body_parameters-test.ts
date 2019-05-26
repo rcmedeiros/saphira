@@ -1,4 +1,5 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
+import { HttpResponse } from 'chai-http-ext';
 import { describe, Done, it } from 'mocha';
 import { SERVICE_2_BODY_PARAMETERS } from './setup';
 import { SamplePayload, testFailedPOST, testSuccessfulPOST } from './template';
@@ -6,7 +7,7 @@ import { SamplePayload, testFailedPOST, testSuccessfulPOST } from './template';
 describe('Parameter types for body', () => {
 
     it('should serialize boolean', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
         const sample1: SamplePayload = { a: true };
         const sample2: SamplePayload = { a: false };
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample1, sample1, 'boolean true'));
@@ -16,7 +17,7 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize Date', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { b: new Date(Date.UTC(1980, 5, 9)) },
             { b: '1980-06-09T00:00:00.000Z' }, 'Date as object'));
@@ -28,7 +29,7 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize DateTime', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         const sample2: SamplePayload = { b: '1980-06-09' };
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { c: new Date(Date.UTC(1980, 5, 9, 19)) },
@@ -39,7 +40,7 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize number', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: Math.PI }, { d: Math.PI }, 'Float'));
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: Number.MAX_VALUE }, { d: Number.MAX_VALUE }, 'Integer'));
@@ -50,7 +51,7 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize array of numbers', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
         const sample1: SamplePayload = { e: [-1, 0, 1] };
         const sample2: SamplePayload = { e: [Number.MIN_VALUE, 0, Math.PI, Number.MAX_VALUE] };
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample1, sample1));
@@ -60,7 +61,7 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize objects', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
         const sample: SamplePayload = {
             f:
                 { name: 'Kaladin', age: 20, surgeBinding: { order: 'WindRunner', bond: 'Sylphrena', surges: ['Adhesion', 'Gravitation'] } },
@@ -86,7 +87,7 @@ describe('Parameter types for body', () => {
                 }],
         };
 
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample));
 
@@ -95,7 +96,7 @@ describe('Parameter types for body', () => {
 
     it('should serialize strings and passwords', (done: Done) => {
 
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         const sample: SamplePayload = {
             h: '~!@#$%^&*()_+{}:"<>?|-=[]\\;\',./',
@@ -108,7 +109,7 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize Array of strings', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         const sample: SamplePayload = {
             j: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],

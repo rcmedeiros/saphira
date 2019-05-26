@@ -14,6 +14,7 @@ export const SERVICE_1_NO_PARAMETER: string = `${SERVICE_1}/noParameter`;
 export const SERVICE_1_PATH_PARAMETER: string = `${SERVICE_1}/pathParameter`;
 export const SERVICE_1_THROW_ERROR: string = `${SERVICE_1}/willThrowError`;
 export const SERVICE_2_BODY_PARAMETERS: string = `${SERVICE_2}/bodyParameters`;
+export const SERVICE_3_PAGED_LIST: string = `${SERVICE_3}/pagedList`;
 
 const s: Saphira = new Saphira([Service1, Service2, Service3], { port: PORT });
 before((done: Done) => {

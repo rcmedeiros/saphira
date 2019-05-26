@@ -61,7 +61,7 @@ describe('Queries', () => {
     });
 
     it('should handle exceptions inside operations', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
         promises.push(testFailedGET(`${SERVICE_1_THROW_ERROR}1`, 'Something wrong. Throwing.',
             { expectedStatus: HttpStatusCode.INTERNAL_SERVER_ERROR, description: '1' }));
         promises.push(testFailedGET(`${SERVICE_1_THROW_ERROR}2`, 'Something wrong. Rejecting.',
@@ -76,7 +76,7 @@ describe('Queries', () => {
     });
 
     it('operation name should not collide with path parameter', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_3}/1234`, { id: 1, name: 'Alpha' }, 'instance'));
         promises.push(testSuccessfulGET(`${SERVICE_3}/subInstances?id=1234`,

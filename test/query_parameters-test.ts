@@ -1,8 +1,10 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import chai from 'chai';
+import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
+import { HttpResponse } from 'chai-http-ext';
 import { describe, Done, it } from 'mocha';
-import { SERVICE_1_QUERY_PARAMETERS, URI } from './setup';
+import { XPagination } from '../src/controller/x-pagination';
+import { SERVICE_1_QUERY_PARAMETERS, SERVICE_3_PAGED_LIST } from './setup';
 import { testSuccessfulGET } from './template';
 
 chai.use(chaiHttp);
@@ -10,7 +12,7 @@ chai.use(chaiHttp);
 describe('Parameter types for queries', () => {
 
     it('should serialize boolean', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?a=0`, [false, null, null, null, null, null, null, null, null, null], 'accept 0'));
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?a=f`, [false, null, null, null, null, null, null, null, null, null], 'accept f'));
@@ -28,7 +30,7 @@ describe('Parameter types for queries', () => {
     });
 
     it('should serialize Date', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?b=1980-06-09`,
             [null, '1980-06-09T00:00:00.000Z', null, null, null, null, null, null, null, null],
@@ -38,7 +40,7 @@ describe('Parameter types for queries', () => {
     });
 
     it('should serialize DateTime', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?c=1980-06-09T16:00Z`,
             [null, null, '1980-06-09T16:00:00.000Z', null, null, null, null, null, null, null],
@@ -48,7 +50,7 @@ describe('Parameter types for queries', () => {
     });
 
     it('should serialize number', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?d=${Math.PI}`,
             [null, null, null, Math.PI, null, null, null, null, null, null],
@@ -67,7 +69,7 @@ describe('Parameter types for queries', () => {
     });
 
     it('should serialize array of numbers', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?e=0,1,2.34,-1`,
             [null, null, null, null, [0, 1, 2.34, -1], null, null, null, null, null],
@@ -80,7 +82,7 @@ describe('Parameter types for queries', () => {
     });
 
     it('should serialize objects', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?f[name]=Kaladin&f[age]=20`,
             [null, null, null, null, null, { name: 'Kaladin', age: '20' }, null, null, null, null],
@@ -102,7 +104,7 @@ describe('Parameter types for queries', () => {
             { name: 'Renarin', age: 21, surgeBinding: { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] } }];
         const expected: unknown = [null, null, null, null, null, null, objects, null, null, null];
 
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?` +
             'g={"name":"Dalinar","age":53,"surgeBinding":{"order":"BondSmith","bond":"Stormfather","surges":["Tension","Adhesion"]}}&' +
@@ -121,7 +123,7 @@ describe('Parameter types for queries', () => {
 
     it('should serialize strings', (done: Done) => {
 
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS
             }?h=~%21%40%23%24%25%5E%26%2A%28%29_%2B%7B%7D%3A%22%3C%3E%3F%7C-%3D%5B%5D%5C%3B%27%2C.%2F&i=Sylphrena`,
@@ -132,7 +134,7 @@ describe('Parameter types for queries', () => {
     });
 
     it('should serialize Array of strings', (done: Done) => {
-        const promises: Array<Promise<void>> = [];
+        const promises: Array<Promise<HttpResponse>> = [];
 
         promises.push(testSuccessfulGET(`${SERVICE_1_QUERY_PARAMETERS}?j=Sylphrena&j=Pattern&j=Ivory&j=Glys&j=Wyndle&j=Stormfather`,
             [null, null, null, null, null, null, null, null, null,
@@ -145,5 +147,20 @@ describe('Parameter types for queries', () => {
             'OpenAPI default'));
 
         Promise.all(promises).then(() => done(), done);
+    });
+
+    it('should display paging', (done: Done) => {
+
+        testSuccessfulGET(SERVICE_3_PAGED_LIST, ['f', 'g', 'h', 'i', 'j']).then((response: HttpResponse) => {
+
+            expect(response.header['x-pagination']).to.not.be.null;
+
+            const pagination: XPagination = JSON.parse(response.header['x-pagination']) as XPagination;
+            expect(pagination.count).to.be.equal(26);
+            expect(pagination.pages).to.be.equal(6);
+
+            done();
+        }, done);
+
     });
 });

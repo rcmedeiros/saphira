@@ -88,9 +88,9 @@ const toForm: ToFormFunction = (payload: SamplePayload): string => {
     return newPayload.join('&');
 };
 
-declare type TestSuccessfulGET = (endpoint: string, expected: unknown, description?: string) => Promise<void>;
-export const testSuccessfulGET: TestSuccessfulGET = async (endpoint: string, expected: unknown, description?: string): Promise<void> =>
-    new Promise<void>((resolve: Function, reject: (reason: unknown) => void): void => {
+declare type TestSuccessfulGET = (endpoint: string, expected: unknown, description?: string) => Promise<HttpResponse>;
+export const testSuccessfulGET: TestSuccessfulGET = async (endpoint: string, expected: unknown, description?: string): Promise<HttpResponse> =>
+    new Promise<HttpResponse>((resolve: Function, reject: (reason: unknown) => void): void => {
         chai.request(URI).get(endpoint).end((err: Function, res: HttpResponse) => {
             if (err) { reject(err); } else {
                 try {
@@ -99,7 +99,7 @@ export const testSuccessfulGET: TestSuccessfulGET = async (endpoint: string, exp
                     expect(res.header['content-type'], description).to.be
                         .equal(`${res.status === HttpStatusCode.OK ? 'application/json' : 'text/plain'}; charset=utf-8`);
                     expect(res.header['x-high-resolution-elapsed-time'], description).to.not.be.null;
-                    resolve();
+                    resolve(res);
                 } catch (e) {
                     reject(e);
                 }
@@ -112,9 +112,9 @@ export interface TestFailedGETOpts {
     expectedStatus?: HttpStatusCode;
 }
 
-declare type TestFailedGET = (endpoint: string, errorMessage: string, opts?: TestFailedGETOpts | string) => Promise<void>;
-export const testFailedGET: TestFailedGET = async (endpoint: string, errorMessage: string, opts?: TestFailedGETOpts | string): Promise<void> =>
-    new Promise<void>((resolve: Function, reject: (reason: unknown) => void): void => {
+declare type TestFailedGET = (endpoint: string, errorMessage: string, opts?: TestFailedGETOpts | string) => Promise<HttpResponse>;
+export const testFailedGET: TestFailedGET = async (endpoint: string, errorMessage: string, opts?: TestFailedGETOpts | string): Promise<HttpResponse> =>
+    new Promise<HttpResponse>((resolve: Function, reject: (reason: unknown) => void): void => {
 
         const options: TestFailedGETOpts = typeof opts === 'string' ? { description: opts, expectedStatus: HttpStatusCode.BAD_REQUEST } : opts;
 
@@ -125,7 +125,7 @@ export const testFailedGET: TestFailedGET = async (endpoint: string, errorMessag
                     expect(res.status, options.description).to.be.equal(options.expectedStatus);
                     expect(res.header['content-type'], options.description).to.be.equal('application/json; charset=utf-8');
                     expect(res.header['x-high-resolution-elapsed-time'], options.description).to.be.undefined;
-                    resolve();
+                    resolve(res);
                 } catch (e) {
                     reject(e);
                 }
@@ -133,13 +133,13 @@ export const testFailedGET: TestFailedGET = async (endpoint: string, errorMessag
         });
     });
 
-declare type TestSuccessfulPOST = (endpoint: string, payload: SamplePayload, expected: unknown, description?: string) => Promise<void>;
+declare type TestSuccessfulPOST = (endpoint: string, payload: SamplePayload, expected: unknown, description?: string) => Promise<HttpResponse>;
 export const testSuccessfulPOST: TestSuccessfulPOST =
-    async (endpoint: string, payload: SamplePayload, expected: unknown, description?: string): Promise<void> =>
-        new Promise<void>((resolve: Function, reject: (r: Error) => void): void => {
-            const promises: Array<Promise<void>> = [];
+    async (endpoint: string, payload: SamplePayload, expected: unknown, description?: string): Promise<HttpResponse> =>
+        new Promise<HttpResponse>((resolve: Function, reject: (r: Error) => void): void => {
+            const promises: Array<Promise<HttpResponse>> = [];
 
-            promises.push(new Promise<void>((res: Function, rej: Function): void => {
+            promises.push(new Promise<HttpResponse>((res: Function, rej: Function): void => {
                 const type: string = 'application/json';
                 chai.request(URI)
                     .post(endpoint)
@@ -153,7 +153,7 @@ export const testSuccessfulPOST: TestSuccessfulPOST =
                                 expect(response.status >= HttpStatusCode.OK && response.status <= HttpStatusCode.NO_CONTENT).to.be.true;
                                 expect(response.header['content-type'], description).to.be.equal('application/json; charset=utf-8');
                                 expect(response.header['x-high-resolution-elapsed-time'], description).to.not.be.null;
-                                res();
+                                res(response);
                             } catch (e) {
                                 rej(e);
                             }
@@ -161,7 +161,7 @@ export const testSuccessfulPOST: TestSuccessfulPOST =
                     });
             }));
 
-            promises.push(new Promise<void>((res: Function, rej: Function): void => {
+            promises.push(new Promise<HttpResponse>((res: Function, rej: Function): void => {
                 const type: string = 'application/x-www-form-urlencoded';
                 chai.request(URI)
                     .post(endpoint)
@@ -176,7 +176,7 @@ export const testSuccessfulPOST: TestSuccessfulPOST =
                                 expect(response.status >= HttpStatusCode.OK && response.status <= HttpStatusCode.NO_CONTENT).to.be.true;
                                 expect(response.header['content-type'], description).to.be.equal('application/json; charset=utf-8');
                                 expect(response.header['x-high-resolution-elapsed-time'], description).to.not.be.null;
-                                res();
+                                res(response);
                             } catch (e) {
                                 rej(e);
                             }
@@ -192,15 +192,15 @@ export interface TailedPOSTOpts {
     ignoreForm?: boolean;
 }
 
-declare type TestFailedPOST = (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string) => Promise<void>;
+declare type TestFailedPOST = (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string) => Promise<HttpResponse>;
 export const testFailedPOST: TestFailedPOST =
-    async (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string): Promise<void> =>
-        new Promise<void>((resolve: Function, reject: (e: Error) => void): void => {
-            const promises: Array<Promise<void>> = [];
+    async (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string): Promise<HttpResponse> =>
+        new Promise<HttpResponse>((resolve: Function, reject: (e: Error) => void): void => {
+            const promises: Array<Promise<HttpResponse>> = [];
 
             const options: TailedPOSTOpts = typeof opts === 'string' ? { description: opts } : opts;
 
-            promises.push(new Promise<void>((res: Function, rej: Function): void => {
+            promises.push(new Promise<HttpResponse>((res: Function, rej: Function): void => {
                 const type: string = 'application/json';
                 chai.request(URI)
                     .post(endpoint)
@@ -214,7 +214,7 @@ export const testFailedPOST: TestFailedPOST =
                                 expect(response.status, options.description).to.be.equal(HttpStatusCode.BAD_REQUEST);
                                 expect(response.header['content-type'], options.description).to.be.equal('application/json; charset=utf-8');
                                 expect(response.header['x-high-resolution-elapsed-time'], options.description).to.be.undefined;
-                                res();
+                                res(response);
                             } catch (e) {
                                 rej(e);
                             }
@@ -223,7 +223,7 @@ export const testFailedPOST: TestFailedPOST =
             }));
 
             if (options && !options.ignoreForm) {
-                promises.push(new Promise<void>((res: Function, rej: Function): void => {
+                promises.push(new Promise<HttpResponse>((res: Function, rej: Function): void => {
                     const type: string = 'application/x-www-form-urlencoded';
                     chai.request(URI)
                         .post(endpoint)
@@ -238,7 +238,7 @@ export const testFailedPOST: TestFailedPOST =
                                     expect(response.status, options.description).to.be.equal(HttpStatusCode.BAD_REQUEST);
                                     expect(response.header['content-type'], options.description).to.be.equal('application/json; charset=utf-8');
                                     expect(response.header['x-high-resolution-elapsed-time'], options.description).to.be.undefined;
-                                    res();
+                                    res(response);
                                 } catch (e) {
                                     rej(e);
                                 }
