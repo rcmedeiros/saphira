@@ -52,7 +52,8 @@
   },
   "homepage": "https://github.com/rcmedeiros/saphira#readme",
   "devDependencies": {
-    "@rcmedeiros/tslint-config": "^1.0.2",
+    "@rcmedeiros/prototypes": "^1.1.0",
+    "@rcmedeiros/tslint-config": "^1.1.0-34",
     "@types/body-parser": "^1.17.0",
     "@types/chai": "^4.1.7",
     "@types/compression": "0.0.36",
@@ -79,7 +80,6 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "@rcmedeiros/prototypes": "^1.0.1-247",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
