@@ -79,12 +79,20 @@ export class Saphira {
         options = options || {};
         options.logOptions = options.logOptions || {};
 
+        /*
+         * Coverage only runs when NODE_ENV === 'test'.
+         * Thus, all other options should be ignored for coverage.
+         */
+        /* istanbul ignore else */
         if (!options.logOptions.logLevel) {
+            /* istanbul ignore next */
             switch ((process.env.NODE_ENV || '').toLowerCase()) {
+                /* istanbul ignore next */
                 case 'production':
                     options.logOptions.logLevel = LogLevel.warn;
                     options.logOptions.winston = true;
                     break;
+                /* istanbul ignore next */
                 case 'staging':
                     options.logOptions.logLevel = LogLevel.info;
                     options.logOptions.winston = true;
@@ -92,6 +100,7 @@ export class Saphira {
                 case 'test':
                     options.logOptions.logLevel = LogLevel.off;
                     break;
+                /* istanbul ignore next */
                 default:
                     options.logOptions.logLevel = LogLevel.debug;
             }
