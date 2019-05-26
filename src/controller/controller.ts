@@ -150,7 +150,7 @@ export class Controller {
                             return true;
                         }
                     } else if (param.ignore && param.ignore.indexOf((v as string).toString().toLocaleLowerCase()) >= 0) {
-                        resolve({ handlerRejected: 'FALSE_PATH_PARAM' });
+                        resolve({ rejectedByHandler: 'FALSE_PATH_PARAM' });
                     } else {
 
                         try {
