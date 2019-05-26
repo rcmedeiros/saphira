@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 // tslint:disable no-any no-unsafe-any no-this-assignment
 
 export abstract class DTO {
