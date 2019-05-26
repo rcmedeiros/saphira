@@ -94,7 +94,7 @@ export const testSuccessfulGET: TestSuccessfulGET = async (endpoint: string, exp
         chai.request(URI).get(endpoint).end((err: Function, res: HttpResponse) => {
             if (err) { reject(err); } else {
                 try {
-                    expect(JSON.stringify(res.body), description).to.be.equal(JSON.stringify(expected || {}));
+                    expect(JSON.stringify(res.body), description).to.be.equal(JSON.stringify(expected));
                     expect(res.status >= HttpStatusCode.OK && res.status <= HttpStatusCode.NO_CONTENT).to.be.true;
                     expect(res.header['content-type'], description).to.be
                         .equal(`${res.status === HttpStatusCode.OK ? 'application/json' : 'text/plain'}; charset=utf-8`);
@@ -133,10 +133,10 @@ export const testFailedGET: TestFailedGET = async (endpoint: string, errorMessag
         });
     });
 
-declare type TestSuccessfulPOST = (endpoint: string, payload: SamplePayload, expected: unknown, description?: string) => Promise<HttpResponse>;
+declare type TestSuccessfulPOST = (endpoint: string, payload: SamplePayload, expected: unknown, description?: string) => Promise<Array<HttpResponse>>;
 export const testSuccessfulPOST: TestSuccessfulPOST =
-    async (endpoint: string, payload: SamplePayload, expected: unknown, description?: string): Promise<HttpResponse> =>
-        new Promise<HttpResponse>((resolve: Function, reject: (r: Error) => void): void => {
+    async (endpoint: string, payload: SamplePayload, expected: unknown, description?: string): Promise<Array<HttpResponse>> =>
+        new Promise<Array<HttpResponse>>((resolve: Function, reject: (r: Error) => void): void => {
             const promises: Array<Promise<HttpResponse>> = [];
 
             promises.push(new Promise<HttpResponse>((res: Function, rej: Function): void => {
@@ -184,7 +184,7 @@ export const testSuccessfulPOST: TestSuccessfulPOST =
                     });
             }));
 
-            Promise.all(promises).then(() => { resolve(); }, reject);
+            Promise.all(promises).then((responses: Array<HttpResponse>) => { resolve(responses); }, reject);
         });
 
 export interface TailedPOSTOpts {
@@ -192,10 +192,10 @@ export interface TailedPOSTOpts {
     ignoreForm?: boolean;
 }
 
-declare type TestFailedPOST = (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string) => Promise<HttpResponse>;
+declare type TestFailedPOST = (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string) => Promise<Array<HttpResponse>>;
 export const testFailedPOST: TestFailedPOST =
-    async (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string): Promise<HttpResponse> =>
-        new Promise<HttpResponse>((resolve: Function, reject: (e: Error) => void): void => {
+    async (endpoint: string, payload: UnknownPayload, errorMessage: string, opts?: TailedPOSTOpts | string): Promise<Array<HttpResponse>> =>
+        new Promise<Array<HttpResponse>>((resolve: Function, reject: (e: Error) => void): void => {
             const promises: Array<Promise<HttpResponse>> = [];
 
             const options: TailedPOSTOpts = typeof opts === 'string' ? { description: opts } : opts;
@@ -247,5 +247,5 @@ export const testFailedPOST: TestFailedPOST =
                 }));
             }
 
-            Promise.all(promises).then(() => { resolve(); }, reject);
+            Promise.all(promises).then((responses: Array<HttpResponse>) => { resolve(responses); }, reject);
         });

@@ -3,16 +3,20 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import { HttpResponse } from 'chai-http-ext';
 import { describe, Done, it } from 'mocha';
+import { XPagination } from '../src/controller/x-pagination';
 import { HttpStatusCode } from '../src/errors/http_status_codes';
-import { SERVICE_1, SERVICE_1_NO_PARAMETER, SERVICE_1_PATH_PARAMETER, SERVICE_1_THROW_ERROR, SERVICE_3, URI } from './setup';
-import { testFailedGET, testSuccessfulGET } from './template';
+import {
+    SERVICE_1, SERVICE_1_NO_PARAMETER, SERVICE_1_PATH_PARAMETER,
+    SERVICE_1_THROW_ERROR, SERVICE_3, SERVICE_3_PAGED_LIST, URI,
+} from './setup';
+import { testFailedGET, testSuccessfulGET, testSuccessfulPOST } from './template';
 
 chai.use(chaiHttp);
 
-describe('Queries', () => {
+describe('Operations', () => {
 
     it('should allow parameter-less operations', (done: Done) => {
-        testSuccessfulGET(SERVICE_1_NO_PARAMETER, undefined).then(() => done(), done);
+        testSuccessfulGET(SERVICE_1_NO_PARAMETER, {}).then(() => done(), done);
     });
 
     it('should allow path parameters in operations', (done: Done) => {
@@ -50,7 +54,7 @@ describe('Queries', () => {
             if (err) { done(err); } else {
                 try {
                     expect(JSON.stringify(res.body)).to.be.equal(JSON.stringify({}));
-                    expect(res.status).to.be.equal(HttpStatusCode.NO_CONTENT);
+                    expect(res.status).to.be.equal(HttpStatusCode.CREATED);
                     expect(res.header['x-high-resolution-elapsed-time']).to.not.be.null;
                     done();
                 } catch (e) {
@@ -84,4 +88,35 @@ describe('Queries', () => {
 
         Promise.all(promises).then(() => done(), done);
     });
+
+    it('should display paging', (done: Done) => {
+
+        testSuccessfulGET(SERVICE_3_PAGED_LIST, ['f', 'g', 'h', 'i', 'j']).then((response: HttpResponse) => {
+
+            expect(response.header['x-pagination']).to.not.be.null;
+
+            const pagination: XPagination = JSON.parse(response.header['x-pagination']) as XPagination;
+            expect(pagination.count).to.be.equal(26);
+            expect(pagination.pages).to.be.equal(6);
+
+            done();
+        }, done);
+
+    });
+
+    it('Should allow objects to answer for more then one verb', (done: Done) => {
+        // The test bellow are defined with GET as well
+        testSuccessfulPOST(SERVICE_3_PAGED_LIST, {}, ['f', 'g', 'h', 'i', 'j']).then((responses: Array<HttpResponse>) => {
+
+            responses.forEach((response: HttpResponse) => {
+                expect(response.header['x-pagination']).to.not.be.null;
+
+                const pagination: XPagination = JSON.parse(response.header['x-pagination']) as XPagination;
+                expect(pagination.count).to.be.equal(26);
+                expect(pagination.pages).to.be.equal(6);
+            });
+            done();
+        }, done);
+    });
+
 });

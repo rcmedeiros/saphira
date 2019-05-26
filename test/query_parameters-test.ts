@@ -3,8 +3,7 @@ import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import { HttpResponse } from 'chai-http-ext';
 import { describe, Done, it } from 'mocha';
-import { XPagination } from '../src/controller/x-pagination';
-import { SERVICE_1_QUERY_PARAMETERS, SERVICE_3_PAGED_LIST } from './setup';
+import { SERVICE_1_QUERY_PARAMETERS, SERVICE_1_WILL_RETURN, SERVICE_3_PAGED_LIST } from './setup';
 import { testSuccessfulGET } from './template';
 
 chai.use(chaiHttp);
@@ -149,18 +148,46 @@ describe('Parameter types for queries', () => {
         Promise.all(promises).then(() => done(), done);
     });
 
-    it('should display paging', (done: Done) => {
+    it('Should return empty arrays, objects and null objects', (done: Done) => {
+        const promises: Array<Promise<HttpResponse>> = [];
 
-        testSuccessfulGET(SERVICE_3_PAGED_LIST, ['f', 'g', 'h', 'i', 'j']).then((response: HttpResponse) => {
+        promises.push(testSuccessfulGET(`${SERVICE_1_WILL_RETURN}Null`, null, 'null is null'));
+        promises.push(testSuccessfulGET(`${SERVICE_1_WILL_RETURN}Undefined`, null, 'Undefined is null'));
+        promises.push(testSuccessfulGET(`${SERVICE_1_WILL_RETURN}EmptyArray`, [], 'Empty array is array'));
+        promises.push(testSuccessfulGET(`${SERVICE_1_WILL_RETURN}EmptyObject`, {}, 'Empty object is object'));
 
-            expect(response.header['x-pagination']).to.not.be.null;
+        Promise.all(promises).then(() => done(), done);
+    });
 
-            const pagination: XPagination = JSON.parse(response.header['x-pagination']) as XPagination;
-            expect(pagination.count).to.be.equal(26);
-            expect(pagination.pages).to.be.equal(6);
+    it('All parameters at once', (done: Done) => {
 
-            done();
-        }, done);
-
+        // tslint:disable-next-line: prefer-template
+        testSuccessfulGET(SERVICE_1_QUERY_PARAMETERS +
+            '?a=true' +
+            '&b=1980-06-09' +
+            '&c=1980-06-09T16:00Z' +
+            `&d=${Math.PI}` +
+            '&e=0,1,2.34,-1' +
+            '&f={"name":"Kaladin","age":20,"surgeBinding":{"order":"WindRunner","bond":"Sylphrena", "surges": ["Adhesion", "Gravitation"]}}' +
+            '&g={"name":"Dalinar","age":53,"surgeBinding":{"order":"BondSmith","bond":"Stormfather","surges":["Tension","Adhesion"]}}' +
+            '&g={"name":"Adolin","age":20}' +
+            '&g={"name":"Renarin","age":21,"surgeBinding":{"order":"TruthWatchers","bond":"Glys","surges":["Progression","Illumination"]}}' +
+            '&h=~%21%40%23%24%25%5E%26%2A%28%29_%2B%7B%7D%3A%22%3C%3E%3F%7C-%3D%5B%5D%5C%3B%27%2C.%2F' +
+            '&i=Sylphrena' +
+            '&j=Sylphrena&j=Pattern&j=Ivory&j=Glys&j=Wyndle&j=Stormfather',
+            [true,
+                '1980-06-09T00:00:00.000Z',
+                '1980-06-09T16:00:00.000Z',
+                Math.PI,
+                [0, 1, 2.34, -1],
+                { name: 'Kaladin', age: 20, surgeBinding: { order: 'WindRunner', bond: 'Sylphrena', surges: ['Adhesion', 'Gravitation'] } },
+                [
+                    { name: 'Dalinar', age: 53, surgeBinding: { order: 'BondSmith', bond: 'Stormfather', surges: ['Tension', 'Adhesion'] } },
+                    { name: 'Adolin', age: 20, surgeBinding: undefined },
+                    { name: 'Renarin', age: 21, surgeBinding: { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] } }],
+                '~!@#$%^&*()_+{}:"<>?|-=[]\\;\',./',
+                'Sylphrena',
+                ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],
+            ]).then(() => done(), done);
     });
 });

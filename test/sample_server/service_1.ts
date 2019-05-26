@@ -109,54 +109,27 @@ export class Service1 extends Controller {
                 description: 'Are do you with to append?',
                 example: 'Hello World',
             }],
-            response: { type: Type.HttpModified },
+            response: { type: Type.HttpCreated },
         });
 
-        this.route('willThrowError1', {
-            method: Method.GET,
-            action: this.willThrowError1,
-            response: { type: Type.HttpAccepted },
-        });
-        this.route('willThrowError2', {
-            method: Method.GET,
-            action: this.willThrowError2,
-            response: { type: Type.HttpAccepted },
-        });
+        this.route('willReturnNull', { method: Method.GET, action: this.willReturnNull, response: { type: Type.String } });
+        this.route('willReturnUndefined', { method: Method.GET, action: this.willReturnUndefined, response: { type: Type.String } });
+        this.route('willReturnEmptyArray', { method: Method.GET, action: this.willReturnEmptyArray, response: { type: Type.StringArray } });
+        this.route('willReturnEmptyObject', { method: Method.GET, action: this.willReturnEmptyObject, response: { type: Type.Object } });
 
+        this.route('willThrowError1', { method: Method.GET, action: this.willThrowError1, response: { type: Type.HttpAccepted } });
+        this.route('willThrowError2', { method: Method.GET, action: this.willThrowError2, response: { type: Type.HttpAccepted } });
         this.route('willThrowError3', {
-            method: Method.GET,
-            action: this.willThrowError3,
-            params: [
-                {
-                    name: 'id', type: Type.Number,
-                    description: 'ID',
-                    example: 1,
-                },
-            ],
-            response: { type: Type.HttpAccepted },
+            method: Method.GET, action: this.willThrowError3,
+            params: [{ name: 'id', type: Type.Number, description: 'ID', example: 1 }], response: { type: Type.HttpAccepted },
         });
         this.route('willThrowError4', {
-            method: Method.GET,
-            action: this.willThrowError4,
-            params: [
-                {
-                    name: 'id', type: Type.Number,
-                    description: 'ID',
-                    example: 1,
-                },
-            ],
+            method: Method.GET, action: this.willThrowError4,
+            params: [{ name: 'id', type: Type.Number, description: 'ID', example: 1 }],
             response: { type: Type.HttpAccepted },
         });
         this.route('willThrowError5', {
-            method: Method.GET,
-            action: this.willThrowError5,
-            params: [
-                {
-                    name: 'id', type: Type.Number,
-                    description: 'ID',
-                    example: 1,
-                },
-            ],
+            method: Method.GET, action: this.willThrowError5, params: [{ name: 'id', type: Type.Number, description: 'ID', example: 1 }],
             response: { type: Type.HttpAccepted },
         });
     }
@@ -184,17 +157,14 @@ export class Service1 extends Controller {
     public putWithParentPathParameter = (_id: number, _what: string): Promise<void> =>
         Promise.resolve()
 
-    public willThrowError1 = async (): Promise<void> => {
-        throw new Error('Something wrong. Throwing.');
-    }
-    public willThrowError2 = (): Promise<void> =>
-        Promise.reject(new ServerError('Something wrong. Rejecting.'))
-    public willThrowError3 = async (_id: number): Promise<void> => {
-        throw new Error('Something wrong. Throwing.');
-    }
-    public willThrowError4 = (_id: number): Promise<void> =>
-        Promise.reject(new BadGatewayError('Something wrong. Rejecting.'))
+    public willReturnNull = async (): Promise<string> => Promise.resolve(null);
+    public willReturnUndefined = async (): Promise<string> => Promise.resolve(undefined);
+    public willReturnEmptyArray = async (): Promise<Array<string>> => Promise.resolve([]);
+    public willReturnEmptyObject = async (): Promise<object> => Promise.resolve({});
 
-    public willThrowError5 = (_id: number): Promise<void> =>
-        Promise.reject(new ServerError(new Error('Something wrong. Rejecting.')))
+    public willThrowError1 = async (): Promise<void> => { throw new Error('Something wrong. Throwing.'); };
+    public willThrowError2 = (): Promise<void> => Promise.reject(new ServerError('Something wrong. Rejecting.'));
+    public willThrowError3 = async (_id: number): Promise<void> => { throw new Error('Something wrong. Throwing.'); };
+    public willThrowError4 = (_id: number): Promise<void> => Promise.reject(new BadGatewayError('Something wrong. Rejecting.'));
+    public willThrowError5 = (_id: number): Promise<void> => Promise.reject(new ServerError(new Error('Something wrong. Rejecting.')));
 }

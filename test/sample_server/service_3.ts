@@ -42,12 +42,12 @@ export class Service3 extends Controller {
         });
 
         this.route('pagedList', {
-            tag: {
-                summary: 'Alphabet in pages of 5',
-            },
-            method: Method.GET,
-            action: this.pagedList,
-            response: { type: Type.StringArray },
+            tag: { summary: 'Alphabet in pages of 5' },
+            method: Method.GET, action: this.pagedList, response: { type: Type.StringArray },
+        });
+        this.route('pagedList', {
+            tag: { summary: 'Alphabet in pages of 5' },
+            method: Method.POST, action: this.pagedList, response: { type: Type.StringArray },
         });
     }
 
