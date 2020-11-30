@@ -52,7 +52,7 @@ jobs:
           command: python -m mkdocs build --strict --verbose
       - add_ssh_keys:
           fingerprints:
-            - "60:d4:76:ed:99:f0:32:35:76:31:d1:b1:f6:8d:4b:e5"
+            - "ce:7e:c3:54:83:3c:b8:e9:68:d6:7a:fa:b6:be:16:75"
       - run:
           name: Push new version
           command: |
