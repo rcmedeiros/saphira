@@ -1,0 +1,401 @@
+version: 2.1
+jobs:
+  stamp:
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - checkout
+      - run:
+          name: Stamp build number into package.json
+          command: sed -i "s/-dev/-${CIRCLE_BUILD_NUM}/g" package.json
+      - run:
+          name: Create .npmrc file
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - package.json
+            - .npmrc
+  dev_dependencies:
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - checkout
+      - restore_cache:
+          key: dev_dependencies-{{ checksum "package.json" }}
+      - run:
+          name: Install development dependencies
+          command: |
+            chmod +x .circleci/install.sh
+            ./.circleci/install.sh dev
+      - save_cache:
+          key: dev_dependencies-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+  docs:
+    docker:
+      - image: python:3.7.2
+    steps:
+      - checkout
+      - restore_cache:
+          key: pydependencies5-{{ checksum "mkdocs/requirements.txt" }}
+      - run:
+          name: Install Python dependencies
+          command: |
+            pip install -r mkdocs/requirements.txt
+      - save_cache:
+          key: pydependencies5-{{ checksum "mkdocs/requirements.txt" }}
+          paths:
+            - "/usr/local/lib/python3.7/site-packages"
+      - run:
+          name: Build site
+          command: python -m mkdocs build --strict --verbose
+      - add_ssh_keys:
+          fingerprints:
+            - "60:d4:76:ed:99:f0:32:35:76:31:d1:b1:f6:8d:4b:e5"
+      - run:
+          name: Push new version
+          command: |
+            chmod +x .circleci/push_docs_site.sh
+            ./.circleci/push_docs_site.sh
+  test:
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Development Dependencies
+          key: dev_dependencies-{{ checksum "package.json" }}
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Run ESLint
+          command: |
+            ./node_modules/.bin/eslint lib/** --format junit --output-file reports/eslint.xml
+      - run:
+          name: Run Tests!
+          command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha
+            --check-leaks --timeout 300 --recursive --exit test/*.test.js
+            --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
+      - run:
+          name: Output reports
+          command: |
+            ./node_modules/.bin/nyc report --reporter=json
+            ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
+      - run:
+          name: Report to Codecov
+          command: |
+            bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} -f coverage/coverage-final.json
+      - restore_cache:
+          name: Restore SonarQube Scanner
+          key: -sonar-scanner-4.5.0.2216-linux
+      - run:
+          name: Download SonarQube Scanner (if still necessary)
+          command: |
+            chmod +x .circleci/install_sonar-scanner.sh
+            ./.circleci/install_sonar-scanner.sh
+      - run:
+          name: Stamp project verion
+          command: node ./.circleci/replace.js json-to-prop package.json version sonar-project.properties sonar.projectVersion
+      - run:
+          name: Sonarcloud Scan
+          command: |
+            ./sonar-scanner-4.5.0.2216-linux/bin/sonar-scanner -Dsonar.login=${SONAR_LOGIN}
+            cat -n .scannerwork/report-task.txt
+      - save_cache:
+          name: Cache SonarQube Scanner
+          key: -sonar-scanner-4.5.0.2216-linux
+          paths:
+            - sonar-scanner-4.5.0.2216-linux
+            - /home/circleci/.sonar
+      - store_test_results:
+          path: reports
+  deploy_dev:
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Show tree
+          command: sudo apt-get install tree -y && tree -a
+      - run:
+          name: Publish
+          command: npm publish --access public --tag dev
+  cache_release:
+    parameters:
+      master_branch:
+        type: boolean
+        default: false
+      release_branch:
+        type: boolean
+        default: false
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - attach_workspace:
+          at: ./
+      - run: mkdir .circleci
+      - when:
+          condition: << parameters.master_branch >>
+          steps:
+            - run:
+                name: Get release tag
+                command: |
+                  echo "v$(cat package.json | jq -r '.version' | cut -f1 -d'-')" > .circleci/.release
+      - when:
+          condition: << parameters.release_branch >>
+          steps:
+            - run:
+                name: Get pre-release tag
+                command: |
+                  echo "${CIRCLE_BRANCH}" > .circleci/.release
+      - run:
+          name: Print tag
+          command: cat .circleci/.release
+      - save_cache:
+          key: release-{{ checksum ".circleci/.release" }}
+          paths:
+            - ./
+  check_release:
+    parameters:
+      master_branch:
+        type: boolean
+        default: false
+      release_branch:
+        type: boolean
+        default: false
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - checkout
+      - when:
+          condition: << parameters.master_branch >>
+          steps:
+            - run:
+                name: Get release tag
+                command: echo "${CIRCLE_TAG}" > .circleci/.release
+      - when:
+          condition: << parameters.release_branch >>
+          steps:
+            - run:
+                name: Get pre-release tag
+                command: echo "release/${CIRCLE_TAG}" > .circleci/.release
+      - run:
+          name: Print tag
+          command: cat .circleci/.release
+      - restore_cache:
+          key: release-{{ checksum ".circleci/.release" }}
+      - run: sudo apt-get install tree -y
+      - run:
+          name: DRY RUN. VERIFY PRIOR TO APPROVAL!
+          command: |
+            cat package.json | jq --arg val $CIRCLE_TAG '.version = $val' > new_package.json
+            mv new_package.json package.json
+            tree -a
+            npm publish --access public --tag dryrun --dry-run
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./*
+  deploy_release:
+    parameters:
+      alpha:
+        type: boolean
+        default: false
+      beta:
+        type: boolean
+        default: false
+      release_candidate:
+        type: boolean
+        default: false
+      stable:
+        type: boolean
+        default: false
+    docker:
+      - image: circleci/node:lts
+    steps:
+      - attach_workspace:
+          at: ./
+      - when:
+          condition: << parameters.alpha >>
+          steps:
+            - run:
+                name: Publish Alpha Version
+                command: npm publish --access public --tag alpha
+      - when:
+          condition: << parameters.beta >>
+          steps:
+            - run:
+                name: Publish Beta Version
+                command: npm publish --access public --tag beta
+      - when:
+          condition: << parameters.release_candidate >>
+          steps:
+            - run:
+                name: Publish Release Candidate
+                command: npm publish --access public --tag next
+      - when:
+          condition: << parameters.stable >>
+          steps:
+            - run:
+                name: Publish Stable Version
+                command: npm publish --access public
+workflows:
+  development_commit:
+    jobs:
+      - stamp:
+          filters:
+            branches:
+              only: develop
+      - dev_dependencies:
+          filters:
+            branches:
+              only: develop
+      - docs:
+          filters:
+            branches:
+              only: develop
+      - test:
+          requires:
+            - stamp
+            - dev_dependencies
+          filters:
+            branches:
+              only: develop
+      - deploy_dev:
+          requires:
+            - stamp
+            - test
+          filters:
+            branches:
+              only: develop
+  staging_commit:
+    jobs:
+      - stamp:
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - docs:
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - dev_dependencies:
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - test:
+          requires:
+            - stamp
+            - dev_dependencies
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - cache_release:
+          release_branch: true
+          requires:
+            - stamp
+            - test
+            - docs
+          filters:
+            branches:
+              only: /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - cache_release:
+          master_branch: true
+          requires:
+            - stamp
+            - test
+            - docs
+          filters:
+            branches:
+              only: master
+  release:
+    jobs:
+      - check_release:
+          name: check_release_branch
+          release_branch: true
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - check_release:
+          name: check_master_branch
+          master_branch: true
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)+(\.[0-9]+)/
+      - hold:
+          type: approval
+          requires:
+            - check_master_branch
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)+(\.[0-9]+)/
+      - deploy_release:
+          alpha: true
+          requires:
+            - check_release_branch
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v\d+\.\d+\.\d+-(alpha)(\.\d){0,1}/
+      - deploy_release:
+          beta: true
+          requires:
+            - check_release_branch
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v\d+\.\d+\.\d+-(beta)(\.\d){0,1}/
+      - deploy_release:
+          release_candidate: true
+          requires:
+            - check_release_branch
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v\d+\.\d+\.\d+-(rc)(\.\d){0,1}/
+      - deploy_release:
+          stable: true
+          requires:
+            - hold
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)+(\.[0-9]+)/
+  random_commit:
+    jobs:
+      - dev_dependencies:
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - test:
+          requires:
+            - dev_dependencies
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
