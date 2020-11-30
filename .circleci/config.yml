@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   stamp:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - run:
@@ -19,7 +19,7 @@ jobs:
 
   dependencies:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - restore_cache:
@@ -36,7 +36,7 @@ jobs:
 
   dev_dependencies:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - restore_cache:
@@ -79,7 +79,7 @@ jobs:
             ./.circleci/push_docs_site.sh
   audit_dependencies:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - restore_cache:
@@ -101,7 +101,7 @@ jobs:
 
   code_review:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - restore_cache:
@@ -121,7 +121,7 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - restore_cache:
@@ -156,7 +156,7 @@ jobs:
 
   test:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - restore_cache:
@@ -224,7 +224,7 @@ jobs:
 
   deploy_dev:
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - attach_workspace:
@@ -248,7 +248,7 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - attach_workspace:
           at: ./
@@ -284,7 +284,7 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - checkout
       - when:
@@ -325,7 +325,7 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: circleci/node:10
+      - image: circleci/node:lst
     steps:
       - attach_workspace:
           at: ./
