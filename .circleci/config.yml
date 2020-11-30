@@ -157,6 +157,9 @@ jobs:
   test:
     docker:
       - image: circleci/node:lst
+    environment:
+      TS_NODE_PROJECT: test/tsconfig.json
+      NODE_ENV: test
     steps:
       - checkout
       - restore_cache:
