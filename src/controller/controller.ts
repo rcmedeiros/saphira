@@ -1,6 +1,6 @@
 import '@rcmedeiros/prototypes';
 import { Request } from 'express';
-import v4 from 'uuid/v4';
+import { v4 } from 'uuid';
 import { DataTypes, Type } from '../data-types';
 import { BadRequestError } from '../errors/bad_request-error';
 import { UnknownObj } from './unknown-obj';
