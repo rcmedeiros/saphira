@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   stamp:
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node:10
     steps:
       - checkout
       - run:
@@ -16,22 +16,41 @@ jobs:
           paths:
             - package.json
             - .npmrc
-  dev_dependencies:
+
+  dependencies:
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node:10
     steps:
       - checkout
       - restore_cache:
-          key: dev_dependencies-{{ checksum "package.json" }}
+          key: dependencies-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install production dependencies
+          command: |
+            chmod +x .circleci/install.sh
+            ./.circleci/install.sh
+      - save_cache:
+          key: dependencies-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+  dev_dependencies:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          key: dev_dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Install development dependencies
           command: |
             chmod +x .circleci/install.sh
             ./.circleci/install.sh dev
       - save_cache:
-          key: dev_dependencies-{{ checksum "package.json" }}
+          key: dev_dependencies-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
+
   docs:
     docker:
       - image: python:3.7.2
@@ -49,7 +68,7 @@ jobs:
             - "/usr/local/lib/python3.7/site-packages"
       - run:
           name: Build site
-          command: python -m mkdocs build --strict --verbose
+          command: python -m mkdocs build --strict --theme material --verbose
       - add_ssh_keys:
           fingerprints:
             - "ce:7e:c3:54:83:3c:b8:e9:68:d6:7a:fa:b6:be:16:75"
@@ -58,71 +77,166 @@ jobs:
           command: |
             chmod +x .circleci/push_docs_site.sh
             ./.circleci/push_docs_site.sh
-  test:
+  audit_dependencies:
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node:10
     steps:
       - checkout
       - restore_cache:
-          name: Restore Development Dependencies
-          key: dev_dependencies-{{ checksum "package.json" }}
-      - attach_workspace:
-          at: ./
+          key: dependencies-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          key: dev_dependencies-{{ checksum "package-lock.json" }}
+      - run:
+          name: Check for outdated packages
+          command: npm outdated
+      - run:
+          name: Audit with NPM
+          command: npm audit
+      - run:
+          name: Install Snyk
+          command: npm i snyk@latest
+      - run:
+          name: Audit with Snyk
+          command: ./node_modules/.bin/snyk test
+
+  code_review:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependencies-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          key: dev_dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Run Lint
           command: |
             echo "FIXME: TSLint deprecated, ESLint not configured"
+      - store_test_results:
+          path: reports
+
+  build:
+    parameters:
+      production:
+        type: boolean
+        default: false
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          key: dev_dependencies-{{ checksum "package-lock.json" }}
+      - when:
+          condition: << parameters.production >>
+          steps:
+            - run:
+                name: Build for development
+                command:
+                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments
+                  false --listFiles true --sourceMap false --inlineSourceMap
+                  true --inlineSources true --listEmittedFiles true
+                  --declaration true
+      - unless:
+          condition: << parameters.production >>
+          steps:
+            - run:
+                name: Build for production
+                command:
+                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments true
+                  --listFiles true --sourceMap false --inlineSourceMap false
+                  --inlineSources false --listEmittedFiles true --declaration
+                  true
+
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - dist/*
+
+  test:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Development Dependencies
+          key: dev_dependencies-{{ checksum "package-lock.json" }}
+      - restore_cache:
+          name: Restore Dependencies
+          key: dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Run Tests!
-          command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha
-            --check-leaks --timeout 300 --recursive --exit test/*.test.js
-            --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
-      - run:
-          name: Output reports
           command: |
-            ./node_modules/.bin/nyc report --reporter=json
-            ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
+            ./node_modules/.bin/nyc ./node_modules/.bin/mocha \
+            --require ts-node/register --check-leaks --timeout 300 \
+            --recursive -exit test/*-test.ts --reporter mocha-junit-reporter \
+            --reporter-options mochaFile=reports/mocha/test-results.xml
       - run:
           name: Report to Codecov
           command: |
+            ./node_modules/.bin/nyc report --reporter=json
             bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} -f coverage/coverage-final.json
+      - run:
+          name: Report to Coveralls
+          command: |
+            ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls
+      - run:
+          name: Send Report to Code Climate
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+            ./cc-test-reporter before-build
+            ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
+            ./cc-test-reporter after-build -t lcov
       - restore_cache:
           name: Restore SonarQube Scanner
-          key: -sonar-scanner-4.5.0.2216-linux
+          key: -sonar-scanner-3.3.0.1492-linux
       - run:
           name: Download SonarQube Scanner (if still necessary)
           command: |
             chmod +x .circleci/install_sonar-scanner.sh
             ./.circleci/install_sonar-scanner.sh
       - run:
-          name: Stamp project verion
-          command: node ./.circleci/replace.js json-to-prop package.json version sonar-project.properties sonar.projectVersion
-      - run:
           name: Sonarcloud Scan
           command: |
-            ./sonar-scanner-4.5.0.2216-linux/bin/sonar-scanner -Dsonar.login=${SONAR_LOGIN}
+            ./sonar-scanner-3.3.0.1492-linux/bin/sonar-scanner \
+            -Dsonar.projectKey=rcmedeiros_template \
+            -Dsonar.organization=rcmedeiros-github \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.projectBaseDir=/home/circleci/project/ \
+            -Dsonar.sources=src \
+            -Dsonar.typescript.exclusions=node_modules/**,coverage/**,sonar*/**,dist/**,reports/**,test/**,docs/** \
+            -Dsonar.typescript.tsconfigPath=tsconfig.json \
+            -Dsonar.typescript.file.suffixes=.ts \
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
+            -Dsonar.coverage.exclusions=src/index.ts \
+            -Dsonar.login=${SONAR_LOGIN}
             cat -n .scannerwork/report-task.txt
       - save_cache:
           name: Cache SonarQube Scanner
-          key: -sonar-scanner-4.5.0.2216-linux
+          key: -sonar-scanner-3.3.0.1492-linux
           paths:
-            - sonar-scanner-4.5.0.2216-linux
+            - sonar-scanner-3.3.0.1492-linux
             - /home/circleci/.sonar
       - store_test_results:
           path: reports
+
   deploy_dev:
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node:10
     steps:
       - checkout
       - attach_workspace:
           at: ./
       - run:
+          name: Bring transpiled code to root
+          command: mv dist/* .
+      - run:
           name: Show tree
           command: sudo apt-get install tree -y && tree -a
       - run:
           name: Publish
-          command: npm publish --access public --tag dev
+          command: npm publish --access public --tag dev --dry-run
+
   cache_release:
     parameters:
       master_branch:
@@ -132,7 +246,7 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node:10
     steps:
       - attach_workspace:
           at: ./
@@ -158,6 +272,7 @@ jobs:
           key: release-{{ checksum ".circleci/.release" }}
           paths:
             - ./
+
   check_release:
     parameters:
       master_branch:
@@ -167,7 +282,7 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node:10
     steps:
       - checkout
       - when:
@@ -187,18 +302,12 @@ jobs:
           command: cat .circleci/.release
       - restore_cache:
           key: release-{{ checksum ".circleci/.release" }}
-      - run: sudo apt-get install tree -y
-      - run:
-          name: DRY RUN. VERIFY PRIOR TO APPROVAL!
-          command: |
-            cat package.json | jq --arg val $CIRCLE_TAG '.version = $val' > new_package.json
-            mv new_package.json package.json
-            tree -a
-            npm publish --access public --tag dryrun --dry-run
+      - run: sudo apt-get install tree -y && tree -a
       - persist_to_workspace:
           root: ./
           paths:
             - ./*
+
   deploy_release:
     parameters:
       alpha:
@@ -214,38 +323,47 @@ jobs:
         type: boolean
         default: false
     docker:
-      - image: circleci/node:lts
+      - image: circleci/node:10
     steps:
       - attach_workspace:
           at: ./
+      - run:
+          name: Bring transpiled code to root
+          command: mv dist/* .
+      - run: sudo apt-get install tree -y && tree -a
       - when:
           condition: << parameters.alpha >>
           steps:
             - run:
                 name: Publish Alpha Version
-                command: npm publish --access public --tag alpha
+                command: npm publish --access public --tag alpha --dry-run
       - when:
           condition: << parameters.beta >>
           steps:
             - run:
                 name: Publish Beta Version
-                command: npm publish --access public --tag beta
+                command: npm publish --access public --tag beta --dry-run
       - when:
           condition: << parameters.release_candidate >>
           steps:
             - run:
                 name: Publish Release Candidate
-                command: npm publish --access public --tag next
+                command: npm publish --access public --tag next --dry-run
       - when:
           condition: << parameters.stable >>
           steps:
             - run:
                 name: Publish Stable Version
-                command: npm publish --access public
+                command: npm publish --access public --dry-run
+
 workflows:
   development_commit:
     jobs:
       - stamp:
+          filters:
+            branches:
+              only: develop
+      - dependencies:
           filters:
             branches:
               only: develop
@@ -257,10 +375,32 @@ workflows:
           filters:
             branches:
               only: develop
+      - audit_dependencies:
+          requires:
+            - dev_dependencies
+            - dependencies
+          filters:
+            branches:
+              only: develop
+      - code_review:
+          requires:
+            - dev_dependencies
+            - dependencies
+          filters:
+            branches:
+              only: develop
+      - build:
+          requires:
+            - dev_dependencies
+          filters:
+            branches:
+              only: develop
       - test:
           requires:
-            - stamp
+            - dependencies
             - dev_dependencies
+            - audit_dependencies
+            - build
           filters:
             branches:
               only: develop
@@ -285,7 +425,39 @@ workflows:
               only:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - dependencies:
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - dev_dependencies:
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - audit_dependencies:
+          requires:
+            - dev_dependencies
+            - dependencies
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - code_review:
+          requires:
+            - dev_dependencies
+          filters:
+            branches:
+              only:
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - build:
+          production: true
+          requires:
+            - dev_dependencies
           filters:
             branches:
               only:
@@ -293,8 +465,10 @@ workflows:
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - test:
           requires:
-            - stamp
+            - dependencies
             - dev_dependencies
+            - audit_dependencies
+            - build
           filters:
             branches:
               only:
@@ -305,6 +479,7 @@ workflows:
           requires:
             - stamp
             - test
+            - code_review
             - docs
           filters:
             branches:
@@ -314,6 +489,7 @@ workflows:
           requires:
             - stamp
             - test
+            - code_review
             - docs
           filters:
             branches:
@@ -383,7 +559,43 @@ workflows:
               only: /v[0-9]+(\.[0-9]+)+(\.[0-9]+)/
   random_commit:
     jobs:
+      - dependencies:
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - dev_dependencies:
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - audit_dependencies:
+          requires:
+            - dev_dependencies
+            - dependencies
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - code_review:
+          requires:
+            - dev_dependencies
+            - dependencies
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - build:
+          requires:
+            - dev_dependencies
           filters:
             branches:
               ignore:
@@ -392,7 +604,9 @@ workflows:
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - test:
           requires:
+            - dependencies
             - dev_dependencies
+            - build
           filters:
             branches:
               ignore:
