@@ -191,7 +191,7 @@ jobs:
             ./cc-test-reporter after-build -t lcov
       - restore_cache:
           name: Restore SonarQube Scanner
-          key: -sonar-scanner-3.3.0.1492-linux
+          key: -sonar-scanner-4.5.0.2216-linux
       - run:
           name: Download SonarQube Scanner (if still necessary)
           command: |
@@ -200,7 +200,7 @@ jobs:
       - run:
           name: Sonarcloud Scan
           command: |
-            ./sonar-scanner-3.3.0.1492-linux/bin/sonar-scanner \
+            ./sonar-scanner-4.5.0.2216-linux/bin/sonar-scanner \
             -Dsonar.projectKey=rcmedeiros_template \
             -Dsonar.organization=rcmedeiros-github \
             -Dsonar.host.url=https://sonarcloud.io \
@@ -215,9 +215,9 @@ jobs:
             cat -n .scannerwork/report-task.txt
       - save_cache:
           name: Cache SonarQube Scanner
-          key: -sonar-scanner-3.3.0.1492-linux
+          key: -sonar-scanner-4.5.0.2216-linux
           paths:
-            - sonar-scanner-3.3.0.1492-linux
+            - sonar-scanner-4.5.0.2216-linux
             - /home/circleci/.sonar
       - store_test_results:
           path: reports
