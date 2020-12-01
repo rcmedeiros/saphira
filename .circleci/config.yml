@@ -99,22 +99,6 @@ jobs:
           name: Audit with Snyk
           command: ./node_modules/.bin/snyk test
 
-  code_review:
-    docker:
-      - image: circleci/node:lts
-    steps:
-      - checkout
-      - restore_cache:
-          key: dependencies-{{ checksum "package-lock.json" }}
-      - restore_cache:
-          key: dev_dependencies-{{ checksum "package-lock.json" }}
-      - run:
-          name: Run Lint
-          command: |
-            echo "FIXME: TSLint deprecated, ESLint not configured"
-      - store_test_results:
-          path: reports
-
   build:
     parameters:
       production:
@@ -174,6 +158,10 @@ jobs:
             sed -i "s/80/8081/g" src/constants/settings.ts &&\
             sed -i "s/443/4444/g" src/constants/settings.ts &&\
             cat src/constants/settings.ts
+      - run:
+          name: Run Lint
+          command: |
+            echo "FIXME: TSLint deprecated, ESLint not configured"
       - run:
           name: Run Tests!
           command: |
@@ -358,13 +346,6 @@ workflows:
           filters:
             branches:
               only: develop
-      - code_review:
-          requires:
-            - dev_dependencies
-            - dependencies
-          filters:
-            branches:
-              only: develop
       - build:
           requires:
             - dependencies
@@ -422,14 +403,6 @@ workflows:
               only:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
-      - code_review:
-          requires:
-            - dev_dependencies
-          filters:
-            branches:
-              only:
-                - master
-                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - build:
           production: true
           requires:
@@ -454,7 +427,6 @@ workflows:
           requires:
             - stamp
             - test
-            - code_review
             - docs
           filters:
             branches:
@@ -464,7 +436,6 @@ workflows:
           requires:
             - stamp
             - test
-            - code_review
             - docs
           filters:
             branches:
@@ -549,16 +520,6 @@ workflows:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - audit_dependencies:
-          requires:
-            - dev_dependencies
-            - dependencies
-          filters:
-            branches:
-              ignore:
-                - develop
-                - master
-                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
-      - code_review:
           requires:
             - dev_dependencies
             - dependencies
