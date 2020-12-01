@@ -170,17 +170,12 @@ jobs:
           key: dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Avoid port conflicts
-          command: ls -lt
+          command: ls -lt src
       - run:
           name: Avoid port conflicts
           command: |
-            apt-get install tree \
-            tree
-      - run:
-          name: Avoid port conflicts
-          command: |
-            sed -i "s/80/81/g" /home/circleci/project/src/constants/settings.ts \
-            sed -i "s/443/444/g" /home/circleci/project/src/constants/settings.ts
+            sed -i "s/80/81/g" src/constants/settings.ts \
+            sed -i "s/443/444/g" src/constants/settings.ts
       - run:
           name: Run Tests!
           command: |
