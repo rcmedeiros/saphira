@@ -175,23 +175,6 @@ jobs:
             --require ts-node/register --check-leaks --timeout 300 \
             --recursive -exit test/*-test.ts --reporter mocha-junit-reporter \
             --reporter-options mochaFile=reports/mocha/test-results.xml
-      - run:
-          name: Report to Codecov
-          command: |
-            ./node_modules/.bin/nyc report --reporter=json
-            bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} -f coverage/coverage-final.json
-      - run:
-          name: Report to Coveralls
-          command: |
-            ./node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls
-      - run:
-          name: Send Report to Code Climate
-          command: |
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-            chmod +x ./cc-test-reporter
-            ./cc-test-reporter before-build
-            ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
-            ./cc-test-reporter after-build -t lcov
       - restore_cache:
           name: Restore SonarQube Scanner
           key: -sonar-scanner-4.5.0.2216-linux
