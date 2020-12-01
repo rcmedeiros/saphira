@@ -169,6 +169,11 @@ jobs:
           name: Restore Dependencies
           key: dependencies-{{ checksum "package-lock.json" }}
       - run:
+          name: Avoid port conflicts
+          command: |
+            sed -i "s/80/81/g" dist/constants/settings.js \
+            sed -i "s/443/444/g" dist/constants/settings.js
+      - run:
           name: Run Tests!
           command: |
             ./node_modules/.bin/nyc ./node_modules/.bin/mocha \
