@@ -171,8 +171,8 @@ jobs:
       - run:
           name: Avoid port conflicts
           command: |
-            sed -i "s/80/8080/g" src/constants/settings.ts &&\
-            sed -i "s/443/4443/g" src/constants/settings.ts &&\
+            sed -i "s/80/8081/g" src/constants/settings.ts &&\
+            sed -i "s/443/4444/g" src/constants/settings.ts &&\
             cat src/constants/settings.ts
       - run:
           name: Run Tests!
