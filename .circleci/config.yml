@@ -418,6 +418,7 @@ workflows:
       - build:
           production: true
           requires:
+            - dependencies
             - dev_dependencies
           filters:
             branches:
@@ -544,6 +545,7 @@ workflows:
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - build:
           requires:
+            - dependencies
             - dev_dependencies
           filters:
             branches:
