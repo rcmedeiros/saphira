@@ -211,7 +211,7 @@ jobs:
           command: sudo apt-get install tree -y && tree -a
       - run:
           name: Publish
-          command: npm publish --access public --tag dev --dry-run
+          command: npm publish --access public --tag dev
 
   cache_release:
     parameters:
