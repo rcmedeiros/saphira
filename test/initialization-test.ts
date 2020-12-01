@@ -19,12 +19,13 @@ chai.use(chaiHttp);
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const healthyStart: Function = (done: Done, opts?: SaphiraOptions): void => {
+    opts = opts || {};
+    opts.port = opts.port || (opts.https ? 81 : 444)
     const s: Saphira = new Saphira([Service1], opts);
     s.listen().then(() => {
 
         opts = opts || {};
-        chai.request(`http${opts.https ? 's' : ''}://localhost:${
-            opts.port || (opts.https ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT)}`,
+        chai.request(`http${opts.https ? 's' : ''}://localhost:${opts.port || (opts.https ? 8081 : 4441)}`,
         ).get(ENDPOINT_HEALTH_CHECK)
             .end((err: Error, res: HttpResponse) => {
                 if (!err) {
