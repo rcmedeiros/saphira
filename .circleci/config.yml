@@ -139,6 +139,10 @@ jobs:
             - dist/*
 
   test:
+    parameters:
+      production:
+        type: boolean
+        default: false
     docker:
       - image: circleci/node:lts
     environment:
