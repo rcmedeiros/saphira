@@ -170,7 +170,7 @@ jobs:
           key: dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Avoid port conflicts
-          command: ls -lt src
+          command: ls -lt src/constants
       - run:
           name: Avoid port conflicts
           command: |
