@@ -21,14 +21,16 @@ import { Controller, Handler, HandlersByMethod, Method } from './controller/cont
 import { PagedResult } from './controller/paged_result';
 import { Responder } from './controller/responder';
 import { Type } from './data-types';
+import { StringSet, Rejection, Resolution } from './types';
 import { DTO } from './dto/dto';
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
-import { HttpStatusCode } from './errors/http_status_codes';
-import { ServerError } from './errors/server.error';
+import { HttpStatusCode } from './constants/http_status_codes';
+import { ServerError } from './errors/server-error';
 import { Logger, LogLevel, LogOptions } from './logger';
 import { Info, ModuleInfo, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { NameValue, Vault } from './vault';
+import { Adapters } from './adapters_manager';
 
 export interface ServerInfo {
     url: URL;
@@ -64,6 +66,7 @@ export interface SaphiraOptions {
     openApiComponents?: { [index: string]: unknown };
     corsOptions?: CorsOptions;
     logOptions?: LogOptions;
+    adapters?: Adapters;
 }
 
 export class Saphira {
@@ -272,5 +275,5 @@ export class Saphira {
 }
 
 export {
-    BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, NameValue, PagedResult, Type, Vault,
+    BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, PagedResult, Type, Vault, NameValue, StringSet, Rejection, Resolution,
 };

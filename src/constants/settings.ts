@@ -10,3 +10,7 @@ export const DEFAULT_PACKAGE: string = 'package.json';
 export const UTF8: string = 'utf-8';
 export const DEFAULT_HTTP_PORT: number = 80;
 export const DEFAULT_HTTPS_PORT: number = 443;
+
+export const JWT_KEY: string = 'jwt_key';
+export const JWT_OPTS: string = 'jwt_opts';
+export const JWT_CLOCK_TOLERANCE: number = 30;

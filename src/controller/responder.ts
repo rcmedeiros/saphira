@@ -5,7 +5,7 @@ import { MSG_HTTP_UNEXPECTED_ERROR } from '../constants/messages';
 import { HEADER_X_HRTIME, HEADER_X_PAGINATION } from '../constants/settings';
 import { Type } from '../data-types';
 import { HttpError } from '../errors/http-error';
-import { HttpStatusCode } from '../errors/http_status_codes';
+import { HttpStatusCode } from '../constants/http_status_codes';
 import { Controller, Handler } from './controller';
 import { PagedResult } from './paged_result';
 import { UnknownObj } from './unknown-obj';

@@ -1,5 +1,5 @@
 import { HttpError } from './http-error';
-import { HttpStatusCode } from './http_status_codes';
+import { HttpStatusCode } from '../constants/http_status_codes';
 
 export class ServerError extends HttpError {
 
