@@ -170,10 +170,7 @@ jobs:
           key: dependencies-{{ checksum "package-lock.json" }}
       - run:
           name: Avoid port conflicts
-          command: ls -lt src/constants
-      - run:
-          name: Avoid port conflicts
-          command: sed -i "s/-dev/-${CIRCLE_BUILD_NUM}/g" src/constants/settings.ts
+          command: sed -i "s/80/81/g" src/constants/settings.ts
       - run:
           name: Run Tests!
           command: |
