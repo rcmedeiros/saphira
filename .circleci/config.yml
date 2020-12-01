@@ -382,6 +382,7 @@ workflows:
       - deploy_dev:
           requires:
             - stamp
+            - build
             - test
           filters:
             branches:
