@@ -139,10 +139,6 @@ jobs:
             - dist/*
 
   test:
-    parameters:
-      production:
-        type: boolean
-        default: false
     docker:
       - image: circleci/node:lts
     environment:
@@ -183,18 +179,9 @@ jobs:
           command: |
             chmod +x .circleci/install_sonar-scanner.sh
             ./.circleci/install_sonar-scanner.sh
-      - when:
-          condition: << parameters.production >>
-          steps:
-            - run:
-                name: Stamp version
-                command: node ./.circleci/replace.js json-to-prop package.json version sonar-project.properties sonar.projectVersion
-      - unless:
-          condition: << parameters.production >>
-          steps:
-            - run:
-                name: Stamp version as dev
-                command: sed -i "s/_local_/develop/g" sonar-project.properties
+      - run:
+          name: Stamp version
+          command: node ./.circleci/replace.js json-to-prop package.json version sonar-project.properties sonar.projectVersion
       - run:
           name: Sonarcloud Scan
           command: |
@@ -432,7 +419,6 @@ workflows:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - test:
-          production: true
           requires:
             - dependencies
             - dev_dependencies
