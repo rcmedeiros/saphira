@@ -173,8 +173,8 @@ jobs:
           command: |
             ls-lt |
             tree |
-            sed -i "s/80/81/g" dist/constants/settings.js \
-            sed -i "s/443/444/g" dist/constants/settings.js
+            sed -i "s/80/81/g" src/constants/settings.ts \
+            sed -i "s/443/444/g" src/constants/settings.ts
       - run:
           name: Run Tests!
           command: |
