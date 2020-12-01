@@ -6,6 +6,8 @@
         "Pygments",
         "livereload",
         "logform",
+        "microservice",
+        "microservices",
         "mkdocs",
         "openapi",
         "preflight",
