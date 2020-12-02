@@ -201,7 +201,7 @@ export class Saphira {
 
         this.moduleInfo = {
             name: (project as ModuleInfo).name,
-            version: (project as ModuleInfo).version,
+            version: `${(project as ModuleInfo).version} (Saphira --dev--)`,
             description: (project as ModuleInfo).description,
         };
     }
