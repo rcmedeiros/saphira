@@ -112,6 +112,8 @@ jobs:
           key: dev_dependencies-{{ checksum "package-lock.json" }}
       - restore_cache:
           key: dependencies-{{ checksum "package-lock.json" }}
+      - attach_workspace:
+          at: ./
       - when:
           condition: << parameters.production >>
           steps:
@@ -146,8 +148,6 @@ jobs:
       NODE_ENV: test
     steps:
       - checkout
-      - attach_workspace:
-          at: ./
       - restore_cache:
           name: Restore Development Dependencies
           key: dev_dependencies-{{ checksum "package-lock.json" }}
