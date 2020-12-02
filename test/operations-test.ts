@@ -4,7 +4,7 @@ import chaiHttp from 'chai-http';
 import { HttpResponse } from 'chai-http-ext';
 import { describe, Done, it } from 'mocha';
 import { XPagination } from '../src/controller/x-pagination';
-import { HttpStatusCode } from '../src/errors/http_status_codes';
+import { HttpStatusCode } from '../src/constants/http_status_codes';
 import {
     SERVICE_1, SERVICE_1_NO_PARAMETER, SERVICE_1_PATH_PARAMETER,
     SERVICE_1_THROW_ERROR, SERVICE_3, SERVICE_3_PAGED_LIST, URI,

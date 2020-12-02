@@ -2,7 +2,7 @@
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import { HttpResponse } from 'chai-http-ext';
-import { HttpStatusCode } from '../src/errors/http_status_codes';
+import { HttpStatusCode } from '../src/constants/http_status_codes';
 import { URI } from './setup';
 
 chai.use(chaiHttp);

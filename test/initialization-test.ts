@@ -7,7 +7,7 @@ import path from 'path';
 import selfSigned, { SelfSignedPEMs } from 'selfsigned';
 import { Saphira, SaphiraOptions } from '../src';
 import { DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, ENDPOINT_HEALTH_CHECK, HEADER_X_HRTIME, UTF8 } from '../src/constants/settings';
-import { HttpStatusCode } from '../src/errors/http_status_codes';
+import { HttpStatusCode } from '../src/constants/http_status_codes';
 import { BadControllerInvalidParameterType } from './sample_server/bad_controller_invalid_parameter_type';
 import { BadControllerOverhandling } from './sample_server/bad_controller_overhandling';
 import { BadControllerParametersMismatch } from './sample_server/bad_controller_parameters_mismatch';
@@ -89,7 +89,7 @@ describe('Healthy Initialization', () => {
 describe('Problems', () => {
 
     it('Should fail with when assigning a route twice', () => {
-        expect(() => new Saphira([BadControllerOverhandling])).to.throw('The route for GET /api/BadControllerOverhandling/doSomething is already handled');
+        expect(() => new Saphira([BadControllerOverhandling])).to.throw('The route for GET /api/badControllerOverhandling/doSomething is already handled');
     });
 
     it('Should fail when using invalid parameter type', () => {

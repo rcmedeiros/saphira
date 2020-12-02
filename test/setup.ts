@@ -6,9 +6,9 @@ import { Service3 } from './sample_server/service_3';
 
 const PORT: number = 8080;
 export const URI: string = `http://localhost:${PORT}`;
-export const SERVICE_1: string = '/api/Service1';
-const SERVICE_2: string = '/api/Service2';
-export const SERVICE_3: string = '/api/Service3';
+export const SERVICE_1: string = '/api/service1';
+const SERVICE_2: string = '/api/service2';
+export const SERVICE_3: string = '/api/service3';
 export const SERVICE_1_QUERY_PARAMETERS: string = `${SERVICE_1}/queryParameters`;
 export const SERVICE_1_NO_PARAMETER: string = `${SERVICE_1}/noParameter`;
 export const SERVICE_1_PATH_PARAMETER: string = `${SERVICE_1}/pathParameter`;
