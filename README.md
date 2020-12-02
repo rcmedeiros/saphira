@@ -10,5 +10,4 @@ This is the simplest and most opinionated Typescript Framework I could devise. I
 
 I wrote it for myself to be able to write microservices swiftly and ready to connect to all interfaces a microservice might have to.
 
-It's not production ready though. It'll be when I write a scaffolding system. I don't want anybody learning anything besides simple usage.
-
+It's not yet ready to be used by others though. It'll be when I write a scaffolding system. I don't want anybody learning anything besides simple usage.
