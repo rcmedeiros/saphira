@@ -70,7 +70,8 @@ export class Controller {
 
     protected route(path: string, handler: Handler): void {
         if ((handler.params !== undefined ? handler.params.length : 0) === handler.action.length) {
-            const paths: Array<string> = [`/${this.apiPath}/${this.constructor.name}${path !== '' ? '/' + path : ''}`];
+            const paths: Array<string> = [`/${this.apiPath}/${this.constructor.name.charAt(0).toLocaleLowerCase()}` +
+                `${this.constructor.name.substring(1)}${path !== '' ? '/' + path : ''}`];
             let parentPathParameter: string;
             if (handler.params) {
                 handler.params.forEach((parameter: Param) => {
