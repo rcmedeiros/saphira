@@ -415,6 +415,7 @@ workflows:
           requires:
             - dependencies
             - dev_dependencies
+            - stamp
           filters:
             branches:
               only:
