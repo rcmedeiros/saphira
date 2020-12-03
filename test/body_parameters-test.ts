@@ -2,7 +2,7 @@
 import { HttpResponse } from 'chai-http-ext';
 import { describe, Done, it } from 'mocha';
 import { SERVICE_2_BODY_PARAMETERS } from './setup';
-import { SamplePayload, testFailedPOST, testSuccessfulPOST } from './template';
+import { SamplePayload, testSuccessfulPOST } from './template';
 
 describe('Parameter types for body', () => {
 

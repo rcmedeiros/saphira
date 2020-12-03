@@ -2,7 +2,7 @@ import '@rcmedeiros/prototypes';
 import bodyParser, { OptionsUrlencoded } from 'body-parser';
 import compression from 'compression';  // compresses requests
 import cors from 'cors';
-import express, { NextFunction, Request as ERequest, Response, Router } from 'express';
+import express, { Request as ERequest, Response, Router } from 'express';
 // tslint:disable-next-line: no-implicit-dependencies
 import * as core from 'express-serve-static-core';
 import figlet from 'figlet';
@@ -15,8 +15,8 @@ import swaggerUiExpress from 'swagger-ui-express';
 import { URL } from 'url';
 import yaml, { DEFAULT_SAFE_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 import {
-    DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, DEFAULT_PACKAGE, ENDPOINT_HEALTH_CHECK, ENDPOINT_OPEN_API,
-    HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_SUMMARY, UTF8, ENV_BASE_PATH, ENDPOINT_API_SPEC, ENV_DEBUG_ROUTES, JWT_KEY, JWT_OPTS, JWT_CLOCK_TOLERANCE, ENDPOINT_INFO, FILENAME_TLS_KEY, FILENAME_TLS_CERTIFICATE, ENV_TLS,
+    DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, ENDPOINT_HEALTH_CHECK, ENDPOINT_OPEN_API, UTF8, ENDPOINT_API_SPEC, ENV_DEBUG_ROUTES, JWT_KEY,
+    JWT_OPTS, JWT_CLOCK_TOLERANCE, ENDPOINT_INFO, FILENAME_TLS_KEY, FILENAME_TLS_CERTIFICATE, ENV_TLS,
 } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
 import { PagedResult } from './controller/paged_result';
@@ -29,12 +29,11 @@ import { BadRequestError } from './errors/bad_request-error';
 import { HttpStatusCode } from './constants/http_status_codes';
 import { ServerError } from './errors/server-error';
 import { Logger, LogLevel, LogOptions } from './logger';
-import { Info, ModuleInfo, OpenAPI, OpenAPIHelper } from './open-api.helper';
+import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { Vault } from './vault';
 import { Adapters, AdaptersManager, ConnectionsResult, WebServerConfig } from './adapters_manager';
 import { envVarAsBoolean, envVarAsString } from './helpers';
 import { MimeType } from './constants/mime_types';
-import { SaphiraError } from './errors/saphira-error';
 import { HttpError } from './errors/http-error';
 import { JWT } from './jwt';
 import { Connections } from './adapter/adapters';
@@ -167,8 +166,8 @@ export class Saphira {
 
         if (!!s) {
             const result: HttpsOptions = {
-                key: fs.readFileSync(path.join(s, FILENAME_TLS_KEY), 'utf8'),
-                cert: fs.readFileSync(path.join(s, FILENAME_TLS_CERTIFICATE), 'utf8'),
+                key: fs.readFileSync(path.join(s, FILENAME_TLS_KEY), UTF8),
+                cert: fs.readFileSync(path.join(s, FILENAME_TLS_CERTIFICATE), UTF8),
             };
 
             const info: CertInfo = cert.info(result.cert.substringUpTo('END CERTIFICATE-----'));
@@ -225,16 +224,6 @@ export class Saphira {
 
             return `${key.type.toUpperCase()}-${key.size}: ${key.fingerprint('md5').toString()}`;
         }
-    }
-
-    private resolveContent(data: { path: string; content: string }): string {
-        if (data.path) {
-            if (!path.isAbsolute(data.path)) {
-                data.path = path.join(process.cwd(), data.path);
-            }
-            data.content = fs.readFileSync(data.path, UTF8);
-        }
-        return data.content;
     }
 
     private async banner(connections?: NameValue): Promise<void> {

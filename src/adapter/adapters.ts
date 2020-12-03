@@ -21,7 +21,7 @@ export class Connections {
     private constructor() { }
 
     public static setupWebConnection(config: WebConfig, name?: string): WebConnection {
-        const isSoap: boolean = false/*!!(config as SoapConfig).wsdl*/;
+        // const isSoap: boolean = false/*!!(config as SoapConfig).wsdl*/;
         name = name || /*(isSoap ? DEFAULT_SOAP : DEFAULT_WEB)*/DEFAULT_WEB;
         const c: BaseAdapter = /*isSoap ? new SoapClient(name, config as SoapConfig) :*/ new WebClient(name, config);
         c.isCoadjuvant = config.coadjuvant;

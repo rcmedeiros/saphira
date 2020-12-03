@@ -6,6 +6,7 @@
         "target": "es2020",
         "noImplicitAny": true,
         "alwaysStrict": true,
+        "noUnusedLocals": true,
         "moduleResolution": "node",
         "skipLibCheck": false,
         "sourceMap": true,

@@ -1,9 +1,9 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import chai, { expect } from 'chai';
+import chai from 'chai';
 import chaiHttp from 'chai-http';
 import { HttpResponse } from 'chai-http-ext';
 import { describe, Done, it } from 'mocha';
-import { SERVICE_1_QUERY_PARAMETERS, SERVICE_1_WILL_RETURN, SERVICE_3_PAGED_LIST } from './setup';
+import { SERVICE_1_QUERY_PARAMETERS, SERVICE_1_WILL_RETURN } from './setup';
 import { testSuccessfulGET } from './template';
 
 chai.use(chaiHttp);

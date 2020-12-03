@@ -2,7 +2,7 @@
 // import semaphore, { Semaphore } from 'semaphore';
 import { NameValue } from './types';
 
-interface EnVar { name: string; value: unknown; }
+// interface EnVar { name: string; value: unknown; }
 
 export class Vault {
     private static instance: Vault;
@@ -22,30 +22,30 @@ export class Vault {
         return Vault.instance;
     }
 
-    private async load(): Promise<void> {
-        // const mName: string = __moduleInfo.name.toUpperCase().replaceAll('-', '_');
-        // const cfg: string = process.env[`${mName}_MONGODB`];
-        // if (cfg) {
-        //     const ignore: Array<string> = !process.env[`${mName}_IGNORE`] ? [] : process.env[`${mName}_IGNORE`].split(',');
+    // private async load(): Promise<void> {
+    // const mName: string = __moduleInfo.name.toUpperCase().replaceAll('-', '_');
+    // const cfg: string = process.env[`${mName}_MONGODB`];
+    // if (cfg) {
+    //     const ignore: Array<string> = !process.env[`${mName}_IGNORE`] ? [] : process.env[`${mName}_IGNORE`].split(',');
 
-        //     const client: MongoClient = await MongoClient.connect(cfg, { useNewUrlParser: true, useUnifiedTopology: true });
-        //     const list: Array<EnVar> = await client.db(__moduleInfo.name).collection('Environment').find().toArray();
+    //     const client: MongoClient = await MongoClient.connect(cfg, { useNewUrlParser: true, useUnifiedTopology: true });
+    //     const list: Array<EnVar> = await client.db(__moduleInfo.name).collection('Environment').find().toArray();
 
-        //     list.filter((item: EnVar) =>
-        //         item.name &&
-        //         !process.env[item.name.toUpperCase()] &&
-        //         !ignore.includes(item.name),
-        //     ).forEach((variable: EnVar) => {
-        //         process.env[variable.name.toUpperCase()] =
-        //             typeof variable.value === 'object' ? JSON.stringify(variable.value) : variable.value.toString();
-        //         this.set(variable.name, variable.value);
-        //     });
+    //     list.filter((item: EnVar) =>
+    //         item.name &&
+    //         !process.env[item.name.toUpperCase()] &&
+    //         !ignore.includes(item.name),
+    //     ).forEach((variable: EnVar) => {
+    //         process.env[variable.name.toUpperCase()] =
+    //             typeof variable.value === 'object' ? JSON.stringify(variable.value) : variable.value.toString();
+    //         this.set(variable.name, variable.value);
+    //     });
 
-        //     client.close(true).catch((e: Error) => { console.error(e); });
-        // } else {
-        //     console.warn(`Missing environment variable: ${mName}_MONGODB`);
-        // }
-    }
+    //     client.close(true).catch((e: Error) => { console.error(e); });
+    // } else {
+    //     console.warn(`Missing environment variable: ${mName}_MONGODB`);
+    // }
+    // }
 
     public async connect(): Promise<void> {
         // return new Promise(async (resolve: Function, reject: Function): Promise<void> => {

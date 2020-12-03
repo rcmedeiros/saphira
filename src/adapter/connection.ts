@@ -2,23 +2,23 @@
 import { Rejection } from '../types';
 // import { Vault } from '../vault';
 
-const WATCH: string = 'watch';
+// const WATCH: string = 'watch';
 
-interface Watch {
-    name: string;
-    error: {
-        name: string;
-        message: string;
-    };
-    metric: {
-        name: string;
-        value: number;
-    };
-}
-type MonitorArray = Array<Watch>;
+// interface Watch {
+//     name: string;
+//     error: {
+//         name: string;
+//         message: string;
+//     };
+//     metric: {
+//         name: string;
+//         value: number;
+//     };
+// }
+// type MonitorArray = Array<Watch>;
 export class Connection {
 
-    private readonly monitor: MonitorArray;
+    // private readonly monitor: MonitorArray;
     // private readonly cloudMetrics: CloudMetrics;
     private _lastSuccess: Date;
     private _lastError: Error;
