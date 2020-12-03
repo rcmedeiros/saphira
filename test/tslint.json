@@ -1,9 +1,0 @@
-{
-    "extends": "@rcmedeiros/tslint-config",
-    "rules": {
-        "no-unused-expression": false,
-        "no-unnecessary-callback-wrapper": false,
-        "no-implicit-dependencies": false,
-        "no-null-keyword": false
-    }
-}

@@ -5,6 +5,7 @@
         "Overhandling",
         "PEMs",
         "Pygments",
+        "fullchain",
         "livereload",
         "logform",
         "microservice",
@@ -12,10 +13,12 @@
         "mkdocs",
         "openapi",
         "preflight",
+        "privkey",
         "pymdown",
         "rcmedeiros",
         "saphira",
-        "selfsigned"
+        "selfsigned",
+        "sshpk"
     ],
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,

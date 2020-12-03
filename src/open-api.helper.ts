@@ -11,6 +11,7 @@ export interface ModuleInfo {
 
 export interface Info {
     module: ModuleInfo;
+    license?: string;
     servers: Array<{
         url: URL;
         description: string;
@@ -110,7 +111,9 @@ export interface OpenAPI {
         version?: string;
         title?: string;
         description?: string;
+        license?: { name: string; url: string };
     };
+    basePath?: string,
     servers?: Array<{
         url: URL;
         description: string;
@@ -293,7 +296,22 @@ export class OpenAPIHelper {
             title: info.module.name,
             description: info.module.description || '',
         };
+
         openAPI.servers = info.servers;
+
+        if (info.license) {
+            if (info.license.startsWith('http')) {
+                openAPI.info.license = {
+                    name: 'SEE LICENSE',
+                    url: info.license,
+                }
+            } else {
+                openAPI.info.license = {
+                    name: info.license,
+                    url: `https://spdx.org/licenses/${info.license}.html`,
+                }
+            }
+        }
 
         // controllers
         if (info.controllers) {
@@ -416,9 +434,8 @@ export class OpenAPIHelper {
                             endpoint.responses[200] = {
                                 description: action.handler.response.description ||
                                     action.handler.response.reference
-                                    ? `Result is ${
-                                    action.handler.response.type !== Type.ObjectArray ? '' : 'list of '}${action.handler.response.reference} model`
-                                    : undefined,
+                                    ? `Result is ${action.handler.response.type !== Type.ObjectArray ? '' : 'list of '}${action.handler.response.reference} model`
+                                    : 'OK',
                                 content: {
                                     'application/json': {
                                         schema: {

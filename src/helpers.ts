@@ -7,3 +7,11 @@ export const parseJson: Function = (s: string): object => {
         return undefined;
     }
 };
+
+export const envVarAsString: Function = (name: string): string => {
+    return process.env[`${__moduleInfo.name.toUpperCase()}_${name}`];
+}
+
+export const envVarAsBoolean: Function = (name: string): boolean => {
+    return ['true', 'TRUE', '1'].includes(envVarAsString(name));
+}

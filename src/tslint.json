@@ -1,6 +1,0 @@
-{
-    "extends": "@rcmedeiros/tslint-config",
-    "rules": {
-        "match-default-export-name": false
-    }
-}
