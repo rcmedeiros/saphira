@@ -94,6 +94,7 @@ export class Saphira {
 
     constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
         this.options = options || {};
+        this.adapters = this.options.adapters || {};
         this.options.requestLimit = this.options.requestLimit || '100kb';
 
         if (!this.options.corsOptions) {
@@ -116,7 +117,6 @@ export class Saphira {
                 this.options.corsOptions.exposedHeaders.push(HEADER_X_HRTIME);
             }
         }
-
 
         Logger.getInstance(this.options.logOptions || { logLevel: Saphira.TEST ? LogLevel.warn : LogLevel.debug });
 
