@@ -1,12 +1,10 @@
 /* istanbul ignore file */
-import fs from 'fs';
 import logform from 'logform';
 import path from 'path';
 import util from 'util';
 import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import Transport from 'winston-transport';
-import { DEFAULT_PACKAGE, UTF8 } from './constants/settings';
 
 export const enum LogLevel {
     off = 'off',
@@ -23,11 +21,6 @@ export interface LogOptions {
 }
 
 declare type LogFunction = (message?: unknown, ...optionalParams: Array<unknown>) => void;
-
-interface Package {
-    name: string;
-    version: string;
-}
 
 export interface Loggable {
     info: LogFunction;
@@ -69,10 +62,6 @@ export class Logger implements Loggable {
 
         if (logOptions.winston) {
 
-            const filename: string = path.join(process.cwd(), DEFAULT_PACKAGE);
-
-            const packageJson: Buffer = fs.readFileSync(filename);
-            const project: Package = JSON.parse(packageJson.toString(UTF8)) as Package;
             const transports: Array<Transport> = [new winston.transports.Console({ level: 'silly' })];
             const logFormat: logform.Format = format.combine(
                 format.timestamp({ format: 'YYYY-MM-DD hh:mm:ss.SSS ZZ' }),
@@ -81,8 +70,8 @@ export class Logger implements Loggable {
             );
 
             logOptions.outputDir = logOptions.outputDir ||
-                process.env[project.name.toUpperCase() + LOG_FOLDER_KEY_SUFFIX] ||
-                process.env.LOG_FOLDER || DEFAULT_LOG_ROOT + project.name.toLowerCase();
+                process.env[__moduleInfo.name.toUpperCase() + LOG_FOLDER_KEY_SUFFIX] ||
+                process.env.LOG_FOLDER || DEFAULT_LOG_ROOT + __moduleInfo.name.toLowerCase();
 
             transports.push(new (DailyRotateFile)({
                 // TODO: https://github.com/palantir/tslint/issues/3704
@@ -91,14 +80,14 @@ export class Logger implements Loggable {
                 level: 'silly',
                 datePattern: 'YYYY-MM-DD',
                 zippedArchive: true,
-                filename: `${project.name}-%DATE%.log`,
+                filename: `${__moduleInfo.name}-%DATE%.log`,
                 dirname: logOptions.outputDir,
             }));
             transports.push(new winston.transports.File({
                 // tslint:disable-next-line: object-literal-sort-keys
                 format: logFormat,
                 level: 'error',
-                filename: path.join(logOptions.outputDir, project.name + '-errors.log'),
+                filename: path.join(logOptions.outputDir, __moduleInfo.name + '-errors.log'),
                 handleExceptions: true,
             }));
 

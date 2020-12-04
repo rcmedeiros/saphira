@@ -88,7 +88,7 @@
     "typescript": "^4.1.2"
   },
   "dependencies": {
-    "@rcmedeiros/prototypes": "^1.3.0-319",
+    "@rcmedeiros/prototypes": "^1.3.0-323",
     "body-parser": "^1.19.0",
     "cert-info": "^1.5.1",
     "compression": "^1.7.4",
