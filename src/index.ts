@@ -16,7 +16,7 @@ import { URL } from 'url';
 import yaml, { DEFAULT_SAFE_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 import {
     DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, ENDPOINT_HEALTH_CHECK, ENDPOINT_OPEN_API, UTF8, ENDPOINT_API_SPEC, ENV_DEBUG_ROUTES, JWT_KEY,
-    JWT_OPTS, JWT_CLOCK_TOLERANCE, ENDPOINT_INFO, FILENAME_TLS_KEY, FILENAME_TLS_CERTIFICATE, ENV_TLS,
+    JWT_OPTS, JWT_CLOCK_TOLERANCE, ENDPOINT_INFO, FILENAME_TLS_KEY, FILENAME_TLS_CERTIFICATE, ENV_TLS, HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME,
 } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
 import { PagedResult } from './controller/paged_result';
@@ -95,6 +95,28 @@ export class Saphira {
     constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
         this.options = options || {};
         this.options.requestLimit = this.options.requestLimit || '100kb';
+
+        if (!this.options.corsOptions) {
+            this.options.corsOptions = {
+                exposedHeaders: [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME],
+            };
+        } else if (!this.options.corsOptions.exposedHeaders) {
+            this.options.corsOptions.exposedHeaders = [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME];
+        } else {
+            if (typeof this.options.corsOptions.exposedHeaders === 'string') {
+                this.options.corsOptions.exposedHeaders = [this.options.corsOptions.exposedHeaders];
+            }
+            if (this.options.corsOptions.exposedHeaders.indexOf(HEADER_X_PAGINATION) === -1) {
+                this.options.corsOptions.exposedHeaders.push(HEADER_X_PAGINATION);
+            }
+            if (this.options.corsOptions.exposedHeaders.indexOf(HEADER_X_SUMMARY) === -1) {
+                this.options.corsOptions.exposedHeaders.push(HEADER_X_SUMMARY);
+            }
+            if (this.options.corsOptions.exposedHeaders.indexOf(HEADER_X_HRTIME) === -1) {
+                this.options.corsOptions.exposedHeaders.push(HEADER_X_HRTIME);
+            }
+        }
+
 
         Logger.getInstance(this.options.logOptions || { logLevel: Saphira.TEST ? LogLevel.warn : LogLevel.debug });
 
