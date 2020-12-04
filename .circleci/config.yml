@@ -118,22 +118,22 @@ jobs:
           condition: << parameters.production >>
           steps:
             - run:
-                name: Build for development
+                name: Build for production
                 command:
-                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments
-                  false --listFiles true --sourceMap false --inlineSourceMap
-                  true --inlineSources true --listEmittedFiles true
-                  --declaration true
+                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments true
+                  --listFiles false --sourceMap false --inlineSourceMap false
+                  --inlineSources false --listEmittedFiles false --declaration
+                  true
       - unless:
           condition: << parameters.production >>
           steps:
             - run:
-                name: Build for production
+                name: Build for development
                 command:
-                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments true
-                  --listFiles true --sourceMap false --inlineSourceMap false
-                  --inlineSources false --listEmittedFiles true --declaration
-                  true
+                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments
+                  false --listFiles false --sourceMap false --inlineSourceMap
+                  true --inlineSources true --listEmittedFiles false
+                  --declaration true
       - run: node ./.circleci/stamp_saphira_version.js
       - persist_to_workspace:
           root: ./
