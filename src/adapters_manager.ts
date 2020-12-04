@@ -1,32 +1,22 @@
 import { NameValue } from "./";
-import { Connections } from "./adapter/adapters";
+import { Adapters, AdaptersConfig, WebServerConfig } from "./adapter/adapters";
 import { WebConfig } from "./adapter/web-config";
 import { WebConnection } from "./adapter/web-connection";
 import { MISSING_ENV_VAR } from "./constants/messages";
 import { parseJson } from "./helpers";
 import { Oauth2Client } from "./oauth2_client";
 
-export type WebServerConfig = WebConfig;
-
-export interface Adapters {
-    // sysAuth?: Array<AuthConfig>;
-    // databases?: Array<Config | string>;
-    webServices?: Array<WebServerConfig | string>;
-    // soapServers?: Array<SoapServerConfig>;
-    // storage?: Array<Config>;
-}
-
-export interface ConnectionsResult {
+export interface AdaptersResult {
     success: boolean;
     data: NameValue;
 }
 
 export class AdaptersManager {
 
-    private readonly adapters: Adapters;
+    private readonly adapters: AdaptersConfig;
     private readonly oauth2Clients: { [name: string]: Oauth2Client };
 
-    constructor(adapters: Adapters) {
+    constructor(adapters: AdaptersConfig) {
         this.adapters = adapters;
         this.oauth2Clients = {};
     }
@@ -41,7 +31,7 @@ export class AdaptersManager {
         });
     }
 
-    public async connect(): Promise<ConnectionsResult> {
+    public async connect(): Promise<AdaptersResult> {
         const name: Array<[string, string, boolean]> = [];
         const promises: Array<Promise<void | Error>> = [];
 
@@ -53,7 +43,7 @@ export class AdaptersManager {
                     if (cfg) {
                         webServer = { ...webServer, ...cfg, ...{ parameters: { ...webServer?.parameters, ...cfg?.parameters } } };
                         name.push([webServer.name || 'Web Server', webServer.host, webServer.coadjuvant]);
-                        const c: WebConnection = Connections.setupWebConnection(webServer, webServer.name);
+                        const c: WebConnection = Adapters.setupWebConnection(webServer, webServer.name);
                         if (webServer.systemAuth) {
                             c.setOauth2Client(this.oauth2Clients[webServer.systemAuth]);
                         }
@@ -66,7 +56,7 @@ export class AdaptersManager {
         }
 
         const returns: Array<void | Error> = await Promise.all(promises);
-        const result: ConnectionsResult = { success: true, data: {} };
+        const result: AdaptersResult = { success: true, data: {} };
 
         returns.forEach((e: Error & { code: string }, i: number) => {
             result.data[name[i][0]] = { '': name[i][1], status: 'OK' };

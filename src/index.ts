@@ -31,16 +31,20 @@ import { ServerError } from './errors/server-error';
 import { Logger, LogLevel, LogOptions } from './logger';
 import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { Vault } from './vault';
-import { Adapters, AdaptersManager, ConnectionsResult, WebServerConfig } from './adapters_manager';
+import { AdaptersManager, AdaptersResult } from './adapters_manager';
 import { envVarAsBoolean, envVarAsString } from './helpers';
 import { MimeType } from './constants/mime_types';
 import { HttpError } from './errors/http-error';
 import { JWT } from './jwt';
-import { Connections } from './adapter/adapters';
+import { Adapters, AdaptersConfig, WebServerConfig } from './adapter/adapters';
 import cert, { CertInfo } from 'cert-info';
 import { Express, Request } from './express';
 import sshpk, { Key } from 'sshpk';
 import { WebResponse } from './adapter/web-response';
+import { WebClient } from './adapter/web-client';
+import { WebConfig } from './adapter/web-config';
+import { WebConnection } from './adapter/web-connection';
+import { WebOptions } from './adapter/web-options';
 
 const OAUTH2_SERVER: string = 'OauthServer';
 export interface ServerInfo {
@@ -69,7 +73,7 @@ export interface SaphiraOptions {
     openApiComponents?: { [index: string]: unknown };
     corsOptions?: CorsOptions;
     logOptions?: LogOptions;
-    adapters?: Adapters;
+    adapters?: AdaptersConfig;
 }
 
 interface HttpsOptions {
@@ -90,7 +94,7 @@ export class Saphira {
     private readonly controllerTypes: Array<typeof Controller>;
     public tls: [string, string];
     private info: NameValue;
-    private readonly adapters: Adapters;
+    private readonly adapters: AdaptersConfig;
 
     constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
         this.options = options || {};
@@ -163,7 +167,7 @@ export class Saphira {
         }
 
         response.setHeader('Content-Type', MimeType.JSON_format);
-        response.send({ ...this.info, ...{ connections: Connections.status() } });
+        response.send({ ...this.info, ...{ connections: Adapters.status() } });
     }
 
     private verifyRequiredEnvVars(requiredEnvVars: Array<string>): boolean {
@@ -331,17 +335,17 @@ export class Saphira {
                 const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
                 this.verifyRequiredEnvVars(adaptersMgr.environmentVariables);
 
-                adaptersMgr.connect().then((connections: ConnectionsResult) => {
+                adaptersMgr.connect().then((connections: AdaptersResult) => {
 
                     new Promise((res: Function) => {
                         if (oauth) {
-                            Connections.getWebConnection(OAUTH2_SERVER).get('/key').then((response: WebResponse) => {
+                            Adapters.getWebConnection(OAUTH2_SERVER).get('/key').then((response: WebResponse) => {
                                 response.okOnly();
                                 vault
                                     .set(JWT_KEY, response.body)
                                     .set(JWT_OPTS, { clockTolerance: JWT_CLOCK_TOLERANCE });
                                 res();
-                                Connections.closeConnection(OAUTH2_SERVER).catch(console.warn);
+                                Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
                             }).catch((e: Error) => {
                                 console.error('FAILED to obtain key from Oauth2 Server');
                                 console.error(e);
@@ -392,7 +396,7 @@ export class Saphira {
         const expressRouter: Router = express.Router();
 
         app.get(ENDPOINT_HEALTH_CHECK, (_request: ERequest, response: Response) => {
-            response.sendStatus(Connections.allConnected() ? HttpStatusCode.OK : HttpStatusCode.BAD_GATEWAY);
+            response.sendStatus(Adapters.allConnected() ? HttpStatusCode.OK : HttpStatusCode.BAD_GATEWAY);
         });
         app.get(ENDPOINT_INFO, (request: ERequest, response: Response) => {
             this.returnInfo(request, response);
@@ -453,12 +457,13 @@ export class Saphira {
                 if (err) {
                     reject(err);
                 }
-                Connections.closeAll().then(resolve).catch(reject);
+                Adapters.closeAll().then(resolve).catch(reject);
             });
         });
     }
 }
 
 export {
-    BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, PagedResult, Type, Vault, NameValue, StringSet, Rejection, Resolution,
+    BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, PagedResult, Type, Vault, NameValue, StringSet, Rejection, Resolution, Adapters, WebClient, WebConfig,
+    WebConnection, WebOptions, WebResponse
 };

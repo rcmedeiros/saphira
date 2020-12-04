@@ -6,7 +6,8 @@ import { WebConnection } from './web-connection';
 
 const DEFAULT_WEB: string = 'DEFAULT_WEB';
 
-export interface ConnectionStatus {
+export type WebServerConfig = WebConfig;
+export interface AdapterStatus {
     [name: string]: {
         online: boolean;
         lastSuccessfulCall: Date;
@@ -14,7 +15,15 @@ export interface ConnectionStatus {
     };
 }
 
-export class Connections {
+export interface AdaptersConfig {
+    // sysAuth?: Array<AuthConfig>;
+    // databases?: Array<Config | string>;
+    webServices?: Array<WebServerConfig | string>;
+    // soapServers?: Array<SoapServerConfig>;
+    // storage?: Array<Config>;
+}
+
+export class Adapters {
 
     private static readonly connections: Map<string, BaseAdapter> = new Map();
 
@@ -25,20 +34,20 @@ export class Connections {
         name = name || /*(isSoap ? DEFAULT_SOAP : DEFAULT_WEB)*/DEFAULT_WEB;
         const c: BaseAdapter = /*isSoap ? new SoapClient(name, config as SoapConfig) :*/ new WebClient(name, config);
         c.isCoadjuvant = config.coadjuvant;
-        return (Connections.connections.get(name) || Connections.connections.set(name, c).get(name)) as WebConnection;
+        return (Adapters.connections.get(name) || Adapters.connections.set(name, c).get(name)) as WebConnection;
     }
 
     public static getWebConnection(name: string): WebConnection {
-        return Connections.connections.get(name) as WebConnection;
+        return Adapters.connections.get(name) as WebConnection;
     }
 
     public static getWebService(name?: string): WebClient {
-        return Connections.getWebConnection(name || DEFAULT_WEB) as WebClient;
+        return Adapters.getWebConnection(name || DEFAULT_WEB) as WebClient;
     }
 
     public static allConnected(): boolean {
         let result: boolean = true;
-        Connections.connections.forEach((c: BaseAdapter) => {
+        Adapters.connections.forEach((c: BaseAdapter) => {
             if (!c.isCoadjuvant) {
                 result = result && c.isConnected;
             }
@@ -47,9 +56,9 @@ export class Connections {
     }
 
     public static async closeConnection(name: string): Promise<void> {
-        if (Connections.connections.has(name)) {
-            const result: Promise<void> = Connections.connections.get(name).terminate();
-            Connections.connections.delete(name);
+        if (Adapters.connections.has(name)) {
+            const result: Promise<void> = Adapters.connections.get(name).terminate();
+            Adapters.connections.delete(name);
             return result;
         }
     }
@@ -57,19 +66,19 @@ export class Connections {
     public static async closeAll(): Promise<void> {
         return new Promise((resolve: Function, reject: Rejection) => {
             const promises: Array<Promise<void>> = [];
-            Connections.connections.forEach((c: BaseAdapter) => {
+            Adapters.connections.forEach((c: BaseAdapter) => {
                 promises.push(c.terminate());
             });
             Promise.all(promises).then(() => {
-                Connections.connections.clear();
+                Adapters.connections.clear();
                 resolve();
             }).catch(reject);
         });
     }
 
-    public static status(): ConnectionStatus {
-        const result: ConnectionStatus = {};
-        Connections.connections.forEach((c: BaseAdapter, k: string) => {
+    public static status(): AdapterStatus {
+        const result: AdapterStatus = {};
+        Adapters.connections.forEach((c: BaseAdapter, k: string) => {
             result[k] = {
                 online: c.isConnected,
                 lastSuccessfulCall: c.lastSuccess,
