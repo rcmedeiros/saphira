@@ -1,20 +1,19 @@
-/* istanbul ignore file */
-// tslint:disable no-any no-unsafe-any no-this-assignment
+import { Saphira } from '../';
 
 export abstract class DTO {
 
-    [key: string]: any;
+    public abstract assign(record: unknown): void;
 
-    public abstract assign(record: any): void;
-
-    public toJSON(): any {
-        const serialized: any = {};
+    public toJSON(): unknown {
+        const serialized: unknown = {};
 
         let current: DTO = this;
         do {
             Object.getOwnPropertyNames(current).forEach((name: string) => {
                 if (typeof Object.getOwnPropertyDescriptor(current, name).get === 'function') {
-                    serialized[name] = this[name];
+                    if (!Saphira.TEST || (Saphira.TEST && name !== 'should')) {
+                        (serialized as { [idx: string]: unknown })[name] = (this as unknown as { [idx: string]: unknown })[name];
+                    }
                 }
             });
             current = Object.getPrototypeOf(current);
