@@ -465,5 +465,5 @@ export class Saphira {
 
 export {
     BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, PagedResult, Type, Vault, NameValue, StringSet, Rejection, Resolution, Adapters, WebClient, WebConfig,
-    WebConnection, WebOptions, WebResponse, parseJson, uuid, envVarAsString, envVarAsBoolean
+    WebConnection, WebOptions, WebResponse, parseJson, uuid, envVarAsString, envVarAsBoolean, HttpStatusCode
 };
