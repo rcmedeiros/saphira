@@ -1,3 +1,4 @@
+import { v4 } from 'uuid';
 
 export const parseJson: Function = (s: string): object => {
     try {
@@ -7,6 +8,10 @@ export const parseJson: Function = (s: string): object => {
         return undefined;
     }
 };
+
+export const uuid: Function = (): string => {
+    return v4();
+}
 
 export const envVarAsString: Function = (name: string): string => {
     return process.env[`${__moduleInfo.name.toUpperCase()}_${name}`];

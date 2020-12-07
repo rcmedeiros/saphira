@@ -32,7 +32,7 @@ import { Logger, LogLevel, LogOptions } from './logger';
 import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { Vault } from './vault';
 import { AdaptersManager, AdaptersResult } from './adapters_manager';
-import { envVarAsBoolean, envVarAsString } from './helpers';
+import { envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
 import { MimeType } from './constants/mime_types';
 import { HttpError } from './errors/http-error';
 import { JWT } from './jwt';
@@ -465,5 +465,5 @@ export class Saphira {
 
 export {
     BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, PagedResult, Type, Vault, NameValue, StringSet, Rejection, Resolution, Adapters, WebClient, WebConfig,
-    WebConnection, WebOptions, WebResponse
+    WebConnection, WebOptions, WebResponse, parseJson, uuid, envVarAsString, envVarAsBoolean
 };
