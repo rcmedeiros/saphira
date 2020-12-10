@@ -4,7 +4,7 @@ import { Controller, Method, PagedResult, Type } from '../../src/index';
 export class Service3 extends Controller {
 
     public constructor(apiPath?: string) {
-        super(apiPath, { description: 'Test Service 2' });
+        super(apiPath, { description: 'Test Service 3' });
 
         this.route('', {
             tag: {
