@@ -424,7 +424,7 @@ export class Saphira {
             const apiDocs: Info = {
                 module: {
                     name: __moduleInfo.name,
-                    version: `${__moduleInfo.version} (Atlas --dev--)`,
+                    version: `${__moduleInfo.version} (Squid --dev--)`,
                     description: __moduleInfo.description,
                 },
                 controllers: controllers,

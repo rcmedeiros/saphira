@@ -1,6 +1,6 @@
 /** 
  * 
- * Script will look for the tag --dev-- in /dist/index.js and replace it by Atlas's
+ * Script will look for the tag --dev-- in /dist/index.js and replace it by Squid's
  * current version.
  * 
  */
