@@ -1,5 +1,6 @@
 
 import { URL } from 'url';
+import { PAYLOAD } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method, Param, ServiceTag } from './controller/controller';
 import { Type } from './data-types';
 
@@ -92,9 +93,9 @@ interface Endpoint {
                 schema: {
                     type: string;
                     properties: Schema;
-                };
+                } | Schema;
             };
-            'application/x-www-form-urlencoded': {
+            'application/x-www-form-urlencoded'?: {
                 schema: {
                     type: string;
                     properties: Schema;
@@ -373,23 +374,35 @@ export class OpenAPIHelper {
                                     }
                                 }
                             });
-                            endpoint.requestBody = {
-                                required: true,
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: schema,
+
+                            if (schema[PAYLOAD]) {
+                                endpoint.requestBody = {
+                                    required: true,
+                                    content: {
+                                        'application/json': {
+                                            schema: schema[PAYLOAD] as Schema,
+                                        }
+                                    }
+                                }
+                            } else {
+                                endpoint.requestBody = {
+                                    required: true,
+                                    content: {
+                                        'application/json': {
+                                            schema: {
+                                                type: 'object',
+                                                properties: schema,
+                                            },
+                                        },
+                                        'application/x-www-form-urlencoded': {
+                                            schema: {
+                                                type: 'object',
+                                                properties: schema,
+                                            },
                                         },
                                     },
-                                    'application/x-www-form-urlencoded': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: schema,
-                                        },
-                                    },
-                                },
-                            };
+                                }
+                            }
                         } else {
                             endpoint.parameters = [];
                             action.handler.params.forEach((param: Param) => {

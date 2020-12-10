@@ -6,6 +6,7 @@ export const ENDPOINT_HEALTH_CHECK: string = '/health-check';
 export const ENDPOINT_OPEN_API: string = '/api-docs';
 export const ENDPOINT_API_SPEC: string = '/api-spec';
 export const ENDPOINT_INFO: string = '/api-info';
+export const PAYLOAD: string = 'JSON_PAYLOAD';
 
 export const HEADER_X_PAGINATION: string = 'x-pagination';
 export const HEADER_X_SUMMARY: string = 'x-summary';

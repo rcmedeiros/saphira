@@ -7,9 +7,9 @@ import { XPagination } from '../src/controller/x-pagination';
 import { HttpStatusCode } from '../src/constants/http_status_codes';
 import {
     SERVICE_1, SERVICE_1_NO_PARAMETER, SERVICE_1_PATH_PARAMETER,
-    SERVICE_1_THROW_ERROR, SERVICE_3, SERVICE_3_PAGED_LIST, URI,
+    SERVICE_1_THROW_ERROR, SERVICE_3, SERVICE_3_PAGED_LIST, SERVICE_4_AN_ARRAY, SERVICE_4_AN_OBJECT, URI,
 } from './setup';
-import { testFailedGET, testSuccessfulGET, testSuccessfulPOST } from './template';
+import { SamplePayload, testFailedGET, testSuccessfulGET, testSuccessfulPOST } from './template';
 
 chai.use(chaiHttp);
 
@@ -106,7 +106,7 @@ describe('Operations', () => {
 
     it('Should allow objects to answer for more then one verb', (done: Done) => {
         // The test bellow are defined with GET as well
-        testSuccessfulPOST(SERVICE_3_PAGED_LIST, {}, ['f', 'g', 'h', 'i', 'j']).then((responses: Array<HttpResponse>) => {
+        testSuccessfulPOST(SERVICE_3_PAGED_LIST, {}, ['f', 'g', 'h', 'i', 'j'], 'answer for more than one verb').then((responses: Array<HttpResponse>) => {
 
             responses.forEach((response: HttpResponse) => {
                 expect(response.header['x-pagination']).to.not.be.null;
@@ -115,6 +115,27 @@ describe('Operations', () => {
                 expect(pagination.count).to.be.equal(26);
                 expect(pagination.pages).to.be.equal(6);
             });
+            done();
+        }, done);
+    });
+
+    it('Should allow root payloads objects', (done: Done) => {
+        const o: SamplePayload =
+            { id: 24, name: 'Omega' }
+
+
+        testSuccessfulPOST(SERVICE_4_AN_OBJECT, o, o, 'root payload object').then((responses: Array<HttpResponse>) => {
+            done();
+        }, done);
+    });
+
+    it('Should allow root payloads objects', (done: Done) => {
+        const a: Array<SamplePayload> = [
+            { id: 22, name: 'Chi' },
+            { id: 23, name: 'Psi' },
+            { id: 24, name: 'Omega' }
+        ]
+        testSuccessfulPOST(SERVICE_4_AN_ARRAY, a, a, 'root payload array').then((responses: Array<HttpResponse>) => {
             done();
         }, done);
     });

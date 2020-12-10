@@ -53,8 +53,8 @@ describe('Parameter types for body', () => {
         const promises: Array<Promise<Array<HttpResponse>>> = [];
         const sample1: SamplePayload = { e: [-1, 0, 1] };
         const sample2: SamplePayload = { e: [Number.MIN_VALUE, 0, Math.PI, Number.MAX_VALUE] };
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample1, sample1));
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample2, sample2));
+        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample1, sample1, 'array of numbers'));
+        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample2, sample2, 'array of numbers'));
 
         Promise.all(promises).then(() => done(), done);
     });
@@ -66,7 +66,7 @@ describe('Parameter types for body', () => {
                 { name: 'Kaladin', age: 20, surgeBinding: { order: 'WindRunner', bond: 'Sylphrena', surges: ['Adhesion', 'Gravitation'] } },
         };
 
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample));
+        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample, 'objects'));
 
         Promise.all(promises).then(() => done(), done);
     });
@@ -88,7 +88,7 @@ describe('Parameter types for body', () => {
 
         const promises: Array<Promise<Array<HttpResponse>>> = [];
 
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample));
+        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample, 'array of objects'));
 
         Promise.all(promises).then(() => done(), done);
     });
@@ -102,7 +102,7 @@ describe('Parameter types for body', () => {
             i: 'Sylphrena',
         };
 
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample));
+        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample, 'strings and passwords'));
 
         Promise.all(promises).then(() => done(), done);
     });
@@ -114,7 +114,7 @@ describe('Parameter types for body', () => {
             j: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],
         };
 
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample));
+        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample, 'array of strings'));
 
         Promise.all(promises).then(() => done(), done);
     });
@@ -145,7 +145,7 @@ describe('Parameter types for body', () => {
             j: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],
         };
 
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample));
+        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample, 'all parameters at once'));
 
         Promise.all(promises).then(() => done(), done);
     });

@@ -3,6 +3,7 @@ import { Saphira } from '../src';
 import { Service1 } from './sample_server/service_1';
 import { Service2 } from './sample_server/service_2';
 import { Service3 } from './sample_server/service_3';
+import { Service4 } from './sample_server/service_4';
 
 const PORT: number = 8080;
 export const URI: string = `http://localhost:${PORT}`;
@@ -18,8 +19,11 @@ export const SERVICE_2_BODY_PARAMETERS: string = `${SERVICE_2}/bodyParameters`;
 export const SERVICE_2_PRIME_VAULT: string = `${SERVICE_2}/primeVault`;
 export const SERVICE_2_RETRIEVE_VAULT_VALUES: string = `${SERVICE_2}/retrieveVaultValues`;
 export const SERVICE_3_PAGED_LIST: string = `${SERVICE_3}/pagedList`;
+const SERVICE_4: string = '/api/service4';
+export const SERVICE_4_AN_OBJECT: string = `${SERVICE_4}/anObject`;
+export const SERVICE_4_AN_ARRAY: string = `${SERVICE_4}/anArray`;
 
-const s: Saphira = new Saphira([Service1, Service2, Service3], { port: PORT });
+const s: Saphira = new Saphira([Service1, Service2, Service3, Service4], { port: PORT });
 before((done: Done) => {
     s.listen().then(() => {
         done();

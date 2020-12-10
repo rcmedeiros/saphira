@@ -13,6 +13,10 @@ import { BadControllerOverhandling } from './sample_server/bad_controller_overha
 import { BadControllerParametersMismatch } from './sample_server/bad_controller_parameters_mismatch';
 import { BadControllerTwoParentPathParameters } from './sample_server/bad_controller_two_parent_path_parameters';
 import { Service1 } from './sample_server/service_1';
+import { BadControllerPayloadConflict } from './sample_server/bad_controller_payload_conflict';
+import { BadControllerNamelessParameter } from './sample_server/bad_controller_nameless_parameter';
+import { BadControllerInvalidVerb } from './sample_server/bad_controller_invalid_verb';
+import { BadControllerInvalidJsonPayload } from './sample_server/bad_controller_invalid_json_payload';
 
 chai.use(chaiHttp);
 
@@ -115,5 +119,17 @@ describe('Problems', () => {
     })
     it('Should fail when declaring two parent path parameters', (done: Done) => {
         wrongStart(done, [BadControllerTwoParentPathParameters], 'Only one path parameter allowed between. a and b are conflicting');
+    })
+    it('Should fail when not declaring a parameter name', (done: Done) => {
+        wrongStart(done, [BadControllerNamelessParameter], 'Missing parameter name');
+    })
+    it('Should fail when declaring both parameters and root payload', (done: Done) => {
+        wrongStart(done, [BadControllerPayloadConflict], 'Declare either a payload, or it\'s params. Can\'t have both');
+    })
+    it('Should fail when declaring a payload for an HTTP Verb which doesn\'t have a body', (done: Done) => {
+        wrongStart(done, [BadControllerInvalidVerb], 'Cannot GET with a body payload');
+    })
+    it('Should fail when declaring a payload for an HTTP Verb which doesn\'t have a body', (done: Done) => {
+        wrongStart(done, [BadControllerInvalidJsonPayload], 'Payload must be either an object or an array');
     })
 });

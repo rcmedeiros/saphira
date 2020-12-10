@@ -16,6 +16,7 @@ export interface SampleObject {
 export interface UnknownPayload {
     [idx: string]: unknown;
 }
+
 export interface SamplePayload {
     [idx: string]: unknown;
     a?: boolean;
@@ -133,9 +134,9 @@ export const testFailedGET: TestFailedGET = async (endpoint: string, errorMessag
         });
     });
 
-declare type TestSuccessfulPOST = (endpoint: string, payload: SamplePayload, expected: unknown, description?: string) => Promise<Array<HttpResponse>>;
+declare type TestSuccessfulPOST = (endpoint: string, payload: SamplePayload | Array<SamplePayload>, expected: unknown, description: string) => Promise<Array<HttpResponse>>;
 export const testSuccessfulPOST: TestSuccessfulPOST =
-    async (endpoint: string, payload: SamplePayload, expected: unknown, description?: string): Promise<Array<HttpResponse>> =>
+    async (endpoint: string, payload: SamplePayload | Array<SamplePayload>, expected: unknown, description: string): Promise<Array<HttpResponse>> =>
         new Promise<Array<HttpResponse>>((resolve: Function, reject: (r: Error) => void): void => {
             const promises: Array<Promise<HttpResponse>> = [];
 
@@ -161,28 +162,30 @@ export const testSuccessfulPOST: TestSuccessfulPOST =
                     });
             }));
 
-            promises.push(new Promise<HttpResponse>((res: Function, rej: Function): void => {
-                const type: string = 'application/x-www-form-urlencoded';
-                chai.request(URI)
-                    .post(endpoint)
-                    .set('content-type', type)
-                    .type('form')
-                    .send(toForm(payload))
-                    .end((err: Error, response: HttpResponse) => {
-                        if (err) { rej(err); } else {
-                            try {
-                                description = `${description} - ${type}`;
-                                expect(JSON.stringify(response.body), description).to.be.equal(JSON.stringify(expected));
-                                expect(response.status >= HttpStatusCode.OK && response.status <= HttpStatusCode.NO_CONTENT).to.be.true;
-                                expect(response.header['content-type'], description).to.be.equal('application/json; charset=utf-8');
-                                expect(response.header['x-high-resolution-elapsed-time'], description).to.not.be.null;
-                                res(response);
-                            } catch (e) {
-                                rej(e);
+            if (!description.startsWith('root')) {
+                promises.push(new Promise<HttpResponse>((res: Function, rej: Function): void => {
+                    const type: string = 'application/x-www-form-urlencoded';
+                    chai.request(URI)
+                        .post(endpoint)
+                        .set('content-type', type)
+                        .type('form')
+                        .send(payload?.length ? undefined : toForm(payload as SamplePayload))
+                        .end((err: Error, response: HttpResponse) => {
+                            if (err) { rej(err); } else {
+                                try {
+                                    description = `${description} - ${type}`;
+                                    expect(JSON.stringify(response.body), description).to.be.equal(JSON.stringify(expected));
+                                    expect(response.status >= HttpStatusCode.OK && response.status <= HttpStatusCode.NO_CONTENT).to.be.true;
+                                    expect(response.header['content-type'], description).to.be.equal('application/json; charset=utf-8');
+                                    expect(response.header['x-high-resolution-elapsed-time'], description).to.not.be.null;
+                                    res(response);
+                                } catch (e) {
+                                    rej(e);
+                                }
                             }
-                        }
-                    });
-            }));
+                        });
+                }));
+            }
 
             Promise.all(promises).then((responses: Array<HttpResponse>) => { resolve(responses); }, reject);
         });
