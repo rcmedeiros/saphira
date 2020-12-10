@@ -83,7 +83,6 @@ interface HttpsOptions {
 
 
 const PORT: string = 'port';
-const MODULE_PREFIX: string = __moduleInfo.name.toUpperCase().replaceAll('-', '_');
 export class Saphira {
     public static readonly PRODUCTION: boolean = (process.env.NODE_ENV || '').toLowerCase().startsWith('prod');
     public static TEST: boolean = (process.env.NODE_ENV || '').toLowerCase() === 'test';
@@ -139,19 +138,13 @@ export class Saphira {
 
     private servers(): Array<ServerInfo> {
         const port: string = this.options.port ? this.options.port.toString() : '';
-        const SERVERS: string = `${MODULE_PREFIX}_SERVERS`;
-        const CNAME: string = `${MODULE_PREFIX}_CNAME`;
-        const vault: Vault = Vault.getInstance();
+        const servers: string = envVarAsString('SERVER_PATHS');
 
-        const result: Array<ServerInfo> =
-            this.options.servers ? this.options.servers :
-                vault.has(SERVERS) ? vault.get(SERVERS) as Array<ServerInfo> :
-                    vault.has(CNAME) ? [{ url: new URL(`https://${vault.get(CNAME)}:${port}/api`), description: `${process.env.NODE_ENV || ''} server` }] :
-                        [];
-
-        if (result.filter((i: ServerInfo) => i.url.host.toLowerCase().contains('localhost') || i.url.host.contains('127.0.0.1')).length === 0) {
-            result.push({ url: new URL(`http${this.tls ? 's' : ''}://localhost:${port}/api`), description: 'Local Server' });
-        }
+        const result: Array<ServerInfo> = !servers
+            ? [{ url: new URL(`http${this.tls ? 's' : ''}://localhost:${port}/api`), description: 'Local Server' }]
+            : servers.split(',').map<ServerInfo>((serverPath: string) => {
+                return { url: new URL(`${serverPath}/api`), description: `${process.env.NODE_ENV || 'undefined'} server` };
+            });
 
         return result;
     }
