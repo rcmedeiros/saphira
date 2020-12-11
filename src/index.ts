@@ -45,8 +45,9 @@ import { WebClient } from './adapter/web-client';
 import { WebConfig } from './adapter/web-config';
 import { WebConnection } from './adapter/web-connection';
 import { WebOptions } from './adapter/web-options';
-import * as swaggerValidation from 'openapi-validator-middleware';
+import * as openAPIValidator from 'openapi-validator-middleware';
 import * as tmp from 'tmp';
+import e from 'express';
 
 const OAUTH2_SERVER: string = 'OauthServer';
 export interface ServerInfo {
@@ -413,12 +414,20 @@ export class Saphira {
                 Object.keys(handlersByMethod).forEach((method: string) => {
                     const handler: Handler = handlersByMethod[method];
                     if (!Saphira.PRODUCTION) {
-                        expressRouter[handler.method](cPath, swaggerValidation.validate, Responder.route(c, handler));
+                        expressRouter[handler.method](cPath, openAPIValidator.validate, Responder.route(c, handler));
                     } else {
                         expressRouter[handler.method](cPath, Responder.route(c, handler));
                     }
                 });
             });
+
+            if (!Saphira.PRODUCTION) {
+                expressRouter.use((err: Error, _req: e.Request, res: e.Response, _next: e.NextFunction) => {
+                    if (err instanceof openAPIValidator.InputValidationError) {
+                        return res.status(400).json({ validation_error: err.errors });
+                    }
+                })
+            }
         });
 
         app.use(expressRouter);
@@ -448,7 +457,7 @@ export class Saphira {
 
             const tmpFile: tmp.FileResult = tmp.fileSync({ prefix: __moduleInfo.name, postfix: '.yml' });
             fs.writeSync(tmpFile.fd, Buffer.from(spec), 0, spec.length, null);
-            swaggerValidation.init(tmpFile.name);
+            openAPIValidator.init(tmpFile.name);
             tmpFile.removeCallback();
         }
 
