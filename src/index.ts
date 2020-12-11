@@ -414,7 +414,8 @@ export class Saphira {
                 Object.keys(handlersByMethod).forEach((method: string) => {
                     const handler: Handler = handlersByMethod[method];
                     if (!Saphira.PRODUCTION) {
-                        expressRouter[handler.method](cPath, openAPIValidator.validate, Responder.route(c, handler));
+                        // expressRouter[handler.method](cPath, openAPIValidator.validate, Responder.route(c, handler));
+                        expressRouter[handler.method](cPath, Responder.route(c, handler));
                     } else {
                         expressRouter[handler.method](cPath, Responder.route(c, handler));
                     }
