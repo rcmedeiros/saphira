@@ -7,7 +7,7 @@ import express, { Request as ERequest, Response, Router } from 'express';
 import * as core from 'express-serve-static-core';
 import figlet from 'figlet';
 import fs from 'fs';
-import helmet from 'helmet';
+// import helmet from 'helmet';
 import * as http from 'http';
 import https from 'https';
 import path from 'path';
@@ -132,7 +132,7 @@ export class Saphira {
         this.app.use(bodyParser.urlencoded(this.options.urlencodedOptions || { extended: false, limit: this.options.requestLimit }));
         this.app.use(bodyParser.raw({ limit: this.options.requestLimit }));
         this.app.use(compression());
-        this.app.use(helmet());
+        // this.app.use(helmet());
         this.app.use(cors(this.options.corsOptions));
 
         this.controllerTypes = controllerTypes;
