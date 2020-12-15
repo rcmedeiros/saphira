@@ -440,7 +440,7 @@ export class Saphira {
             const apiDocs: Info = {
                 module: {
                     name: __moduleInfo.name,
-                    version: `${__moduleInfo.version} (Squid --dev--)`,
+                    version: `${__moduleInfo.version} (Saphira --dev--)`,
                     description: __moduleInfo.description,
                 },
                 controllers: controllers,

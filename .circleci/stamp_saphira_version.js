@@ -1,8 +1,8 @@
-/** 
- * 
- * Script will look for the tag --dev-- in /dist/index.js and replace it by Squid's
+/**
+ *
+ * Script will look for the tag --dev-- in /dist/index.js and replace it by Saphira's
  * current version.
- * 
+ *
  */
 
 
