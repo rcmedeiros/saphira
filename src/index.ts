@@ -7,7 +7,7 @@ import express, { Request as ERequest, Response, Router } from 'express';
 import * as core from 'express-serve-static-core';
 import figlet from 'figlet';
 import fs from 'fs';
-// import helmet from 'helmet';
+import helmet from 'helmet';
 import * as http from 'http';
 import https from 'https';
 import path from 'path';
@@ -132,7 +132,14 @@ export class Saphira {
         this.app.use(bodyParser.urlencoded(this.options.urlencodedOptions || { extended: false, limit: this.options.requestLimit }));
         this.app.use(bodyParser.raw({ limit: this.options.requestLimit }));
         this.app.use(compression());
-        // this.app.use(helmet());
+
+
+        if (!Saphira.PRODUCTION && envVarAsString('SERVER_PATHS')?.contains('http:')) {
+            this.app.use(helmet({ hsts: false }));
+        } else {
+            this.app.use(helmet());
+        }
+
         this.app.use(cors(this.options.corsOptions));
 
         this.controllerTypes = controllerTypes;
@@ -290,9 +297,13 @@ export class Saphira {
 
                     if (this.options.servers) {
                         table['     '] = {};
-                        this.options.servers.forEach((server: ServerInfo) => {
-                            table[server.description.capitalize()] = {
+                        this.options.servers.forEach((server: ServerInfo, idx: number) => {
+                            const item: string = `${server.description.capitalize()}${this.options.servers.length > 1 ? `[${idx}]` : ''}`;
+                            table[item] = {
                                 '': `${server.url}${Saphira.PRODUCTION ? '/' : '-docs/'}`,
+                            };
+                            if (server.url.protocol === 'http:') {
+                                (table[item] as { status: string }).status = `HSTS ${Saphira.PRODUCTION ? 'BLOCKS!' : 'OFF'}`;
                             };
                         });
                     }
