@@ -134,9 +134,7 @@ export class Saphira {
         this.app.use(compression());
 
 
-        if (!Saphira.PRODUCTION && envVarAsString('SERVER_PATHS')?.contains('http:')) {
-            this.app.use(helmet({ hsts: false }));
-        } else {
+        if (Saphira.PRODUCTION || !envVarAsString('SERVER_PATHS')?.contains('http:')) {
             this.app.use(helmet());
         }
 
@@ -302,8 +300,8 @@ export class Saphira {
                             table[item] = {
                                 '': `${server.url}${Saphira.PRODUCTION ? '/' : '-docs/'}`,
                             };
-                            if (server.url.protocol === 'http:') {
-                                (table[item] as { status: string }).status = `HSTS ${Saphira.PRODUCTION ? 'BLOCKS!' : 'OFF'}`;
+                            if (!Saphira.PRODUCTION && server.url.protocol === 'http:') {
+                                (table[item] as { status: string }).status = 'Security off';
                             };
                         });
                     }
