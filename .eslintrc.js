@@ -10,6 +10,12 @@ module.exports = {
     ],
     rules: {
         indent: 'off',
+        'no-console': ['error', { allow: ['debug', 'info', 'table', 'warn', 'error'] }],
+        'prefer-exponentiation-operator': ['warn'],
+        'prefer-object-spread': ['warn'],
+        'prefer-spread': ['warn'],
+        'prefer-const': ['error'],
+        'prefer-template': ['error'],
         '@typescript-eslint/indent': 'off',
         '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/no-empty-function': ['error', { allow: ['private-constructors'] }],
@@ -60,5 +66,7 @@ module.exports = {
                 ],
             },
         ],
+        '@typescript-eslint/unified-signatures': ['warn'],
+        '@typescript-eslint/no-unused-expressions': ['error'],
     },
 };

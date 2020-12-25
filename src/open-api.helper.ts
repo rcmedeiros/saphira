@@ -369,7 +369,7 @@ export class OpenAPIHelper {
                                     });
                                 } else {
                                     if (param.reference) {
-                                        schema[param.name] = { $ref: '#/components/schemas/' + param.reference };
+                                        schema[param.name] = { $ref: `#/components/schemas/${param.reference}` };
                                     } else {
                                         schema[param.name] = OpenAPIHelper.getSchemaType(param.type);
                                         schema[param.name].example = param.example;
@@ -471,15 +471,11 @@ export class OpenAPIHelper {
                                                     ? {
                                                           type: 'array',
                                                           items: {
-                                                              $ref:
-                                                                  '#/components/schemas/' +
-                                                                  action.handler.response.reference,
+                                                              $ref: `#/components/schemas/${action.handler.response.reference}`,
                                                           },
                                                       }
                                                     : {
-                                                          $ref:
-                                                              '#/components/schemas/' +
-                                                              action.handler.response.reference,
+                                                          $ref: `#/components/schemas/${action.handler.response.reference}`,
                                                       },
                                                 timeStamp: { type: 'string', example: '2019-05-07T22:41:39.714Z' },
                                                 performance: { type: 'string', example: '2.328301 ms' },

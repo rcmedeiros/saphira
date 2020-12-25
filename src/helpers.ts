@@ -4,7 +4,7 @@ export const parseJson: (s: string) => unknown = (s: string): unknown => {
     try {
         return JSON.parse(s);
     } catch (e) {
-        console.error('Tried to parse invalid JSON string: ' + s);
+        console.error(`Tried to parse invalid JSON string: ${s}`);
         return undefined;
     }
 };

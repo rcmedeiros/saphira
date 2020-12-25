@@ -83,7 +83,7 @@ export class Logger implements Loggable {
                     // tslint:disable-next-line: object-literal-sort-keys
                     format: logFormat,
                     level: 'error',
-                    filename: path.join(logOptions.outputDir, __moduleInfo.name + '-errors.log'),
+                    filename: path.join(logOptions.outputDir, `${__moduleInfo.name}-errors.log`),
                     handleExceptions: true,
                 }),
             );
@@ -94,7 +94,7 @@ export class Logger implements Loggable {
             console.warn = this.warn;
             console.error = this.error;
             console.debug = this.debug;
-            // tslint:disable-next-line: no-console
+            // eslint-disable-next-line no-console
             console.log = this.debug;
         } else {
             this.info = console.info;

@@ -93,7 +93,7 @@ export class Controller {
                 const paths: Array<string> = [
                     `/${this.apiPath}/${this.constructor.name.charAt(0).toLowerCase()}` +
                         `${this.constructor.name.substring(1)}${
-                            path !== '' ? '/' + path.charAt(0).toLowerCase() + path.substring(1) : ''
+                            path !== '' ? `/${path.charAt(0).toLowerCase()}${path.substring(1)}` : ''
                         }`,
                 ];
                 let parentPathParameter: string;
@@ -113,7 +113,7 @@ export class Controller {
                                 if (!parentPathParameter) {
                                     paths.push(
                                         `/${this.apiPath}/${this.constructor.name}/:${parameter.name}${
-                                            path !== '' ? '/' + path : ''
+                                            path !== '' ? `/${path}` : ''
                                         }`,
                                     );
                                     paths.shift();
@@ -187,7 +187,7 @@ export class Controller {
                                 : (request.body as UnknownObj)[param.name];
                         if (v === null || v === undefined || v === '') {
                             if (param.required) {
-                                reject(new BadRequestError(param.name + ' is required'));
+                                reject(new BadRequestError(`${param.name} is required`));
                                 return false;
                             } else {
                                 args.push(undefined);
