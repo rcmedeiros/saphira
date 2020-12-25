@@ -336,10 +336,7 @@ export class OpenAPIHelper {
 
                     endpoint.tags = [service.name];
                     endpoint.summary = action.handler.tag ? action.handler.tag.summary : undefined;
-                    endpoint.description =
-                        action.handler.tag && action.handler.tag.description
-                            ? action.handler.tag.description
-                            : undefined;
+                    endpoint.description = action.handler.tag?.description ? action.handler.tag.description : undefined;
                     let requestBody: boolean;
                     switch (action.handler.method) {
                         case Method.POST:

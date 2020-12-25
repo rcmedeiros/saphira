@@ -186,7 +186,7 @@ export class Saphira {
     }
 
     private verifyRequiredEnvVars(requiredEnvVars: Array<string>): boolean {
-        if (requiredEnvVars && requiredEnvVars.length) {
+        if (requiredEnvVars?.length) {
             const missing: Array<string> = [];
             requiredEnvVars.forEach((name: string) => {
                 if (!process.env[name]) {
