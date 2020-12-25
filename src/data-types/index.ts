@@ -27,11 +27,9 @@ export const enum Type {
 }
 
 export abstract class DataTypes {
-
     private static instances: { [type: string]: DataType };
 
     public static get(type: Type): DataType {
-
         if (!this.instances) {
             this.instances = {};
             this.instances[Type.String] = new StringDataType();

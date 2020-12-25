@@ -21,7 +21,6 @@ interface Decoded {
 }
 
 export class JWT {
-
     private static publicKey: string;
     private static opts: VerifyOptions;
 
@@ -41,41 +40,44 @@ export class JWT {
     public constructor(token: string, customPublicKey?: string) {
         const vault: Vault = Vault.getInstance();
 
-        JWT.publicKey = customPublicKey || vault.get(JWT_KEY) as string;
-        JWT.opts = { ...{ clockTolerance: JWT_CLOCK_TOLERANCE }, ...vault.get(JWT_OPTS) as VerifyOptions };
+        JWT.publicKey = customPublicKey || (vault.get(JWT_KEY) as string);
+        JWT.opts = { ...{ clockTolerance: JWT_CLOCK_TOLERANCE }, ...(vault.get(JWT_OPTS) as VerifyOptions) };
 
         if (token) {
+            verify(
+                token.startsWith('Bearer ') ? token.substring(7) : token,
+                JWT.publicKey,
+                JWT.opts,
+                (err: Error, decoded: Decoded): void => {
+                    if (err) {
+                        switch (err.message) {
+                            case 'jwt expired':
+                            case 'invalid token':
+                            case 'jwt malformed':
+                                throw new UnauthorizedError(err.message);
+                            default:
+                                throw new ServerError(err.message);
+                        }
+                    } else {
+                        this._token = token;
+                        this._issuer = decoded.iss;
+                        this._subject = decoded.sub;
+                        this._sId = decoded.sid;
+                        this._audience = decoded.aud;
+                        this._notBefore = new Date(decoded.nbf * 1000);
+                        this._expiresAt = new Date(decoded.exp * 1000);
+                        this._jwtId = decoded.jti;
+                        this._roles = decoded.role;
+                        this._issuedAt = new Date(decoded.iat * 1000);
 
-            verify(token.startsWith('Bearer ') ? token.substring(7) : token, JWT.publicKey, JWT.opts, (err: Error, decoded: Decoded): void => {
-                if (err) {
-                    switch (err.message) {
-                        case 'jwt expired':
-                        case 'invalid token':
-                        case 'jwt malformed':
-                            throw new UnauthorizedError(err.message);
-                        default:
-                            throw new ServerError(err.message);
+                        const user: Array<string> = this._subject.split('@');
+                        if (user.length === 2) {
+                            this._username = user[0];
+                            this._clientId = user[1].isNumeric() ? parseInt(user[1]) : undefined;
+                        }
                     }
-
-                } else {
-                    this._token = token;
-                    this._issuer = decoded.iss;
-                    this._subject = decoded.sub;
-                    this._sId = decoded.sid;
-                    this._audience = decoded.aud;
-                    this._notBefore = new Date(decoded.nbf * 1000);
-                    this._expiresAt = new Date(decoded.exp * 1000);
-                    this._jwtId = decoded.jti;
-                    this._roles = decoded.role;
-                    this._issuedAt = new Date(decoded.iat * 1000);
-
-                    const user: Array<string> = this._subject.split('@');
-                    if (user.length === 2) {
-                        this._username = user[0];
-                        this._clientId = user[1].isNumeric() ? parseInt(user[1]) : undefined;
-                    }
-                }
-            });
+                },
+            );
         } else {
             throw new UnauthorizedError('No Bearer Token');
         }
@@ -94,7 +96,7 @@ export class JWT {
     }
 
     public isExpired(): boolean {
-        return this.expiresAt.getTime() <= (new Date().getTime() - SAFETY_MARGIN);
+        return this.expiresAt.getTime() <= new Date().getTime() - SAFETY_MARGIN;
     }
 
     public get issuedAt(): Date {

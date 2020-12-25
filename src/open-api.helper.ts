@@ -1,4 +1,3 @@
-
 import { URL } from 'url';
 import { PAYLOAD } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method, Param, ServiceTag } from './controller/controller';
@@ -90,10 +89,12 @@ interface Endpoint {
         required: boolean;
         content: {
             'application/json': {
-                schema: {
-                    type: string;
-                    properties: Schema;
-                } | Schema;
+                schema:
+                    | {
+                          type: string;
+                          properties: Schema;
+                      }
+                    | Schema;
             };
             'application/x-www-form-urlencoded'?: {
                 schema: {
@@ -114,7 +115,7 @@ export interface OpenAPI {
         description?: string;
         license?: { name: string; url: string };
     };
-    basePath?: string,
+    basePath?: string;
     servers?: Array<{
         url: URL;
         description: string;
@@ -167,7 +168,6 @@ interface ServiceHandlers {
 }
 
 export class OpenAPIHelper {
-
     private static getSchemaType(type: Type): SchemaType {
         switch (type) {
             case Type.NumberArray:
@@ -288,7 +288,6 @@ export class OpenAPIHelper {
     }
 
     public static buildOpenApi(info: Info): OpenAPI {
-
         const openAPI: OpenAPI = { openapi: '3.0.0' };
 
         // header
@@ -305,12 +304,12 @@ export class OpenAPIHelper {
                 openAPI.info.license = {
                     name: 'SEE LICENSE',
                     url: info.license,
-                }
+                };
             } else {
                 openAPI.info.license = {
                     name: info.license,
                     url: `https://spdx.org/licenses/${info.license}.html`,
-                }
+                };
             }
         }
 
@@ -337,7 +336,10 @@ export class OpenAPIHelper {
 
                     endpoint.tags = [service.name];
                     endpoint.summary = action.handler.tag ? action.handler.tag.summary : undefined;
-                    endpoint.description = action.handler.tag && action.handler.tag.description ? action.handler.tag.description : undefined;
+                    endpoint.description =
+                        action.handler.tag && action.handler.tag.description
+                            ? action.handler.tag.description
+                            : undefined;
                     let requestBody: boolean;
                     switch (action.handler.method) {
                         case Method.POST:
@@ -381,9 +383,9 @@ export class OpenAPIHelper {
                                     content: {
                                         'application/json': {
                                             schema: schema[PAYLOAD] as Schema,
-                                        }
-                                    }
-                                }
+                                        },
+                                    },
+                                };
                             } else {
                                 endpoint.requestBody = {
                                     required: true,
@@ -401,7 +403,7 @@ export class OpenAPIHelper {
                                             },
                                         },
                                     },
-                                }
+                                };
                             }
                         } else {
                             endpoint.parameters = [];
@@ -415,8 +417,11 @@ export class OpenAPIHelper {
                                     description: param.description,
                                     example: param.example,
                                     style: param.type === Type.Object ? ParameterStyle.deepObject : undefined,
-                                    explode: param.type === Type.Object ? true
-                                        : param.type === Type.StringArray || param.type === Type.NumberArray ? false
+                                    explode:
+                                        param.type === Type.Object
+                                            ? true
+                                            : param.type === Type.StringArray || param.type === Type.NumberArray
+                                            ? false
                                             : undefined,
                                     allowReserved: param.type === Type.ObjectArray ? true : undefined,
                                 });
@@ -445,20 +450,37 @@ export class OpenAPIHelper {
                             break;
                         default:
                             endpoint.responses[200] = {
-                                description: action.handler.response.description ||
-                                    action.handler.response.reference
-                                    ? `Result is ${action.handler.response.type !== Type.ObjectArray ? '' : 'list of '}${action.handler.response.reference} model`
-                                    : 'OK',
+                                description:
+                                    action.handler.response.description || action.handler.response.reference
+                                        ? `Result is ${
+                                              action.handler.response.type !== Type.ObjectArray ? '' : 'list of '
+                                          }${action.handler.response.reference} model`
+                                        : 'OK',
                                 content: {
                                     'application/json': {
                                         schema: {
                                             type: 'object',
                                             properties: {
                                                 result: !action.handler.response.reference
-                                                    ? { type: OpenAPIHelper.getResponseType(action.handler.response.type) }
+                                                    ? {
+                                                          type: OpenAPIHelper.getResponseType(
+                                                              action.handler.response.type,
+                                                          ),
+                                                      }
                                                     : action.handler.response.type === Type.ObjectArray
-                                                        ? { type: 'array', items: { $ref: '#/components/schemas/' + action.handler.response.reference } }
-                                                        : { $ref: '#/components/schemas/' + action.handler.response.reference },
+                                                    ? {
+                                                          type: 'array',
+                                                          items: {
+                                                              $ref:
+                                                                  '#/components/schemas/' +
+                                                                  action.handler.response.reference,
+                                                          },
+                                                      }
+                                                    : {
+                                                          $ref:
+                                                              '#/components/schemas/' +
+                                                              action.handler.response.reference,
+                                                      },
                                                 timeStamp: { type: 'string', example: '2019-05-07T22:41:39.714Z' },
                                                 performance: { type: 'string', example: '2.328301 ms' },
                                             },
@@ -490,7 +512,7 @@ export class OpenAPIHelper {
                     'application/json': {
                         schema: {
                             properties: {
-                                message: { type: 'string', example: 'You\'ve send incorrect data' },
+                                message: { type: 'string', example: "You've send incorrect data" },
                             },
                         },
                     },
@@ -502,9 +524,10 @@ export class OpenAPIHelper {
                     'application/json': {
                         schema: {
                             properties: {
-                                message: { type: 'string', example: 'Cannot read property \'toString\' of undefined' },
+                                message: { type: 'string', example: "Cannot read property 'toString' of undefined" },
                                 stack: {
-                                    type: 'string', example: `Error: Cannot read property \'toString\' of undefined
+                                    type: 'string',
+                                    example: `Error: Cannot read property \'toString\' of undefined
     at constructor.handler.route.action.apply.then.catch
     (C:\\...\\src\\controller\\controller.ts:425:70)
     at process._tickCallback (internal/process/next_tick.js:68:7)`,
@@ -522,9 +545,7 @@ export class OpenAPIHelper {
                     bearerFormat: 'JWT',
                 },
             };
-            openAPI.security = [
-                { bearerAuth: [] },
-            ];
+            openAPI.security = [{ bearerAuth: [] }];
 
             return openAPI;
         }

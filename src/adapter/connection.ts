@@ -1,5 +1,5 @@
 // import { CloudMetrics } from '../cloud_metrics';
-import { Rejection } from '../types';
+import { Rejection, Resolution } from '../types';
 // import { Vault } from '../vault';
 
 // const WATCH: string = 'watch';
@@ -17,7 +17,6 @@ import { Rejection } from '../types';
 // }
 // type MonitorArray = Array<Watch>;
 export class Connection {
-
     // private readonly monitor: MonitorArray;
     // private readonly cloudMetrics: CloudMetrics;
     private _lastSuccess: Date;
@@ -52,7 +51,7 @@ export class Connection {
     }
 
     protected async do<T>(p: Promise<T>): Promise<T> {
-        return new Promise((resolve: Function, reject: Rejection): void => {
+        return new Promise((resolve: Resolution<T>, reject: Rejection): void => {
             p.then((result: T) => {
                 this.success();
                 resolve(result);
@@ -78,5 +77,4 @@ export class Connection {
     public set isCoadjuvant(v: boolean) {
         this._isCoadjuvant = v;
     }
-
 }

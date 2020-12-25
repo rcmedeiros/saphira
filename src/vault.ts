@@ -117,5 +117,4 @@ export class Vault {
     public setBoolean(name: string, value: boolean): void {
         this.properties[name] = value;
     }
-
 }

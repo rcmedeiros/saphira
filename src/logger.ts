@@ -33,7 +33,6 @@ const LOG_FOLDER_KEY_SUFFIX: string = '_LOG_FOLDER';
 const DEFAULT_LOG_ROOT: string = '/var/log/';
 
 export class Logger implements Loggable {
-
     private static instance: Logger;
 
     public static getInstance(logOptions?: LogOptions): Loggable {
@@ -48,7 +47,6 @@ export class Logger implements Loggable {
     private readonly logLevel: LogLevel;
 
     private constructor(logOptions?: LogOptions) {
-
         logOptions = logOptions || {};
 
         this.logLevel = logOptions.logLevel || LogLevel.debug;
@@ -61,7 +59,6 @@ export class Logger implements Loggable {
         };
 
         if (logOptions.winston) {
-
             const transports: Array<Transport> = [new winston.transports.Console({ level: 'silly' })];
             const logFormat: logform.Format = format.combine(
                 format.timestamp({ format: 'YYYY-MM-DD hh:mm:ss.SSS ZZ' }),
@@ -69,27 +66,33 @@ export class Logger implements Loggable {
                 format.metadata(),
             );
 
-            logOptions.outputDir = logOptions.outputDir ||
+            logOptions.outputDir =
+                logOptions.outputDir ||
                 process.env[__moduleInfo.name.toUpperCase() + LOG_FOLDER_KEY_SUFFIX] ||
-                process.env.LOG_FOLDER || DEFAULT_LOG_ROOT + __moduleInfo.name.toLowerCase();
+                process.env.LOG_FOLDER ||
+                DEFAULT_LOG_ROOT + __moduleInfo.name.toLowerCase();
 
-            transports.push(new (DailyRotateFile)({
-                // TODO: https://github.com/palantir/tslint/issues/3704
-                // tslint:disable-next-line: object-literal-sort-keys
-                format: logFormat,
-                level: 'silly',
-                datePattern: 'YYYY-MM-DD',
-                zippedArchive: true,
-                filename: `${__moduleInfo.name}-%DATE%.log`,
-                dirname: logOptions.outputDir,
-            }));
-            transports.push(new winston.transports.File({
-                // tslint:disable-next-line: object-literal-sort-keys
-                format: logFormat,
-                level: 'error',
-                filename: path.join(logOptions.outputDir, __moduleInfo.name + '-errors.log'),
-                handleExceptions: true,
-            }));
+            transports.push(
+                new DailyRotateFile({
+                    // TODO: https://github.com/palantir/tslint/issues/3704
+                    // tslint:disable-next-line: object-literal-sort-keys
+                    format: logFormat,
+                    level: 'silly',
+                    datePattern: 'YYYY-MM-DD',
+                    zippedArchive: true,
+                    filename: `${__moduleInfo.name}-%DATE%.log`,
+                    dirname: logOptions.outputDir,
+                }),
+            );
+            transports.push(
+                new winston.transports.File({
+                    // tslint:disable-next-line: object-literal-sort-keys
+                    format: logFormat,
+                    level: 'error',
+                    filename: path.join(logOptions.outputDir, __moduleInfo.name + '-errors.log'),
+                    handleExceptions: true,
+                }),
+            );
 
             this.logger = winston.createLogger({ transports: transports });
 
@@ -99,7 +102,6 @@ export class Logger implements Loggable {
             console.debug = this.debug;
             // tslint:disable-next-line: no-console
             console.log = this.debug;
-
         } else {
             this.info = console.info;
             this.warn = console.warn;
@@ -109,16 +111,24 @@ export class Logger implements Loggable {
 
         switch (this.logLevel) {
             case LogLevel.off:
-                console.error = (): void => {/* /dev/null */ };
+                console.error = (): void => {
+                    /* /dev/null */
+                };
             /* falls through */
             case LogLevel.error:
-                console.warn = (): void => {/* /dev/null */ };
+                console.warn = (): void => {
+                    /* /dev/null */
+                };
             /* falls through */
             case LogLevel.warn:
-                console.info = (): void => {/* /dev/null */ };
+                console.info = (): void => {
+                    /* /dev/null */
+                };
             /* falls through */
             case LogLevel.info:
-                console.debug = (): void => {/* /dev/null */ };
+                console.debug = (): void => {
+                    /* /dev/null */
+                };
             /* falls through */
             default:
         }
@@ -126,7 +136,7 @@ export class Logger implements Loggable {
 
     private readonly stringFormat = (message: unknown, optionalParams: Array<unknown>): string =>
         // tslint:disable-next-line: no-unsafe-any
-        !optionalParams.length ? message : util.format.apply(util.format, [message].concat(optionalParams))
+        !optionalParams.length ? message : util.format.apply(util.format, [message].concat(optionalParams));
 
     public get systemLoggers(): Loggable {
         return this._systemLoggers;
@@ -134,18 +144,17 @@ export class Logger implements Loggable {
 
     public info = (message?: unknown, ...optionalParams: Array<unknown>): void => {
         this.logger.info(this.stringFormat(message, optionalParams));
-    }
+    };
 
     public warn = (message?: unknown, ...optionalParams: Array<unknown>): void => {
         this.logger.warn(this.stringFormat(message, optionalParams));
-    }
+    };
 
     public error = (message?: unknown, ...optionalParams: Array<unknown>): void => {
         this.logger.error(this.stringFormat(message, optionalParams));
-    }
+    };
 
     public debug = (message?: unknown, ...optionalParams: Array<unknown>): void => {
         this.logger.debug(this.stringFormat(message, optionalParams));
-    }
-
+    };
 }

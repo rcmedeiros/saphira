@@ -9,7 +9,17 @@ module.exports = {
         'plugin:prettier/recommended',
     ],
     rules: {
-        '@typescript-eslint/indent': 'off',
         indent: 'off',
+        '@typescript-eslint/indent': 'off',
+        '@typescript-eslint/no-inferrable-types': 'off',
+        '@typescript-eslint/no-empty-function': ['error', { allow: ['private-constructors'] }],
+        '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+        '@typescript-eslint/typedef': [
+            'error',
+            {
+                arrowParameter: true,
+                variableDeclaration: true,
+            },
+        ],
     },
 };

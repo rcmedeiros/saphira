@@ -1,6 +1,6 @@
 import '@rcmedeiros/prototypes';
 import bodyParser, { OptionsUrlencoded } from 'body-parser';
-import compression from 'compression';  // compresses requests
+import compression from 'compression'; // compresses requests
 import cors from 'cors';
 import express, { Request as ERequest, Response, Router } from 'express';
 // tslint:disable-next-line: no-implicit-dependencies
@@ -15,8 +15,23 @@ import swaggerUiExpress from 'swagger-ui-express';
 import { URL } from 'url';
 import yaml, { DEFAULT_SAFE_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 import {
-    DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT, ENDPOINT_HEALTH_CHECK, ENDPOINT_OPEN_API, UTF8, ENDPOINT_API_SPEC, ENV_DEBUG_ROUTES, JWT_KEY,
-    JWT_OPTS, JWT_CLOCK_TOLERANCE, ENDPOINT_INFO, FILENAME_TLS_KEY, FILENAME_TLS_CERTIFICATE, ENV_TLS, HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME,
+    DEFAULT_HTTP_PORT,
+    DEFAULT_HTTPS_PORT,
+    ENDPOINT_HEALTH_CHECK,
+    ENDPOINT_OPEN_API,
+    UTF8,
+    ENDPOINT_API_SPEC,
+    ENV_DEBUG_ROUTES,
+    JWT_KEY,
+    JWT_OPTS,
+    JWT_CLOCK_TOLERANCE,
+    ENDPOINT_INFO,
+    FILENAME_TLS_KEY,
+    FILENAME_TLS_CERTIFICATE,
+    ENV_TLS,
+    HEADER_X_PAGINATION,
+    HEADER_X_SUMMARY,
+    HEADER_X_HRTIME,
 } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
 import { PagedResult } from './controller/paged_result';
@@ -55,7 +70,7 @@ export interface ServerInfo {
 /* == cors.CorsOptions == */
 type CustomOrigin = (requestOrigin: string, callback: (err: Error | null, allow?: boolean) => void) => void;
 interface CorsOptions {
-    origin?: boolean | string | RegExp | Array<(string | RegExp)> | CustomOrigin;
+    origin?: boolean | string | RegExp | Array<string | RegExp> | CustomOrigin;
     methods?: string | Array<string>;
     allowedHeaders?: string | Array<string>;
     exposedHeaders?: string | Array<string>;
@@ -80,7 +95,6 @@ interface HttpsOptions {
     key: string;
     cert: string;
 }
-
 
 const PORT: string = 'port';
 export class Saphira {
@@ -126,10 +140,13 @@ export class Saphira {
         this.app = express();
         // tslint:disable: deprecation
         this.app.use(bodyParser.json({ limit: this.options.requestLimit }));
-        this.app.use(bodyParser.urlencoded(this.options.urlencodedOptions || { extended: false, limit: this.options.requestLimit }));
+        this.app.use(
+            bodyParser.urlencoded(
+                this.options.urlencodedOptions || { extended: false, limit: this.options.requestLimit },
+            ),
+        );
         this.app.use(bodyParser.raw({ limit: this.options.requestLimit }));
         this.app.use(compression());
-
 
         if (Saphira.PRODUCTION || !envVarAsString('SERVER_PATHS')?.contains('http:')) {
             this.app.use(helmet());
@@ -138,7 +155,6 @@ export class Saphira {
         this.app.use(cors(this.options.corsOptions));
 
         this.controllerTypes = controllerTypes;
-
     }
 
     private servers(): Array<ServerInfo> {
@@ -148,8 +164,11 @@ export class Saphira {
         const result: Array<ServerInfo> = !servers
             ? [{ url: new URL(`http${this.tls ? 's' : ''}://localhost:${port}/api`), description: 'Local Server' }]
             : servers.split(',').map<ServerInfo>((serverPath: string) => {
-                return { url: new URL(`${serverPath}/api`), description: `${process.env.NODE_ENV || 'undefined'} server` };
-            });
+                  return {
+                      url: new URL(`${serverPath}/api`),
+                      description: `${process.env.NODE_ENV || 'undefined'} server`,
+                  };
+              });
 
         return result;
     }
@@ -157,7 +176,7 @@ export class Saphira {
     private returnInfo(request: ERequest, response: Response): void {
         if (Saphira.PRODUCTION) {
             try {
-                new JWT(request.headers.authorization)
+                new JWT(request.headers.authorization);
             } catch (e) {
                 response.sendStatus((e as HttpError).status);
                 return;
@@ -195,11 +214,18 @@ export class Saphira {
             };
 
             const info: CertInfo = cert.info(result.cert.substringUpTo('END CERTIFICATE-----'));
-            this.tls = ['to {0} from {1} to {2}.'.format(
-                info.subject,
-                new Date(info.issuedAt).toFormattedString('yyyy/MM/dd'),
-                new Date(info.expiresAt).toFormattedString('yyyy/MM/dd')),
-            Date.now() > info.expiresAt ? 'EXPIRED' : (Date.now() + 2592000000) > info.expiresAt ? 'expiring...' : 'Valid'];
+            this.tls = [
+                'to {0} from {1} to {2}.'.format(
+                    info.subject,
+                    new Date(info.issuedAt).toFormattedString('yyyy/MM/dd'),
+                    new Date(info.expiresAt).toFormattedString('yyyy/MM/dd'),
+                ),
+                Date.now() > info.expiresAt
+                    ? 'EXPIRED'
+                    : Date.now() + 2592000000 > info.expiresAt
+                    ? 'expiring...'
+                    : 'Valid',
+            ];
 
             return result;
         } else {
@@ -211,21 +237,31 @@ export class Saphira {
         if (envVarAsBoolean(ENV_DEBUG_ROUTES)) {
             const routes: Array<unknown> = [];
 
-            (this.app as Express & { _router: { stack: Array<NameValue> } })._router.stack.forEach((middleware: NameValue) => {
-                if (middleware.route) { // routes registered directly on the app
-                    routes.push(middleware.route);
-                } else if (middleware.name === 'router') { // router middleware
-                    (middleware.handle as { stack: Array<unknown> }).stack.forEach((handler: { route: unknown }) => {
-                        routes.push(handler.route);
-                    });
-                }
-            });
+            (this.app as Express & { _router: { stack: Array<NameValue> } })._router.stack.forEach(
+                (middleware: NameValue) => {
+                    if (middleware.route) {
+                        // routes registered directly on the app
+                        routes.push(middleware.route);
+                    } else if (middleware.name === 'router') {
+                        // router middleware
+                        (middleware.handle as { stack: Array<unknown> }).stack.forEach(
+                            (handler: { route: unknown }) => {
+                                routes.push(handler.route);
+                            },
+                        );
+                    }
+                },
+            );
 
             const paths: NameValue = {};
-            routes.forEach((r: { path: string; methods: object }) => {
-                paths[r.path] = paths[r.path] ?
-                    { methods: `${(paths[r.path] as { methods: string }).methods}, ${Object.keys(r.methods).join(', ')}` } :
-                    { methods: Object.keys(r.methods).join(', ') };
+            routes.forEach((r: { path: string; methods: unknown }) => {
+                paths[r.path] = paths[r.path]
+                    ? {
+                          methods: `${(paths[r.path] as { methods: string }).methods}, ${Object.keys(r.methods).join(
+                              ', ',
+                          )}`,
+                      }
+                    : { methods: Object.keys(r.methods).join(', ') };
             });
 
             console.table(paths);
@@ -251,146 +287,180 @@ export class Saphira {
     }
 
     private async banner(connections?: NameValue): Promise<void> {
-        return new Promise((resolve: Function, reject: Rejection): void => {
-            figlet.text(__moduleInfo.name, {
-                font: 'Star Wars',
-                horizontalLayout: 'default',
-                verticalLayout: 'default',
-            }, (err: Error, data: string) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    console.info(`\n${data}\n`);
+        return new Promise((resolve: Resolution<void>, reject: Rejection): void => {
+            figlet.text(
+                __moduleInfo.name,
+                {
+                    font: 'Star Wars',
+                    horizontalLayout: 'default',
+                    verticalLayout: 'default',
+                },
+                (err: Error, data: string) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        console.info(`\n${data}\n`);
 
-                    const versionStatus: string =
-                        __moduleInfo.version.indexOf('-dev') !== -1 ? 'local' :
-                            __moduleInfo.version.indexOf('-') !== -1 ? 'development' :
-                                'release';
+                        const versionStatus: string =
+                            __moduleInfo.version.indexOf('-dev') !== -1
+                                ? 'local'
+                                : __moduleInfo.version.indexOf('-') !== -1
+                                ? 'development'
+                                : 'release';
 
-                    const fingerprint: string = this.fingerprint();
+                        const fingerprint: string = this.fingerprint();
 
-                    this.info = {
-                        name: __moduleInfo.name,
-                        version: __moduleInfo.version,
-                        description: __moduleInfo.description,
-                        certificate: this.tls ? this.tls[0] : undefined,
-                        jwtKey: fingerprint,
-                    };
+                        this.info = {
+                            name: __moduleInfo.name,
+                            version: __moduleInfo.version,
+                            description: __moduleInfo.description,
+                            certificate: this.tls ? this.tls[0] : undefined,
+                            jwtKey: fingerprint,
+                        };
 
-                    const table: NameValue = {
-                        VERSION: { '': __moduleInfo.version, status: versionStatus },
-                        PORT: { '': this.app.get(PORT), status: 'open' },
-                        ENVIRONMENT: { '': process.env.NODE_ENV },
-                        /*Log: {
+                        const table: NameValue = {
+                            VERSION: { '': __moduleInfo.version, status: versionStatus },
+                            PORT: { '': this.app.get(PORT), status: 'open' },
+                            ENVIRONMENT: { '': process.env.NODE_ENV },
+                            /*Log: {
                             '': Logger.outputDir ? path.join(Logger.outputDir, __moduleInfo.name.toLowerCase()) : undefined ||
                                 'CONSOLE ONLY', status: LogLevel[Logger.level],
                         },*/
-                        'TLS Certificate': this.tls ? { '': this.tls[0], status: this.tls[1] } : { '': 'none', status: 'OFF' },
-                        ...(this.fingerprint ? { 'JWT Public Key': { '': fingerprint, status: fingerprint ? 'loaded' : 'FAILED' } } : {}),
-                        ...connections,
-                    };
+                            'TLS Certificate': this.tls
+                                ? { '': this.tls[0], status: this.tls[1] }
+                                : { '': 'none', status: 'OFF' },
+                            ...(this.fingerprint
+                                ? { 'JWT Public Key': { '': fingerprint, status: fingerprint ? 'loaded' : 'FAILED' } }
+                                : {}),
+                            ...connections,
+                        };
 
-                    if (this.options.servers) {
-                        table['     '] = {};
-                        this.options.servers.forEach((server: ServerInfo, idx: number) => {
-                            const item: string = `${server.description.capitalize()}${this.options.servers.length > 1 ? `[${idx}]` : ''}`;
-                            table[item] = {
-                                '': `${server.url}${Saphira.PRODUCTION ? '/' : '-docs/'}`,
-                            };
-                            if (!Saphira.PRODUCTION && server.url.protocol === 'http:') {
-                                (table[item] as { status: string }).status = 'Security off';
-                            };
-                        });
+                        if (this.options.servers) {
+                            table['     '] = {};
+                            this.options.servers.forEach((server: ServerInfo, idx: number) => {
+                                const item: string = `${server.description.capitalize()}${
+                                    this.options.servers.length > 1 ? `[${idx}]` : ''
+                                }`;
+                                table[item] = {
+                                    '': `${server.url}${Saphira.PRODUCTION ? '/' : '-docs/'}`,
+                                };
+                                if (!Saphira.PRODUCTION && server.url.protocol === 'http:') {
+                                    (table[item] as { status: string }).status = 'Security off';
+                                }
+                            });
+                        }
+
+                        console.table(table);
+                        this.showRoutes();
+                        resolve();
                     }
-
-                    console.table(table);
-                    this.showRoutes();
-                    resolve();
-                }
-            });
+                },
+            );
         });
-
     }
 
     public async listen(): Promise<void> {
         return new Promise((resolve: Resolution<void>, reject: Rejection) => {
-            this.server = { close: (): Promise<void> => Promise.resolve() } as unknown as http.Server;
+            this.server = ({ close: (): Promise<void> => Promise.resolve() } as unknown) as http.Server;
             const vault: Vault = Vault.getInstance();
-            vault.connect().then(() => {
-                // Logger.setUp();
-                const httpsOptions: HttpsOptions = this.loadSecurityLayer();
-                this.app.set(PORT, this.options.port || (this.tls ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
+            vault
+                .connect()
+                .then(() => {
+                    // Logger.setUp();
+                    const httpsOptions: HttpsOptions = this.loadSecurityLayer();
+                    this.app.set(PORT, this.options.port || (this.tls ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
 
-                const oauth: boolean = !!process.env.OAUTH2_URI;
+                    const oauth: boolean = !!process.env.OAUTH2_URI;
 
-                if (oauth) {
-                    this.adapters.webServices = this.adapters.webServices || [];
-                    if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === 'OAUTH2_URI').length === 0) {
-                        this.adapters.webServices.push({
-                            name: OAUTH2_SERVER,
-                            envVar: 'OAUTH2_URI',
-                            healthCheckEndpoint: '/health-check',
-                        });
-                    }
-                }
-
-                const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
-                this.verifyRequiredEnvVars(adaptersMgr.environmentVariables);
-
-                adaptersMgr.connect().then((connections: AdaptersResult) => {
-
-                    new Promise((res: Function) => {
-                        if (oauth) {
-                            Adapters.getWebConnection(OAUTH2_SERVER).get('/key').then((response: WebResponse) => {
-                                response.okOnly();
-                                vault
-                                    .set(JWT_KEY, response.body)
-                                    .set(JWT_OPTS, { clockTolerance: JWT_CLOCK_TOLERANCE });
-                                res();
-                                Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
-                            }).catch((e: Error) => {
-                                console.error('FAILED to obtain key from Oauth2 Server');
-                                console.error(e);
-                                (connections.data.OauthServer as { status: string }).status = e.name;
-                                res();
+                    if (oauth) {
+                        this.adapters.webServices = this.adapters.webServices || [];
+                        if (
+                            this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === 'OAUTH2_URI')
+                                .length === 0
+                        ) {
+                            this.adapters.webServices.push({
+                                name: OAUTH2_SERVER,
+                                envVar: 'OAUTH2_URI',
+                                healthCheckEndpoint: '/health-check',
                             });
-                        } else {
-                            res();
                         }
-                    }).then(() => {
-                        if (vault.loaded && connections.success) {
-                            try {
-                                this.route(this.app, this.controllerTypes);
-                            } catch (e) {
-                                reject(e);
-                                return undefined;
-                            }
+                    }
 
-                            if (!httpsOptions) {
-                                this.server = this.app.listen(this.app.get(PORT), async () => {
-                                    this.banner(connections.data).then(() => {
-                                        resolve();
-                                    }).catch(reject);
-                                });
-                            } else {
-                                this.server = https.createServer({
-                                    key: httpsOptions.key,
-                                    cert: httpsOptions.cert,
-                                }, this.app as unknown as http.RequestListener)
-                                    .listen(this.app.get(PORT), async () => {
-                                        this.banner(connections.data).then(() => {
-                                            resolve();
-                                        }).catch(reject);
-                                    });
-                            }
-                        } else {
-                            this.banner(connections.data).then(() => {
-                                reject(new Error('>>> FAILED TO LOAD CONFIGURATION <<<'));
-                            }).catch(console.error);
-                        }
-                    }).catch(reject);
-                }).catch(reject);
-            }).catch(reject);
+                    const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
+                    this.verifyRequiredEnvVars(adaptersMgr.environmentVariables);
+
+                    adaptersMgr
+                        .connect()
+                        .then((connections: AdaptersResult) => {
+                            new Promise((res: Resolution<void>) => {
+                                if (oauth) {
+                                    Adapters.getWebConnection(OAUTH2_SERVER)
+                                        .get('/key')
+                                        .then((response: WebResponse) => {
+                                            response.okOnly();
+                                            vault
+                                                .set(JWT_KEY, response.body)
+                                                .set(JWT_OPTS, { clockTolerance: JWT_CLOCK_TOLERANCE });
+                                            res();
+                                            Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
+                                        })
+                                        .catch((e: Error) => {
+                                            console.error('FAILED to obtain key from Oauth2 Server');
+                                            console.error(e);
+                                            (connections.data.OauthServer as { status: string }).status = e.name;
+                                            res();
+                                        });
+                                } else {
+                                    res();
+                                }
+                            })
+                                .then(() => {
+                                    if (vault.loaded && connections.success) {
+                                        try {
+                                            this.route(this.app, this.controllerTypes);
+                                        } catch (e) {
+                                            reject(e);
+                                            return undefined;
+                                        }
+
+                                        if (!httpsOptions) {
+                                            this.server = this.app.listen(this.app.get(PORT), async () => {
+                                                this.banner(connections.data)
+                                                    .then(() => {
+                                                        resolve();
+                                                    })
+                                                    .catch(reject);
+                                            });
+                                        } else {
+                                            this.server = https
+                                                .createServer(
+                                                    {
+                                                        key: httpsOptions.key,
+                                                        cert: httpsOptions.cert,
+                                                    },
+                                                    (this.app as unknown) as http.RequestListener,
+                                                )
+                                                .listen(this.app.get(PORT), async () => {
+                                                    this.banner(connections.data)
+                                                        .then(() => {
+                                                            resolve();
+                                                        })
+                                                        .catch(reject);
+                                                });
+                                        }
+                                    } else {
+                                        this.banner(connections.data)
+                                            .then(() => {
+                                                reject(new Error('>>> FAILED TO LOAD CONFIGURATION <<<'));
+                                            })
+                                            .catch(console.error);
+                                    }
+                                })
+                                .catch(reject);
+                        })
+                        .catch(reject);
+                })
+                .catch(reject);
         });
     }
 
@@ -441,15 +511,20 @@ export class Saphira {
                 components: this.options.openApiComponents,
             };
             const doc: OpenAPI = OpenAPIHelper.buildOpenApi(apiDocs);
-            app.use(ENDPOINT_OPEN_API, swaggerUiExpress.serve, swaggerUiExpress.setup(doc, { customSiteTitle: __moduleInfo.name }));
+            app.use(
+                ENDPOINT_OPEN_API,
+                swaggerUiExpress.serve,
+                swaggerUiExpress.setup(doc, { customSiteTitle: __moduleInfo.name }),
+            );
 
-            const spec: string = yaml.safeDump(yaml.safeLoad(JSON.stringify(doc), { schema: JSON_SCHEMA }), { schema: DEFAULT_SAFE_SCHEMA });
+            const spec: string = yaml.safeDump(yaml.safeLoad(JSON.stringify(doc), { schema: JSON_SCHEMA }), {
+                schema: DEFAULT_SAFE_SCHEMA,
+            });
             app.use(ENDPOINT_API_SPEC, (_req: Request, res: Response) => {
                 res.setHeader('Content-Type', MimeType.YAML_from_users);
                 res.send(spec);
             });
         }
-
     }
 
     public async close(): Promise<void> {
@@ -466,6 +541,30 @@ export class Saphira {
 }
 
 export {
-    BadRequestError, Controller, DTO, Handler, LogOptions, Method, BadGatewayError, ServerError, PagedResult, Type, Vault, NameValue, StringSet, Rejection, Resolution, Adapters, WebClient, WebConfig,
-    WebConnection, WebOptions, WebResponse, parseJson, uuid, envVarAsString, envVarAsBoolean, HttpStatusCode
+    BadRequestError,
+    Controller,
+    DTO,
+    Handler,
+    LogOptions,
+    Method,
+    BadGatewayError,
+    ServerError,
+    PagedResult,
+    Type,
+    Vault,
+    NameValue,
+    StringSet,
+    Rejection,
+    Resolution,
+    Adapters,
+    WebClient,
+    WebConfig,
+    WebConnection,
+    WebOptions,
+    WebResponse,
+    parseJson,
+    uuid,
+    envVarAsString,
+    envVarAsBoolean,
+    HttpStatusCode,
 };

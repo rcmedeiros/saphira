@@ -1,4 +1,4 @@
-declare module "cert-info" {
+declare module 'cert-info' {
     export interface CertInfo {
         expiresAt: number;
         issuedAt: number;

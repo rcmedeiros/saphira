@@ -1,6 +1,6 @@
-export const ENV_BASE_PATH = 'BASE_PATH';
-export const ENV_DEBUG_ROUTES = 'DEBUG_ROUTES';
-export const ENV_TLS = 'TLS';
+export const ENV_BASE_PATH: string = 'BASE_PATH';
+export const ENV_DEBUG_ROUTES: string = 'DEBUG_ROUTES';
+export const ENV_TLS: string = 'TLS';
 
 export const ENDPOINT_HEALTH_CHECK: string = '/health-check';
 export const ENDPOINT_OPEN_API: string = '/api-docs';
@@ -20,5 +20,5 @@ export const JWT_KEY: string = 'jwt_key';
 export const JWT_OPTS: string = 'jwt_opts';
 export const JWT_CLOCK_TOLERANCE: number = 30;
 
-export const FILENAME_TLS_KEY = 'privkey.pem';
-export const FILENAME_TLS_CERTIFICATE = 'fullchain.pem';
+export const FILENAME_TLS_KEY: string = 'privkey.pem';
+export const FILENAME_TLS_CERTIFICATE: string = 'fullchain.pem';

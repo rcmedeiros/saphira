@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 import needle, { NeedleHttpVerbs, NeedleResponse } from 'needle';
 import { JWT } from './jwt';
-import { Rejection } from './types';
+import { Rejection, Resolution } from './types';
 
 interface PKCE {
     verifier: string;
@@ -45,11 +45,11 @@ const CODE: string = 'code';
 const PARAMS_REFRESH_TOKEN: string = 'grant_type=refresh_token&client_id={0}&refresh_token={1}';
 const PARAMS_CLIENT_CREDENTIALS: string = 'grant_type=client_credentials&client_id={0}&client_secret={1}&scope=SCOPE1';
 const PARAM_AUTH_CODE: string = 'grant_type=authorization_code&code={0}&code_verifier={1}&client_id={2}';
-const PARAMS_CODE: string = 'response_type=code&client_id={0}&redirect_uri={1}&state=foobar&grant_type=implicit&' +
+const PARAMS_CODE: string =
+    'response_type=code&client_id={0}&redirect_uri={1}&state=foobar&grant_type=implicit&' +
     'username={2}&password={3}&code_challenge={4}&code_challenge_method=S256';
 
 export class Oauth2Client {
-
     private credentials: ClientCredentials | UserCredentials;
     private accessToken: JWT;
     private refreshToken: JWT;
@@ -84,13 +84,14 @@ export class Oauth2Client {
             error.name = INVALID_RESPONSE;
             return error;
         }
-
     }
 
     private async authenticateClient(): Promise<JWT> {
-        return new Promise((resolve: Function, reject: Rejection): void => {
+        return new Promise((resolve: Resolution<JWT>, reject: Rejection): void => {
             const c: ClientCredentials = this.credentials as ClientCredentials;
-            needle(POST, c.serverURI + TOKEN, PARAMS_CLIENT_CREDENTIALS.format(c.clientId, c.clientSecret), { parse: false })
+            needle(POST, c.serverURI + TOKEN, PARAMS_CLIENT_CREDENTIALS.format(c.clientId, c.clientSecret), {
+                parse: false,
+            })
                 .then((r: NeedleResponse) => {
                     if (!r.body || r.body.toString().indexOf(ACCESS_TOKEN) === -1) {
                         reject(this.getError(r.body));
@@ -103,24 +104,35 @@ export class Oauth2Client {
                             reject(e);
                         }
                     }
-                }).catch(reject);
+                })
+                .catch(reject);
         });
     }
 
     private async authenticateUser(): Promise<JWT> {
-        return new Promise((resolve: Function, reject: Rejection): void => {
+        return new Promise((resolve: Resolution<JWT>, reject: Rejection): void => {
             const c: UserCredentials = this.credentials as UserCredentials;
             const pkce: PKCE = this.genPkce();
-            needle(POST, this.credentials.serverURI + AUTH,
-                PARAMS_CODE.format(c.clientId, c.callbackURI, c.username, c.password, pkce.challenge)
-                , { parse: false })
+            needle(
+                POST,
+                this.credentials.serverURI + AUTH,
+                PARAMS_CODE.format(c.clientId, c.callbackURI, c.username, c.password, pkce.challenge),
+                { parse: false },
+            )
                 .then((r: NeedleResponse) => {
                     if (!r.body || r.body.toString().indexOf(CODE) === -1) {
                         reject(this.getError(r.body));
                     } else {
-                        needle(POST, c.serverURI + TOKEN,
-                            PARAM_AUTH_CODE.format(encodeURIComponent(JSON.parse(r.body.toString()).code), pkce.verifier, c.clientId),
-                            { parse: false })
+                        needle(
+                            POST,
+                            c.serverURI + TOKEN,
+                            PARAM_AUTH_CODE.format(
+                                encodeURIComponent(JSON.parse(r.body.toString()).code),
+                                pkce.verifier,
+                                c.clientId,
+                            ),
+                            { parse: false },
+                        )
                             .then((r2: NeedleResponse) => {
                                 if (!r2.body || r2.body.indexOf(ACCESS_TOKEN) === -1) {
                                     reject(this.getError(r2.body));
@@ -136,11 +148,13 @@ export class Oauth2Client {
                                         reject(this.getError(r2.body));
                                     }
                                 }
-                            }).catch((e: Error) => {
+                            })
+                            .catch((e: Error) => {
                                 reject(e);
                             });
                     }
-                }).catch(reject);
+                })
+                .catch(reject);
         });
     }
 
@@ -149,14 +163,17 @@ export class Oauth2Client {
     }
 
     public async keepFresh(): Promise<void> {
-        return new Promise((resolve: Function, reject: Rejection): void => {
+        return new Promise((resolve: Resolution<void>, reject: Rejection): void => {
             if (this.accessToken && !this.isTokenExpired()) {
                 resolve();
             } else {
                 if (this.refreshToken) {
-                    needle(POST, this.credentials.serverURI + TOKEN,
+                    needle(
+                        POST,
+                        this.credentials.serverURI + TOKEN,
                         PARAMS_REFRESH_TOKEN.format(this.refreshToken.clientId, this.refreshToken.toString()),
-                        { parse: false })
+                        { parse: false },
+                    )
                         .then((r: NeedleResponse) => {
                             if (!r.body || r.body.toString().indexOf(ACCESS_TOKEN) === -1) {
                                 reject(this.getError(r.body));
@@ -170,13 +187,21 @@ export class Oauth2Client {
                                     reject(this.getError(r.body));
                                 }
                             }
-                        }).catch(reject);
+                        })
+                        .catch(reject);
                 } else {
                     if ((this.credentials as UserCredentials).username) {
-                        this.authenticateUser().then(() => { resolve(); }).catch(reject);
+                        this.authenticateUser()
+                            .then(() => {
+                                resolve();
+                            })
+                            .catch(reject);
                     } else {
                         this.authenticateClient()
-                            .then(() => { resolve(); }).catch(reject);
+                            .then(() => {
+                                resolve();
+                            })
+                            .catch(reject);
                     }
                 }
             }
@@ -196,7 +221,13 @@ export class Oauth2Client {
         return this;
     }
 
-    public setUser(clientId: string, username: string, password: string, serverURI?: string, callbackURI?: string): Oauth2Client {
+    public setUser(
+        clientId: string,
+        username: string,
+        password: string,
+        serverURI?: string,
+        callbackURI?: string,
+    ): Oauth2Client {
         this.credentials = {
             clientId: clientId,
             username: username,
@@ -212,12 +243,14 @@ export class Oauth2Client {
     }
 
     public async getBearerToken(): Promise<JWT> {
-        return new Promise((resolve: Function, reject: Rejection): void => {
-            this.keepFresh().then(() => {
-                resolve(this.accessToken);
-            }).catch((e: Error) => {
-                reject(e);
-            });
+        return new Promise((resolve: Resolution<JWT>, reject: Rejection): void => {
+            this.keepFresh()
+                .then(() => {
+                    resolve(this.accessToken);
+                })
+                .catch((e: Error) => {
+                    reject(e);
+                });
         });
     }
 }

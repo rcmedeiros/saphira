@@ -1,10 +1,10 @@
-import { NameValue } from "./";
-import { Adapters, AdaptersConfig, WebServerConfig } from "./adapter/adapters";
-import { WebConfig } from "./adapter/web-config";
-import { WebConnection } from "./adapter/web-connection";
-import { MISSING_ENV_VAR } from "./constants/messages";
-import { parseJson } from "./helpers";
-import { Oauth2Client } from "./oauth2_client";
+import { NameValue, Resolution } from './';
+import { Adapters, AdaptersConfig, WebServerConfig } from './adapter/adapters';
+import { WebConfig } from './adapter/web-config';
+import { WebConnection } from './adapter/web-connection';
+import { MISSING_ENV_VAR } from './constants/messages';
+import { parseJson } from './helpers';
+import { Oauth2Client } from './oauth2_client';
 
 export interface AdaptersResult {
     success: boolean;
@@ -12,7 +12,6 @@ export interface AdaptersResult {
 }
 
 export class AdaptersManager {
-
     private readonly adapters: AdaptersConfig;
     private readonly oauth2Clients: { [name: string]: Oauth2Client };
 
@@ -22,7 +21,7 @@ export class AdaptersManager {
     }
 
     private async resolve<T>(p: Promise<T>): Promise<T | Error> {
-        return new Promise((resolve: Function): void => {
+        return new Promise((resolve: Resolution<T | Error>): void => {
             p.then((result: T) => {
                 resolve(result);
             }).catch((e: Error) => {
@@ -38,10 +37,15 @@ export class AdaptersManager {
         if (this.adapters) {
             if (this.adapters.webServices) {
                 this.adapters.webServices.forEach((ws: WebServerConfig | string) => {
-                    let webServer: WebServerConfig = typeof ws === 'string' ? { envVar: ws, healthCheckEndpoint: '' } : ws;
+                    let webServer: WebServerConfig =
+                        typeof ws === 'string' ? { envVar: ws, healthCheckEndpoint: '' } : ws;
                     const cfg: WebConfig = parseJson(process.env[webServer.envVar]) as WebConfig;
                     if (cfg) {
-                        webServer = { ...webServer, ...cfg, ...{ parameters: { ...webServer?.parameters, ...cfg?.parameters } } };
+                        webServer = {
+                            ...webServer,
+                            ...cfg,
+                            ...{ parameters: { ...webServer?.parameters, ...cfg?.parameters } },
+                        };
                         name.push([webServer.name || 'Web Server', webServer.host, webServer.coadjuvant]);
                         const c: WebConnection = Adapters.setupWebConnection(webServer, webServer.name);
                         if (webServer.systemAuth) {

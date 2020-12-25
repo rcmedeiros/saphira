@@ -1,13 +1,9 @@
 // tslint:disable:no-any no-unsafe-any
 
 export class SaphiraError extends Error {
-
-    [key: string]: any;
-
     public toJSON(): string {
-        const serialized: any = {
+        return JSON.stringify({
             message: this.message,
-        };
-        return serialized;
+        });
     }
 }

@@ -1,1 +1,3 @@
-export interface UnknownObj { [name: string]: unknown; }
+export interface UnknownObj {
+    [name: string]: unknown;
+}
