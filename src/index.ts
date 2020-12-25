@@ -105,9 +105,9 @@ export class Saphira {
     private server: http.Server;
     private readonly options: SaphiraOptions;
     private readonly controllerTypes: Array<typeof Controller>;
-    public tls: [string, string];
     private info: NameValue;
     private readonly adapters: AdaptersConfig;
+    public tls: [string, string];
 
     constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
         this.options = options || {};
@@ -359,6 +359,69 @@ export class Saphira {
         });
     }
 
+    private route(app: Express, controllerTypes: Array<typeof Controller>): void {
+        const expressRouter: Router = express.Router();
+
+        app.get(ENDPOINT_HEALTH_CHECK, (_request: ERequest, response: Response) => {
+            response.sendStatus(Adapters.allConnected() ? HttpStatusCode.OK : HttpStatusCode.BAD_GATEWAY);
+        });
+        app.get(ENDPOINT_INFO, (request: ERequest, response: Response) => {
+            this.returnInfo(request, response);
+        });
+
+        const controllers: Array<Controller> = [];
+
+        controllerTypes.forEach((controller: typeof Controller) => {
+            let c: Controller;
+            try {
+                c = new controller();
+            } catch (e) {
+                console.error(e);
+                throw new Error((e as Error).message);
+            }
+            controllers.push(c);
+            c.paths.forEach((cPath: string): void => {
+                const handlersByMethod: HandlersByMethod = c.getHandler(cPath);
+                Object.keys(handlersByMethod).forEach((method: string) => {
+                    const handler: Handler = handlersByMethod[method];
+                    expressRouter[handler.method](cPath, Responder.route(c, handler));
+                });
+            });
+        });
+
+        app.use(expressRouter);
+
+        const servers: Array<ServerInfo> = this.servers();
+        this.options.servers = servers;
+
+        if (!Saphira.PRODUCTION) {
+            const apiDocs: Info = {
+                module: {
+                    name: __moduleInfo.name,
+                    version: `${__moduleInfo.version} (Saphira --dev--)`,
+                    description: __moduleInfo.description,
+                },
+                controllers: controllers,
+                servers: servers,
+                components: this.options.openApiComponents,
+            };
+            const doc: OpenAPI = OpenAPIHelper.buildOpenApi(apiDocs);
+            app.use(
+                ENDPOINT_OPEN_API,
+                swaggerUiExpress.serve,
+                swaggerUiExpress.setup(doc, { customSiteTitle: __moduleInfo.name }),
+            );
+
+            const spec: string = yaml.safeDump(yaml.safeLoad(JSON.stringify(doc), { schema: JSON_SCHEMA }), {
+                schema: DEFAULT_SAFE_SCHEMA,
+            });
+            app.use(ENDPOINT_API_SPEC, (_req: Request, res: Response) => {
+                res.setHeader('Content-Type', MimeType.YAML_from_users);
+                res.send(spec);
+            });
+        }
+    }
+
     public async listen(): Promise<void> {
         return new Promise((resolve: Resolution<void>, reject: Rejection) => {
             this.server = ({ close: (): Promise<void> => Promise.resolve() } as unknown) as http.Server;
@@ -462,69 +525,6 @@ export class Saphira {
                 })
                 .catch(reject);
         });
-    }
-
-    private route(app: Express, controllerTypes: Array<typeof Controller>): void {
-        const expressRouter: Router = express.Router();
-
-        app.get(ENDPOINT_HEALTH_CHECK, (_request: ERequest, response: Response) => {
-            response.sendStatus(Adapters.allConnected() ? HttpStatusCode.OK : HttpStatusCode.BAD_GATEWAY);
-        });
-        app.get(ENDPOINT_INFO, (request: ERequest, response: Response) => {
-            this.returnInfo(request, response);
-        });
-
-        const controllers: Array<Controller> = [];
-
-        controllerTypes.forEach((controller: typeof Controller) => {
-            let c: Controller;
-            try {
-                c = new controller();
-            } catch (e) {
-                console.error(e);
-                throw new Error((e as Error).message);
-            }
-            controllers.push(c);
-            c.paths.forEach((cPath: string): void => {
-                const handlersByMethod: HandlersByMethod = c.getHandler(cPath);
-                Object.keys(handlersByMethod).forEach((method: string) => {
-                    const handler: Handler = handlersByMethod[method];
-                    expressRouter[handler.method](cPath, Responder.route(c, handler));
-                });
-            });
-        });
-
-        app.use(expressRouter);
-
-        const servers: Array<ServerInfo> = this.servers();
-        this.options.servers = servers;
-
-        if (!Saphira.PRODUCTION) {
-            const apiDocs: Info = {
-                module: {
-                    name: __moduleInfo.name,
-                    version: `${__moduleInfo.version} (Saphira --dev--)`,
-                    description: __moduleInfo.description,
-                },
-                controllers: controllers,
-                servers: servers,
-                components: this.options.openApiComponents,
-            };
-            const doc: OpenAPI = OpenAPIHelper.buildOpenApi(apiDocs);
-            app.use(
-                ENDPOINT_OPEN_API,
-                swaggerUiExpress.serve,
-                swaggerUiExpress.setup(doc, { customSiteTitle: __moduleInfo.name }),
-            );
-
-            const spec: string = yaml.safeDump(yaml.safeLoad(JSON.stringify(doc), { schema: JSON_SCHEMA }), {
-                schema: DEFAULT_SAFE_SCHEMA,
-            });
-            app.use(ENDPOINT_API_SPEC, (_req: Request, res: Response) => {
-                res.setHeader('Content-Type', MimeType.YAML_from_users);
-                res.send(spec);
-            });
-        }
     }
 
     public async close(): Promise<void> {

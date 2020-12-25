@@ -1,8 +1,6 @@
 import { Saphira } from '../';
 
 export abstract class DTO {
-    public abstract assign(record: unknown): void;
-
     public toJSON(): unknown {
         const serialized: unknown = {};
 
@@ -23,4 +21,6 @@ export abstract class DTO {
 
         return serialized;
     }
+
+    public abstract assign(record: unknown): void;
 }

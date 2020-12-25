@@ -35,12 +35,6 @@ const DEFAULT_LOG_ROOT: string = '/var/log/';
 export class Logger implements Loggable {
     private static instance: Logger;
 
-    public static getInstance(logOptions?: LogOptions): Loggable {
-        if (!this.instance) {
-            this.instance = new Logger(logOptions);
-            return this.instance;
-        }
-    }
     private readonly _systemLoggers: Loggable;
 
     private readonly logger: winston.Logger;
@@ -131,6 +125,13 @@ export class Logger implements Loggable {
                 };
             /* falls through */
             default:
+        }
+    }
+
+    public static getInstance(logOptions?: LogOptions): Loggable {
+        if (!this.instance) {
+            this.instance = new Logger(logOptions);
+            return this.instance;
         }
     }
 

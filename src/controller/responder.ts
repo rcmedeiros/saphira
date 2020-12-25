@@ -12,6 +12,9 @@ import { HEADER_X_PAGINATION } from '../constants/settings';
 import { HEADER_X_HRTIME } from '../constants/settings';
 
 export class Responder {
+    /* istanbul ignore next */
+    private constructor() {}
+
     public static route = (controller: Controller, handler: Handler): RequestHandler => (
         request: Request,
         response: Response,
@@ -78,7 +81,4 @@ export class Responder {
             .then(next)
             .catch(console.error);
     };
-
-    /* istanbul ignore next */
-    private constructor() {}
 }

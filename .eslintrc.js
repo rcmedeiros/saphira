@@ -21,5 +21,44 @@ module.exports = {
                 variableDeclaration: true,
             },
         ],
+        '@typescript-eslint/member-ordering': [
+            'error',
+            {
+                default: [
+                    // Index signature
+                    'signature',
+                    // Fields
+                    'private-static-field',
+                    'protected-static-field',
+                    'public-static-field',
+                    'private-decorated-field',
+                    'protected-decorated-field',
+                    'public-decorated-field',
+                    'private-instance-field',
+                    'protected-instance-field',
+                    'public-instance-field',
+                    'private-abstract-field',
+                    'protected-abstract-field',
+                    'public-abstract-field',
+                    // Constructors
+                    'private-constructor',
+                    'protected-constructor',
+                    'public-constructor',
+                    // Methods
+                    'private-static-method',
+                    'protected-static-method',
+                    'public-static-method',
+                    'private-decorated-method',
+                    'protected-decorated-method',
+                    'public-decorated-method',
+                    'private-instance-method',
+                    'protected-instance-method',
+                    'public-instance-method',
+                    'private-abstract-method',
+                    'protected-abstract-method',
+                    'public-abstract-method',
+                ],
+            },
+        ],
     },
 };
