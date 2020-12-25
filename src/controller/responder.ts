@@ -1,15 +1,15 @@
+import { Controller, Handler } from './controller';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import prettyHrtime from 'pretty-hrtime';
-import { Saphira } from '../';
-import { MSG_HTTP_UNEXPECTED_ERROR } from '../constants/messages';
-import { Type } from '../data-types';
+import { HEADER_X_HRTIME } from '../constants/settings';
+import { HEADER_X_PAGINATION } from '../constants/settings';
 import { HttpError } from '../errors/http-error';
 import { HttpStatusCode } from '../constants/http_status_codes';
-import { Controller, Handler } from './controller';
+import { MSG_HTTP_UNEXPECTED_ERROR } from '../constants/messages';
 import { PagedResult } from './paged_result';
+import { Saphira } from '../';
+import { Type } from '../data-types';
 import { UnknownObj } from './unknown-obj';
-import { HEADER_X_PAGINATION } from '../constants/settings';
-import { HEADER_X_HRTIME } from '../constants/settings';
+import prettyHrtime from 'pretty-hrtime';
 
 export class Responder {
     /* istanbul ignore next */

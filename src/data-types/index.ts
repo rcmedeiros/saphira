@@ -1,12 +1,12 @@
 import { BooleanDataType } from './boolean-data_type';
 import { DataType } from './data_type';
 import { DateTimeDataType } from './date_time-data_type';
-import { NumberDataType } from './number-data_type';
 import { NumberArrayDataType } from './number_array-data_type';
-import { ObjectDataType } from './object-data_type';
+import { NumberDataType } from './number-data_type';
 import { ObjectArrayDataType } from './object_array-data_type';
-import { StringDataType } from './string-data_type';
+import { ObjectDataType } from './object-data_type';
 import { StringArrayDataType } from './string_array-data_type';
+import { StringDataType } from './string-data_type';
 
 export const enum Type {
     // Base64 = 'Base64',

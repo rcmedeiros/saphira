@@ -1,5 +1,5 @@
-import { NeedleResponse } from 'needle';
 import { HttpStatusCode } from '../constants/http_status_codes';
+import { NeedleResponse } from 'needle';
 import { StringSet } from '../types';
 
 export class WebResponse {

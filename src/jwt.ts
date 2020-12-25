@@ -1,5 +1,5 @@
-import { verify, VerifyOptions } from 'jsonwebtoken';
 import { JWT_CLOCK_TOLERANCE, JWT_KEY, JWT_OPTS } from './constants/settings';
+import { VerifyOptions, verify } from 'jsonwebtoken';
 import { ForbiddenError } from './errors/forbidden-error';
 import { ServerError } from './errors/server-error';
 import { UnauthorizedError } from './errors/unauthorized-error';

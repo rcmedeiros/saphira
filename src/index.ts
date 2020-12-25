@@ -1,65 +1,64 @@
 import '@rcmedeiros/prototypes';
-import bodyParser, { OptionsUrlencoded } from 'body-parser';
-import compression from 'compression'; // compresses requests
-import cors from 'cors';
-import express, { Request as ERequest, Response, Router } from 'express';
-// tslint:disable-next-line: no-implicit-dependencies
 import * as core from 'express-serve-static-core';
-import figlet from 'figlet';
-import fs from 'fs';
-import helmet from 'helmet';
 import * as http from 'http';
-import https from 'https';
-import path from 'path';
-import swaggerUiExpress from 'swagger-ui-express';
-import { URL } from 'url';
-import yaml, { DEFAULT_SAFE_SCHEMA, JSON_SCHEMA } from 'js-yaml';
+import { Adapters, AdaptersConfig, WebServerConfig } from './adapter/adapters';
+import { AdaptersManager, AdaptersResult } from './adapters_manager';
+import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
 import {
-    DEFAULT_HTTP_PORT,
     DEFAULT_HTTPS_PORT,
-    ENDPOINT_HEALTH_CHECK,
-    ENDPOINT_OPEN_API,
-    UTF8,
+    DEFAULT_HTTP_PORT,
     ENDPOINT_API_SPEC,
-    ENV_DEBUG_ROUTES,
-    JWT_KEY,
-    JWT_OPTS,
-    JWT_CLOCK_TOLERANCE,
+    ENDPOINT_HEALTH_CHECK,
     ENDPOINT_INFO,
-    FILENAME_TLS_KEY,
-    FILENAME_TLS_CERTIFICATE,
+    ENDPOINT_OPEN_API,
+    ENV_DEBUG_ROUTES,
     ENV_TLS,
+    FILENAME_TLS_CERTIFICATE,
+    FILENAME_TLS_KEY,
+    HEADER_X_HRTIME,
     HEADER_X_PAGINATION,
     HEADER_X_SUMMARY,
-    HEADER_X_HRTIME,
+    JWT_CLOCK_TOLERANCE,
+    JWT_KEY,
+    JWT_OPTS,
+    UTF8,
 } from './constants/settings';
-import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
-import { PagedResult } from './controller/paged_result';
-import { Responder } from './controller/responder';
-import { Type } from './data-types';
-import { StringSet, Rejection, Resolution, NameValue } from './types';
-import { DTO } from './dto/dto';
+import { Express, Request } from './express';
+import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
+import { LogLevel, LogOptions, Logger } from './logger';
+import { NameValue, Rejection, Resolution, StringSet } from './types';
+import bodyParser, { OptionsUrlencoded } from 'body-parser';
+import cert, { CertInfo } from 'cert-info';
+import { envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
+import express, { Request as ERequest, Response, Router } from 'express';
+import sshpk, { Key } from 'sshpk';
+import yaml, { DEFAULT_SAFE_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
-import { HttpStatusCode } from './constants/http_status_codes';
-import { ServerError } from './errors/server-error';
-import { Logger, LogLevel, LogOptions } from './logger';
-import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
-import { Vault } from './vault';
-import { AdaptersManager, AdaptersResult } from './adapters_manager';
-import { envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
-import { MimeType } from './constants/mime_types';
+import { DTO } from './dto/dto';
 import { HttpError } from './errors/http-error';
+import { HttpStatusCode } from './constants/http_status_codes';
 import { JWT } from './jwt';
-import { Adapters, AdaptersConfig, WebServerConfig } from './adapter/adapters';
-import cert, { CertInfo } from 'cert-info';
-import { Express, Request } from './express';
-import sshpk, { Key } from 'sshpk';
-import { WebResponse } from './adapter/web-response';
+import { MimeType } from './constants/mime_types';
+import { PagedResult } from './controller/paged_result';
+import { Responder } from './controller/responder';
+import { ServerError } from './errors/server-error';
+import { Type } from './data-types';
+import { URL } from 'url';
+import { Vault } from './vault';
 import { WebClient } from './adapter/web-client';
 import { WebConfig } from './adapter/web-config';
 import { WebConnection } from './adapter/web-connection';
 import { WebOptions } from './adapter/web-options';
+import { WebResponse } from './adapter/web-response';
+import compression from 'compression'; // compresses requests
+import cors from 'cors';
+import figlet from 'figlet';
+import fs from 'fs';
+import helmet from 'helmet';
+import https from 'https';
+import path from 'path';
+import swaggerUiExpress from 'swagger-ui-express';
 
 const OAUTH2_SERVER: string = 'OauthServer';
 export interface ServerInfo {

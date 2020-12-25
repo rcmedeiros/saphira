@@ -1,5 +1,5 @@
-import { Oauth2Client } from '../oauth2_client';
 import { BaseAdapter } from './base-adapter';
+import { Oauth2Client } from '../oauth2_client';
 import { WebResponse } from './web-response';
 
 export interface WebConnection extends BaseAdapter {

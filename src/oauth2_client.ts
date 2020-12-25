@@ -1,8 +1,8 @@
 // cSpell: ignore PKCE
-import crypto from 'crypto';
+import { Rejection, Resolution } from './types';
 import needle, { NeedleHttpVerbs, NeedleResponse } from 'needle';
 import { JWT } from './jwt';
-import { Rejection, Resolution } from './types';
+import crypto from 'crypto';
 
 interface PKCE {
     verifier: string;

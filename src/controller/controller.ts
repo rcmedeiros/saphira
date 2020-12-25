@@ -1,11 +1,11 @@
 import '@rcmedeiros/prototypes';
-import { Request } from 'express';
-import { PAYLOAD } from '../constants/settings';
-import { v4 } from 'uuid';
 import { DataTypes, Type } from '../data-types';
 import { BadRequestError } from '../errors/bad_request-error';
-import { UnknownObj } from './unknown-obj';
+import { PAYLOAD } from '../constants/settings';
+import { Request } from 'express';
 import { Resolution } from '../types';
+import { UnknownObj } from './unknown-obj';
+import { v4 } from 'uuid';
 
 export interface Param {
     name?: string;

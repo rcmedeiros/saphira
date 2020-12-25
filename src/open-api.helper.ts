@@ -1,7 +1,7 @@
-import { URL } from 'url';
-import { PAYLOAD } from './constants/settings';
 import { Controller, Handler, HandlersByMethod, Method, Param, ServiceTag } from './controller/controller';
+import { PAYLOAD } from './constants/settings';
 import { Type } from './data-types';
+import { URL } from 'url';
 
 export interface ModuleInfo {
     name: string;

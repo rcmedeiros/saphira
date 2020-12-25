@@ -1,10 +1,10 @@
 /* istanbul ignore file */
-import logform from 'logform';
-import path from 'path';
-import util from 'util';
 import winston, { format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import Transport from 'winston-transport';
+import logform from 'logform';
+import path from 'path';
+import util from 'util';
 
 export const enum LogLevel {
     off = 'off',

@@ -1,10 +1,10 @@
+import { NameValue, Rejection, Resolution } from '../types';
 import needle, { NeedleHttpVerbs, NeedleOptions, NeedleResponse } from 'needle';
-import { NOT_SOAP } from '../constants/messages';
+import { Connection } from './connection';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { JWT } from '../jwt';
+import { NOT_SOAP } from '../constants/messages';
 import { Oauth2Client } from '../oauth2_client';
-import { NameValue, Rejection, Resolution } from '../types';
-import { Connection } from './connection';
 import { WebConfig } from './web-config';
 import { WebConnection } from './web-connection';
 import { WebResponse } from './web-response';

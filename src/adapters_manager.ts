@@ -1,10 +1,10 @@
-import { NameValue, Resolution } from './';
 import { Adapters, AdaptersConfig, WebServerConfig } from './adapter/adapters';
+import { NameValue, Resolution } from './';
+import { MISSING_ENV_VAR } from './constants/messages';
+import { Oauth2Client } from './oauth2_client';
 import { WebConfig } from './adapter/web-config';
 import { WebConnection } from './adapter/web-connection';
-import { MISSING_ENV_VAR } from './constants/messages';
 import { parseJson } from './helpers';
-import { Oauth2Client } from './oauth2_client';
 
 export interface AdaptersResult {
     success: boolean;
