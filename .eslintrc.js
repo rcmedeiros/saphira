@@ -20,6 +20,7 @@ module.exports = {
         'prefer-template': ['error'],
         'prefer-promise-reject-errors': ['error'],
         'prefer-rest-params': ['error'],
+        '@typescript-eslint/no-duplicate-imports': ['error'],
         '@typescript-eslint/prefer-optional-chain': ['error'],
         '@typescript-eslint/prefer-for-of': ['warn'],
         '@typescript-eslint/indent': 'off',

@@ -1,7 +1,6 @@
 import { Controller, Handler } from './controller';
+import { HEADER_X_HRTIME, HEADER_X_PAGINATION } from '../constants/settings';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { HEADER_X_HRTIME } from '../constants/settings';
-import { HEADER_X_PAGINATION } from '../constants/settings';
 import { HttpError } from '../errors/http-error';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { MSG_HTTP_UNEXPECTED_ERROR } from '../constants/messages';
