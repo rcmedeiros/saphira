@@ -1,7 +1,7 @@
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint'],
+    plugins: ['@typescript-eslint', 'no-null'],
     extends: [
         'plugin:@typescript-eslint/recommended',
         'prettier/@typescript-eslint',
@@ -10,6 +10,7 @@ module.exports = {
     ],
     rules: {
         indent: 'off',
+        'no-null/no-null': ['error'],
         'sort-imports': ['warn'],
         'no-console': ['error', { allow: ['debug', 'info', 'table', 'warn', 'error'] }],
         'prefer-exponentiation-operator': ['warn'],
@@ -19,6 +20,7 @@ module.exports = {
         'prefer-template': ['error'],
         'prefer-promise-reject-errors': ['error'],
         'prefer-rest-params': ['error'],
+        '@typescript-eslint/prefer-for-of': ['warn'],
         '@typescript-eslint/indent': 'off',
         '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/no-empty-function': ['error', { allow: ['private-constructors'] }],

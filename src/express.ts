@@ -1,5 +1,3 @@
-// tslint:disable-next-line: no-implicit-dependencies
-// import * as core from 'express-serve-static-core';
 import * as http from 'http';
 
 export interface Express {

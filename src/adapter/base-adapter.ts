@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-
 export interface BaseAdapter {
     lastSuccess: Date;
     lastError: Error;

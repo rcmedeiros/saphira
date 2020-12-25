@@ -185,6 +185,7 @@ export class Controller {
                                   route.method === Method.DELETE
                                 ? (request.query as UnknownObj)[param.name]
                                 : (request.body as UnknownObj)[param.name];
+                        // eslint-disable-next-line no-null/no-null
                         if (v === null || v === undefined || v === '') {
                             if (param.required) {
                                 reject(new BadRequestError(`${param.name} is required`));

@@ -137,7 +137,6 @@ export class Saphira {
         Logger.getInstance(this.options.logOptions || { logLevel: Saphira.TEST ? LogLevel.warn : LogLevel.debug });
 
         this.app = express();
-        // tslint:disable: deprecation
         this.app.use(bodyParser.json({ limit: this.options.requestLimit }));
         this.app.use(
             bodyParser.urlencoded(

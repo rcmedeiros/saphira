@@ -57,14 +57,13 @@ export class Responder {
                             );
 
                             if (result === undefined) {
-                                // tslint:disable-next-line: no-null-keyword
+                                // eslint-disable-next-line no-null/no-null
                                 result = null;
                             }
 
                             response.json(result);
                     }
                 }
-
                 console.debug('response:', result);
             })
             .catch((err: Error) => {

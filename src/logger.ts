@@ -68,8 +68,6 @@ export class Logger implements Loggable {
 
             transports.push(
                 new DailyRotateFile({
-                    // TODO: https://github.com/palantir/tslint/issues/3704
-                    // tslint:disable-next-line: object-literal-sort-keys
                     format: logFormat,
                     level: 'silly',
                     datePattern: 'YYYY-MM-DD',
@@ -80,7 +78,6 @@ export class Logger implements Loggable {
             );
             transports.push(
                 new winston.transports.File({
-                    // tslint:disable-next-line: object-literal-sort-keys
                     format: logFormat,
                     level: 'error',
                     filename: path.join(logOptions.outputDir, `${__moduleInfo.name}-errors.log`),
@@ -136,7 +133,6 @@ export class Logger implements Loggable {
     }
 
     private readonly stringFormat = (message: unknown, optionalParams: Array<unknown>): string =>
-        // tslint:disable-next-line: no-unsafe-any
         !optionalParams.length ? message : util.format.apply(util.format, [message].concat(optionalParams));
 
     public get systemLoggers(): Loggable {

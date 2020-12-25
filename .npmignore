@@ -6,7 +6,6 @@
 src
 dist
 tsconfig.json
-tslint.json
 mkdocs*
 test
 docs
