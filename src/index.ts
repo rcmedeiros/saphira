@@ -456,7 +456,7 @@ export class Saphira {
                 .then((connections: AdaptersResult) => {
                     new Promise((res: Resolution<void>) => {
                         if (oauth) {
-                            Adapters.getWebConnection(OAUTH2_SERVER)
+                            Adapters.getWebService(OAUTH2_SERVER)
                                 .get('/key')
                                 .then((response: WebResponse) => {
                                     response.okOnly();
