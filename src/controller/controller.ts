@@ -1,5 +1,7 @@
 import '@rcmedeiros/prototypes';
+
 import { DataTypes, Type } from '../data-types';
+
 import { BadRequestError } from '../errors/bad_request-error';
 import { PAYLOAD } from '../constants/settings';
 import { Request } from 'express';

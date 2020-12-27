@@ -1,5 +1,6 @@
 import { NameValue, Rejection, Resolution } from '../types';
 import needle, { NeedleHttpVerbs, NeedleOptions, NeedleResponse } from 'needle';
+
 import { Connection } from './connection';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { JWT } from '../jwt';

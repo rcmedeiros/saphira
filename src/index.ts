@@ -1,6 +1,8 @@
 import '@rcmedeiros/prototypes';
+
 import * as core from 'express-serve-static-core';
 import * as http from 'http';
+
 import { Adapters, AdaptersConfig, WebServerConfig } from './adapter/adapters';
 import { AdaptersManager, AdaptersResult } from './adapters_manager';
 import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
@@ -33,6 +35,7 @@ import { envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
 import express, { Request as ERequest, Response, Router } from 'express';
 import sshpk, { Key } from 'sshpk';
 import yaml, { DEFAULT_SAFE_SCHEMA, JSON_SCHEMA } from 'js-yaml';
+
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
 import { DTO } from './dto/dto';

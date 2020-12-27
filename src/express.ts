@@ -1,5 +1,4 @@
 import * as http from 'http';
-
 export interface Express {
     use(...handlers: Array<unknown>): unknown;
     get(...handlers: Array<unknown>): unknown;

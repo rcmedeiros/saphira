@@ -1,5 +1,6 @@
 import { DataType } from './data_type';
 import { InvalidDataTypeError } from '../errors/invalid_data_type-error';
+
 export class DateTimeDataType extends DataType {
     public digest(v: unknown): Date {
         let invalid: boolean = false;

@@ -1,4 +1,5 @@
 import { Rejection, Resolution } from '../';
+
 import { BaseAdapter } from './base-adapter';
 import { WebClient } from './web-client';
 import { WebConfig } from './web-config';
