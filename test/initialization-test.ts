@@ -14,17 +14,17 @@ import chai, { expect } from 'chai';
 import { deleteEnvVar, saveEnvVar } from './helper';
 import selfSigned, { SelfSignedPEMs } from 'selfsigned';
 
-import { BadControllerInvalidJsonPayload } from './sample_server/bad_controller_invalid_json_payload';
-import { BadControllerInvalidParameterType } from './sample_server/bad_controller_invalid_parameter_type';
-import { BadControllerInvalidVerb } from './sample_server/bad_controller_invalid_verb';
-import { BadControllerNamelessParameter } from './sample_server/bad_controller_nameless_parameter';
-import { BadControllerOverhandling } from './sample_server/bad_controller_overhandling';
-import { BadControllerParametersMismatch } from './sample_server/bad_controller_parameters_mismatch';
-import { BadControllerPayloadConflict } from './sample_server/bad_controller_payload_conflict';
-import { BadControllerTwoParentPathParameters } from './sample_server/bad_controller_two_parent_path_parameters';
+import { BadControllerInvalidJsonPayload } from './mocks/sample_server/bad_controller_invalid_json_payload';
+import { BadControllerInvalidParameterType } from './mocks/sample_server/bad_controller_invalid_parameter_type';
+import { BadControllerInvalidVerb } from './mocks/sample_server/bad_controller_invalid_verb';
+import { BadControllerNamelessParameter } from './mocks/sample_server/bad_controller_nameless_parameter';
+import { BadControllerOverhandling } from './mocks/sample_server/bad_controller_overhandling';
+import { BadControllerParametersMismatch } from './mocks/sample_server/bad_controller_parameters_mismatch';
+import { BadControllerPayloadConflict } from './mocks/sample_server/bad_controller_payload_conflict';
+import { BadControllerTwoParentPathParameters } from './mocks/sample_server/bad_controller_two_parent_path_parameters';
 import { HttpResponse } from 'chai-http-ext';
 import { HttpStatusCode } from '../src/constants/http_status_codes';
-import { Service1 } from './sample_server/service_1';
+import { Service1 } from './mocks/sample_server/service_1';
 import chaiHttp from 'chai-http';
 import fs from 'fs';
 import path from 'path';
@@ -77,7 +77,7 @@ describe('Healthy Initialization with TLS', () => {
             },
         );
     });
-    const relPath: string = 'test/sample_server';
+    const relPath: string = 'test/mocks/sample_server';
     const absPath: string = path.join(process.cwd(), relPath);
     it('Should load SSL from relative files', (done: Done) => {
         const keyFile: string = path.join(relPath, FILENAME_TLS_KEY);

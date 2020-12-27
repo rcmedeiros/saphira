@@ -1,5 +1,5 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import { Controller, Method, PagedResult, Resolution, Type } from '../../src/index';
+import { Controller, Method, PagedResult, Resolution, Type } from '../../../src/index';
 
 export class Service3 extends Controller {
     public constructor(apiPath?: string) {

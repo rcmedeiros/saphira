@@ -1,7 +1,7 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import { BadGatewayError, Controller, Method, ServerError, Type } from '../../src/index';
+import { BadGatewayError, Controller, Method, ServerError, Type } from '../../../src/index';
 
-import { SampleObject } from '../template';
+import { SampleObject } from '../../template';
 
 export class Service1 extends Controller {
     public constructor(apiPath?: string) {

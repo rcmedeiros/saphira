@@ -1,4 +1,4 @@
-import { Saphira } from '../../src/index';
+import { Saphira } from '../../../src/index';
 import { Service1 } from './service_1';
 import { Service2 } from './service_2';
 import { Service3 } from './service_3';

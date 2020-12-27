@@ -1,4 +1,4 @@
-import { Controller, Method, Resolution, Type } from '../../src/index';
+import { Controller, Method, Resolution, Type } from '../../../src/index';
 
 export class BadControllerOverhandling extends Controller {
     public constructor(apiPath?: string) {

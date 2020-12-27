@@ -1,10 +1,10 @@
 import { Done, after, before } from 'mocha';
 
 import { Saphira } from '../src';
-import { Service1 } from './sample_server/service_1';
-import { Service2 } from './sample_server/service_2';
-import { Service3 } from './sample_server/service_3';
-import { Service4 } from './sample_server/service_4';
+import { Service1 } from './mocks/sample_server/service_1';
+import { Service2 } from './mocks/sample_server/service_2';
+import { Service3 } from './mocks/sample_server/service_3';
+import { Service4 } from './mocks/sample_server/service_4';
 
 const PORT: number = 8080;
 export const URI: string = `http://localhost:${PORT}`;

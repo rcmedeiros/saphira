@@ -1,0 +1,15 @@
+{
+    "privateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQCn/jiimnnSxt0cHSRAgOSsbSLmos6Z9gF0sBDDCv1gY19+OH2I\n9AHi9vLqVrnGg5IMH9CprDuApcdMnTMGUC6yz5d5h/Qln7oQUKzUIKJyKWiVvxcG\nR5npg0MQiyDyLl6Zs072Wft6GkIWwGSDfehaM3LJBZmbJ6Vh5b7FbRbdhQIDAQAB\nAoGAEoMrTo/jWNzdRNnZQtpxWKb2L6BFUCYR5v/3+OZfIZ4RyeEDxHHPO2mnPzer\nZTref0OKRQhbzkN2gPTZyJpRauhzozt7zPMVAplHOkLnw//9JcKpkumOPDWmKwp3\nu91PeXENFaE5MwoMFxaoDtsR335q7e6ZodEcaO2iZazz4kkCQQD7W7H3If+xeQD1\na3DS9r5KtWm3KoCATbmhIJoTtQAml64y4gnvHGzGBw5XoARkxtPJBdKGEGJ+xrqZ\nrHlIRWuDAkEAqxhqFkdSR4MA0Bh/g8Mi+GTXrFoR03NmZ8HhSC2wNAnjeNI1JPCf\n5QcrMSVI5RGNx0hMTBUCrr72V8sAhb8cVwJAPcev2jo1Cn3fSnL57CBRbTNhpG+B\n3gc8lOnadPWL7/BgFImSP38RDSs2zzq5Wbu02jfgIqtsShS2UIcf2C+X2QJAAP9N\nbv/PbPdIg+4AoEX86DG+SBTmUbM0f5pTs9YAVu1P1B51jNeSNwWJrOmouR0XFHhJ\naZAdyeL3EJ/wStdIVQJBAJinnwJaBtokTgC1Lgg9tu2RwZxSw8JaZHOO6gb9ZG+Q\nLuXj/3Ou3hG3bULo1e5CDw1WTsChNZo2WwlhPf+YwXI=\n-----END RSA PRIVATE KEY-----",
+    "publicKey": "-----BEGIN RSA PUBLIC KEY-----\nMIGJAoGBAKf+OKKaedLG3RwdJECA5KxtIuaizpn2AXSwEMMK/WBjX344fYj0AeL2\n8upWucaDkgwf0KmsO4Clx0ydMwZQLrLPl3mH9CWfuhBQrNQgonIpaJW/FwZHmemD\nQxCLIPIuXpmzTvZZ+3oaQhbAZIN96FozcskFmZsnpWHlvsVtFt2FAgMBAAE=\n-----END RSA PUBLIC KEY-----",
+    "clients": {
+        "the_system": {
+            "secret": "th3_s3cr37"
+        }
+    },
+    "users": {
+        "the_user": {
+            "clientId": "the_system",
+            "password": "th3_p@55w0rd"
+        }
+    }
+}

@@ -564,4 +564,5 @@ export {
     envVarAsString,
     envVarAsBoolean,
     HttpStatusCode,
+    JWT,
 };

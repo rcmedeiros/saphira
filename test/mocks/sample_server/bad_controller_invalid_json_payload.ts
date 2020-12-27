@@ -1,6 +1,6 @@
-import { Controller, Method, Type } from '../../src/index';
+import { Controller, Method, Type } from '../../../src/index';
 
-export class BadControllerNamelessParameter extends Controller {
+export class BadControllerInvalidJsonPayload extends Controller {
     public constructor(apiPath?: string) {
         super(apiPath, { description: 'Test BadController' });
 
@@ -10,11 +10,9 @@ export class BadControllerNamelessParameter extends Controller {
             },
             method: Method.POST,
             action: this.operation2,
-            params: [
-                {
-                    type: Type.ObjectArray,
-                },
-            ],
+            payload: {
+                type: Type.String,
+            },
             response: { type: Type.ObjectArray },
         });
     }

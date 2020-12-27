@@ -1,4 +1,4 @@
-import { Controller, Method, Type } from '../../src/index';
+import { Controller, Method, Type } from '../../../src/index';
 
 export class BadControllerInvalidVerb extends Controller {
     public constructor(apiPath?: string) {
