@@ -5,7 +5,7 @@ import { Done, after, before, describe, it } from 'mocha';
 import { Rejection, Resolution } from '../../../src';
 import express, { Request as ERequest, Response as EResponse, NextFunction } from 'express';
 
-import { MimeType } from '../../../src/file_buffer';
+import { MimeType } from '../../../src/constants/mime_types';
 import { Server } from 'http';
 // cSpell: ignore listofacil
 import bodyParser from 'body-parser';
