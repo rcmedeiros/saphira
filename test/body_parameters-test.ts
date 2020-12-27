@@ -1,11 +1,12 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import { HttpResponse } from 'chai-http-ext';
-import { describe, Done, it } from 'mocha';
-import { SERVICE_2_BODY_PARAMETERS } from './setup';
+
+import { Done, describe, it } from 'mocha';
 import { SamplePayload, testSuccessfulPOST } from './template';
 
-describe('Parameter types for body', () => {
+import { HttpResponse } from 'chai-http-ext';
+import { SERVICE_2_BODY_PARAMETERS } from './setup';
 
+describe('Parameter types for body', () => {
     it('should serialize boolean', (done: Done) => {
         const promises: Array<Promise<Array<HttpResponse>>> = [];
         const sample1: SamplePayload = { a: true };
@@ -19,11 +20,30 @@ describe('Parameter types for body', () => {
     it('should serialize Date', (done: Done) => {
         const promises: Array<Promise<Array<HttpResponse>>> = [];
 
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { b: new Date(Date.UTC(1980, 5, 9)) },
-            { b: '1980-06-09T00:00:00.000Z' }, 'Date as object'));
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { b: new Date(Date.UTC(1980, 5, 9)).getTime() },
-            { b: '1980-06-09T00:00:00.000Z' }, 'Date as object'));
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { b: '1980-06-09T00:00Z' }, { b: '1980-06-09T00:00:00.000Z' }, 'Date as string'));
+        promises.push(
+            testSuccessfulPOST(
+                SERVICE_2_BODY_PARAMETERS,
+                { b: new Date(Date.UTC(1980, 5, 9)) },
+                { b: '1980-06-09T00:00:00.000Z' },
+                'Date as object',
+            ),
+        );
+        promises.push(
+            testSuccessfulPOST(
+                SERVICE_2_BODY_PARAMETERS,
+                { b: new Date(Date.UTC(1980, 5, 9)).getTime() },
+                { b: '1980-06-09T00:00:00.000Z' },
+                'Date as object',
+            ),
+        );
+        promises.push(
+            testSuccessfulPOST(
+                SERVICE_2_BODY_PARAMETERS,
+                { b: '1980-06-09T00:00Z' },
+                { b: '1980-06-09T00:00:00.000Z' },
+                'Date as string',
+            ),
+        );
 
         Promise.all(promises).then(() => done(), done);
     });
@@ -31,9 +51,22 @@ describe('Parameter types for body', () => {
     it('should serialize DateTime', (done: Done) => {
         const promises: Array<Promise<Array<HttpResponse>>> = [];
 
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { c: new Date(Date.UTC(1980, 5, 9, 19)) },
-            { c: '1980-06-09T19:00:00.000Z' }, 'Date as object'));
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { c: '1980-06-09T19:00Z' }, { c: '1980-06-09T19:00:00.000Z' }, 'Date as string'));
+        promises.push(
+            testSuccessfulPOST(
+                SERVICE_2_BODY_PARAMETERS,
+                { c: new Date(Date.UTC(1980, 5, 9, 19)) },
+                { c: '1980-06-09T19:00:00.000Z' },
+                'Date as object',
+            ),
+        );
+        promises.push(
+            testSuccessfulPOST(
+                SERVICE_2_BODY_PARAMETERS,
+                { c: '1980-06-09T19:00Z' },
+                { c: '1980-06-09T19:00:00.000Z' },
+                'Date as string',
+            ),
+        );
 
         Promise.all(promises).then(() => done(), done);
     });
@@ -42,8 +75,12 @@ describe('Parameter types for body', () => {
         const promises: Array<Promise<Array<HttpResponse>>> = [];
 
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: Math.PI }, { d: Math.PI }, 'Float'));
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: Number.MAX_VALUE }, { d: Number.MAX_VALUE }, 'Integer'));
-        promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: Number.MIN_VALUE }, { d: Number.MIN_VALUE }, 'Negative'));
+        promises.push(
+            testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: Number.MAX_VALUE }, { d: Number.MAX_VALUE }, 'Integer'),
+        );
+        promises.push(
+            testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: Number.MIN_VALUE }, { d: Number.MIN_VALUE }, 'Negative'),
+        );
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, { d: 0 }, { d: 0 }, 'Zero'));
 
         Promise.all(promises).then(() => done(), done);
@@ -62,8 +99,11 @@ describe('Parameter types for body', () => {
     it('should serialize objects', (done: Done) => {
         const promises: Array<Promise<Array<HttpResponse>>> = [];
         const sample: SamplePayload = {
-            f:
-                { name: 'Kaladin', age: 20, surgeBinding: { order: 'WindRunner', bond: 'Sylphrena', surges: ['Adhesion', 'Gravitation'] } },
+            f: {
+                name: 'Kaladin',
+                age: 20,
+                surgeBinding: { order: 'WindRunner', bond: 'Sylphrena', surges: ['Adhesion', 'Gravitation'] },
+            },
         };
 
         promises.push(testSuccessfulPOST(SERVICE_2_BODY_PARAMETERS, sample, sample, 'objects'));
@@ -72,18 +112,20 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize array of objects', (done: Done) => {
-
         const sample: SamplePayload = {
             g: [
                 {
-                    name: 'Dalinar', age: 53, surgeBinding:
-                        { order: 'BondSmith', bond: 'Stormfather', surges: ['Tension', 'Adhesion'] },
+                    name: 'Dalinar',
+                    age: 53,
+                    surgeBinding: { order: 'BondSmith', bond: 'Stormfather', surges: ['Tension', 'Adhesion'] },
                 },
                 { name: 'Adolin', age: 20, surgeBinding: undefined },
                 {
-                    name: 'Renarin', age: 21, surgeBinding:
-                        { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] },
-                }],
+                    name: 'Renarin',
+                    age: 21,
+                    surgeBinding: { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] },
+                },
+            ],
         };
 
         const promises: Array<Promise<Array<HttpResponse>>> = [];
@@ -94,7 +136,6 @@ describe('Parameter types for body', () => {
     });
 
     it('should serialize strings and passwords', (done: Done) => {
-
         const promises: Array<Promise<Array<HttpResponse>>> = [];
 
         const sample: SamplePayload = {
@@ -128,18 +169,24 @@ describe('Parameter types for body', () => {
             c: '1980-06-09T19:00:00.000Z',
             d: Math.PI,
             e: [-1, 0, 1],
-            f:
-                { name: 'Kaladin', age: 20, surgeBinding: { order: 'WindRunner', bond: 'Sylphrena', surges: ['Adhesion', 'Gravitation'] } },
+            f: {
+                name: 'Kaladin',
+                age: 20,
+                surgeBinding: { order: 'WindRunner', bond: 'Sylphrena', surges: ['Adhesion', 'Gravitation'] },
+            },
             g: [
                 {
-                    name: 'Dalinar', age: 53, surgeBinding:
-                        { order: 'BondSmith', bond: 'Stormfather', surges: ['Tension', 'Adhesion'] },
+                    name: 'Dalinar',
+                    age: 53,
+                    surgeBinding: { order: 'BondSmith', bond: 'Stormfather', surges: ['Tension', 'Adhesion'] },
                 },
                 { name: 'Adolin', age: 20, surgeBinding: undefined },
                 {
-                    name: 'Renarin', age: 21, surgeBinding:
-                        { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] },
-                }],
+                    name: 'Renarin',
+                    age: 21,
+                    surgeBinding: { order: 'TruthWatchers', bond: 'Glys', surges: ['Progression', 'Illumination'] },
+                },
+            ],
             h: '~!@#$%^&*()_+{}:"<>?|-=[]\\;\',./',
             i: 'Sylphrena',
             j: ['Sylphrena', 'Pattern', 'Ivory', 'Glys', 'Wyndle', 'Stormfather'],
@@ -149,5 +196,4 @@ describe('Parameter types for body', () => {
 
         Promise.all(promises).then(() => done(), done);
     });
-
 });

@@ -1,0 +1,97 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint", "no-null"],
+    "extends": [
+        "plugin:@typescript-eslint/recommended",
+        "prettier/@typescript-eslint",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "rules": {
+        "indent": "off",
+        "no-null/no-null": ["error"],
+        "sort-imports": ["warn"],
+        "no-console": ["error", { "allow": ["debug", "info", "table", "warn", "error"] }],
+        "prefer-exponentiation-operator": ["warn"],
+        "prefer-object-spread": ["warn"],
+        "prefer-spread": ["warn"],
+        "prefer-const": ["error"],
+        "prefer-template": ["error"],
+        "prefer-promise-reject-errors": ["error"],
+        "prefer-rest-params": ["error"],
+        "dot-notation": ["error"],
+        // "@typescript-eslint/prefer-readonly": ["error"],
+        // "@typescript-eslint/prefer-includes": ["error"],
+        // "@typescript-eslint/prefer-string-starts-ends-with": ["error"],
+        // "@typescript-eslint/promise-function-async": ["error"],
+        // "@typescript-eslint/require-array-sort-compare": ["error"],
+        // "@typescript-eslint/no-throw-literal": ["error"],
+        // "@typescript-eslint/require-await": ["error"],
+        "@typescript-eslint/no-useless-constructor": ["error"],
+        "@typescript-eslint/no-use-before-define": ["error"],
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "@typescript-eslint/no-unused-expressions": ["error"],
+        "@typescript-eslint/no-shadow": ["error"],
+        "@typescript-eslint/no-redeclare": ["error"],
+        "@typescript-eslint/no-invalid-this": ["error"],
+        "@typescript-eslint/no-duplicate-imports": ["error"],
+        "@typescript-eslint/prefer-optional-chain": ["error"],
+        "@typescript-eslint/prefer-for-of": ["warn"],
+        "@typescript-eslint/indent": "off",
+        "@typescript-eslint/no-inferrable-types": "off",
+        "@typescript-eslint/no-empty-function": ["error", { "allow": ["private-constructors"] }],
+        "@typescript-eslint/typedef": [
+            "error",
+            {
+                "arrowParameter": true,
+                "variableDeclaration": true
+            }
+        ],
+        "@typescript-eslint/member-ordering": [
+            "error",
+            {
+                "default": [
+                    // Index signature
+                    "signature",
+                    // Fields
+                    "private-static-field",
+                    "protected-static-field",
+                    "public-static-field",
+                    "private-decorated-field",
+                    "protected-decorated-field",
+                    "public-decorated-field",
+                    "private-instance-field",
+                    "protected-instance-field",
+                    "public-instance-field",
+                    "private-abstract-field",
+                    "protected-abstract-field",
+                    "public-abstract-field",
+                    // Constructors
+                    "private-constructor",
+                    "protected-constructor",
+                    "public-constructor",
+                    // Methods
+                    "private-static-method",
+                    "protected-static-method",
+                    "public-static-method",
+                    "private-decorated-method",
+                    "protected-decorated-method",
+                    "public-decorated-method",
+                    "private-instance-method",
+                    "protected-instance-method",
+                    "public-instance-method",
+                    "private-abstract-method",
+                    "protected-abstract-method",
+                    "public-abstract-method"
+                ]
+            }
+        ],
+        "@typescript-eslint/unified-signatures": ["warn"]
+    }
+}

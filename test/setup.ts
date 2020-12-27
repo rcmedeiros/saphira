@@ -1,4 +1,5 @@
-import { after, before, Done } from 'mocha';
+import { Done, after, before } from 'mocha';
+
 import { Saphira } from '../src';
 import { Service1 } from './sample_server/service_1';
 import { Service2 } from './sample_server/service_2';
@@ -25,9 +26,11 @@ export const SERVICE_4_AN_ARRAY: string = `${SERVICE_4}/anArray`;
 
 const s: Saphira = new Saphira([Service1, Service2, Service3, Service4], { port: PORT });
 before((done: Done) => {
-    s.listen().then(() => {
-        done();
-    }).catch(console.error);
+    s.listen()
+        .then(() => {
+            done();
+        })
+        .catch(console.error);
 });
 
 after((done: Done) => {

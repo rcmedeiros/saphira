@@ -93,7 +93,7 @@ export interface SaphiraOptions {
     adapters?: AdaptersConfig;
 }
 
-interface HttpsOptions {
+interface TLSOptions {
     key: string;
     cert: string;
 }
@@ -205,14 +205,16 @@ export class Saphira {
         return true;
     }
 
-    private loadSecurityLayer(): HttpsOptions {
+    private loadSecurityLayer(): TLSOptions {
         const s: string = envVarAsString(ENV_TLS);
 
-        if (!!s) {
-            const result: HttpsOptions = {
-                key: fs.readFileSync(path.join(s, FILENAME_TLS_KEY), UTF8),
-                cert: fs.readFileSync(path.join(s, FILENAME_TLS_CERTIFICATE), UTF8),
-            };
+        if (s) {
+            const result: TLSOptions = s.contains('"')
+                ? (parseJson(s) as TLSOptions)
+                : {
+                      key: fs.readFileSync(path.join(s, FILENAME_TLS_KEY), UTF8),
+                      cert: fs.readFileSync(path.join(s, FILENAME_TLS_CERTIFICATE), UTF8),
+                  };
 
             const info: CertInfo = cert.info(result.cert.substringUpTo('END CERTIFICATE-----'));
             this.tls = [
@@ -426,101 +428,95 @@ export class Saphira {
     public async listen(): Promise<void> {
         return new Promise((resolve: Resolution<void>, reject: Rejection) => {
             this.server = ({ close: (): Promise<void> => Promise.resolve() } as unknown) as http.Server;
+
             const vault: Vault = Vault.getInstance();
-            vault
+
+            // Logger.setUp();
+            const httpsOptions: TLSOptions = this.loadSecurityLayer();
+            this.app.set(PORT, this.options.port || (this.tls ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
+
+            const oauth: boolean = !!process.env.OAUTH2_URI;
+
+            if (oauth) {
+                this.adapters.webServices = this.adapters.webServices || [];
+                if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === 'OAUTH2_URI').length === 0) {
+                    this.adapters.webServices.push({
+                        name: OAUTH2_SERVER,
+                        envVar: 'OAUTH2_URI',
+                        healthCheckEndpoint: '/health-check',
+                    });
+                }
+            }
+
+            const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
+            this.verifyRequiredEnvVars(adaptersMgr.environmentVariables);
+
+            adaptersMgr
                 .connect()
-                .then(() => {
-                    // Logger.setUp();
-                    const httpsOptions: HttpsOptions = this.loadSecurityLayer();
-                    this.app.set(PORT, this.options.port || (this.tls ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
-
-                    const oauth: boolean = !!process.env.OAUTH2_URI;
-
-                    if (oauth) {
-                        this.adapters.webServices = this.adapters.webServices || [];
-                        if (
-                            this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === 'OAUTH2_URI')
-                                .length === 0
-                        ) {
-                            this.adapters.webServices.push({
-                                name: OAUTH2_SERVER,
-                                envVar: 'OAUTH2_URI',
-                                healthCheckEndpoint: '/health-check',
-                            });
-                        }
-                    }
-
-                    const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
-                    this.verifyRequiredEnvVars(adaptersMgr.environmentVariables);
-
-                    adaptersMgr
-                        .connect()
-                        .then((connections: AdaptersResult) => {
-                            new Promise((res: Resolution<void>) => {
-                                if (oauth) {
-                                    Adapters.getWebConnection(OAUTH2_SERVER)
-                                        .get('/key')
-                                        .then((response: WebResponse) => {
-                                            response.okOnly();
-                                            vault
-                                                .set(JWT_KEY, response.body)
-                                                .set(JWT_OPTS, { clockTolerance: JWT_CLOCK_TOLERANCE });
-                                            res();
-                                            Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
-                                        })
-                                        .catch((e: Error) => {
-                                            console.error('FAILED to obtain key from Oauth2 Server');
-                                            console.error(e);
-                                            (connections.data.OauthServer as { status: string }).status = e.name;
-                                            res();
-                                        });
-                                } else {
+                .then((connections: AdaptersResult) => {
+                    new Promise((res: Resolution<void>) => {
+                        if (oauth) {
+                            Adapters.getWebConnection(OAUTH2_SERVER)
+                                .get('/key')
+                                .then((response: WebResponse) => {
+                                    response.okOnly();
+                                    vault
+                                        .set(JWT_KEY, response.body)
+                                        .set(JWT_OPTS, { clockTolerance: JWT_CLOCK_TOLERANCE });
                                     res();
+                                    Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
+                                })
+                                .catch((e: Error) => {
+                                    console.error('FAILED to obtain key from Oauth2 Server');
+                                    console.error(e);
+                                    (connections.data.OauthServer as { status: string }).status = e.name;
+                                    res();
+                                });
+                        } else {
+                            res();
+                        }
+                    })
+                        .then(() => {
+                            if (connections.success) {
+                                try {
+                                    this.route(this.app, this.controllerTypes);
+                                } catch (e) {
+                                    reject(e);
+                                    return undefined;
                                 }
-                            })
-                                .then(() => {
-                                    if (vault.loaded && connections.success) {
-                                        try {
-                                            this.route(this.app, this.controllerTypes);
-                                        } catch (e) {
-                                            reject(e);
-                                            return undefined;
-                                        }
 
-                                        if (!httpsOptions) {
-                                            this.server = this.app.listen(this.app.get(PORT), async () => {
-                                                this.banner(connections.data)
-                                                    .then(() => {
-                                                        resolve();
-                                                    })
-                                                    .catch(reject);
-                                            });
-                                        } else {
-                                            this.server = https
-                                                .createServer(
-                                                    {
-                                                        key: httpsOptions.key,
-                                                        cert: httpsOptions.cert,
-                                                    },
-                                                    (this.app as unknown) as http.RequestListener,
-                                                )
-                                                .listen(this.app.get(PORT), async () => {
-                                                    this.banner(connections.data)
-                                                        .then(() => {
-                                                            resolve();
-                                                        })
-                                                        .catch(reject);
-                                                });
-                                        }
-                                    } else {
+                                if (!httpsOptions) {
+                                    this.server = this.app.listen(this.app.get(PORT), async () => {
                                         this.banner(connections.data)
                                             .then(() => {
-                                                reject(new Error('>>> FAILED TO LOAD CONFIGURATION <<<'));
+                                                resolve();
                                             })
-                                            .catch(console.error);
-                                    }
-                                })
-                                .catch(reject);
+                                            .catch(reject);
+                                    });
+                                } else {
+                                    this.server = https
+                                        .createServer(
+                                            {
+                                                key: httpsOptions.key,
+                                                cert: httpsOptions.cert,
+                                            },
+                                            (this.app as unknown) as http.RequestListener,
+                                        )
+                                        .listen(this.app.get(PORT), async () => {
+                                            this.banner(connections.data)
+                                                .then(() => {
+                                                    resolve();
+                                                })
+                                                .catch(reject);
+                                        });
+                                }
+                            } else {
+                                this.banner(connections.data)
+                                    .then(() => {
+                                        reject(new Error('>>> FAILED TO LOAD CONFIGURATION <<<'));
+                                    })
+                                    .catch(console.error);
+                            }
                         })
                         .catch(reject);
                 })
