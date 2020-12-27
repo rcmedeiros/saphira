@@ -1,5 +1,8 @@
 declare module 'selfsigned' {
-    export interface SelfSignedAttr { name: string; value: string }
+    export interface SelfSignedAttr {
+        name: string;
+        value: string;
+    }
     export interface SelfSignedOptions {
         keySize?: number;
         days?: number;
@@ -9,7 +12,15 @@ declare module 'selfsigned' {
         clientCertificate?: boolean;
         clientCertificateCN?: string;
     }
-    export interface SelfSignedPEMs { private: string, public: string, cert: string }
+    export interface SelfSignedPEMs {
+        private: string;
+        public: string;
+        cert: string;
+    }
 
-    export function generate(attrs: SelfSignedAttr[], options: SelfSignedOptions, callBack: (err: Error, pems: SelfSignedPEMs) => void): void
+    export function generate(
+        attrs: SelfSignedAttr[],
+        options: SelfSignedOptions,
+        callBack: (err: Error, pems: SelfSignedPEMs) => void,
+    ): void;
 }

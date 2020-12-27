@@ -1,7 +1,6 @@
 import { Controller, Method, Type } from '../../src/index';
 
 export class BadControllerInvalidParameterType extends Controller {
-
     public constructor(apiPath?: string) {
         super(apiPath, { description: 'Test BadController' });
 
@@ -12,18 +11,18 @@ export class BadControllerInvalidParameterType extends Controller {
             },
             method: Method.GET,
             action: this.operation2,
-            params:
-                [{
+            params: [
+                {
                     name: 'a',
                     type: Type.HttpAccepted,
                     description: 'Invalid parameter',
                     example: false,
-                }],
+                },
+            ],
             response: { type: Type.ObjectArray, description: 'An array representing all the parameters' },
         });
     }
 
-    public operation2 = (a?: unknown): Promise<Array<unknown>> =>
-        Promise.reject(new Error('Should never be possible'))
-
+    public operation2 = (_a?: unknown): Promise<Array<unknown>> =>
+        Promise.reject(new Error('Should never be possible'));
 }

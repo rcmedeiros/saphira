@@ -6,6 +6,8 @@ import { Service4 } from './service_4';
 
 const s: Saphira = new Saphira([Service1, Service2, Service3, Service4]);
 
-s.listen().then(() => {
-    console.info('server started');
-}).catch(console.error);
+s.listen()
+    .then(() => {
+        console.info('server started');
+    })
+    .catch(console.error);

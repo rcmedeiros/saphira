@@ -2,7 +2,6 @@
 import { Controller, Method, Type } from '../../src/index';
 
 export class Service4 extends Controller {
-
     public constructor(apiPath?: string) {
         super(apiPath, { description: 'Test Service 4' });
 
@@ -31,10 +30,7 @@ export class Service4 extends Controller {
             },
             response: { type: Type.Object },
         });
-
     }
 
-    public returnWhateverIsSent = (payload: object): Promise<object> => Promise.resolve(payload)
-
-
+    public returnWhateverIsSent = (payload: unknown): Promise<unknown> => Promise.resolve(payload);
 }
