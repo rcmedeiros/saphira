@@ -116,22 +116,20 @@ export class Service2 extends Controller {
         vault.setString('v2', 'def');
         vault.setNumber('v3', 123.456);
         vault.setBoolean('v4', true);
+        vault.assign({ v5: 'ghi' });
 
         return Promise.resolve();
     };
 
     public retrieveVaultValues = async (): Promise<NameValue> => {
         const vault: Vault = Vault.getInstance();
-        vault.set('v1', 'abc');
-        vault.setString('v2', 'def');
-        vault.setNumber('v3', 123.456);
-        vault.setBoolean('v4', true);
 
         return Promise.resolve({
             v1: vault.get('v1') as string,
             v2: vault.getString('v2'),
             v3: vault.getNumber('v3'),
             v4: vault.getBoolean('v4'),
+            all: !vault.has('v5') ? undefined : vault.values(),
         });
     };
 }
