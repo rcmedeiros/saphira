@@ -10,8 +10,6 @@ import { Server } from 'http';
 // cSpell: ignore listofacil
 import bodyParser from 'body-parser';
 import { expect } from 'chai';
-import fs from 'fs';
-import path from 'path';
 
 const fakeOauth2: FakeOauth2 = new FakeOauth2();
 
@@ -210,21 +208,6 @@ mockServers.fakeOauth2 = {
         key: (_req: Request, res: Response): void => {
             res.setHeader('content-type', MimeType.Text);
             res.send(PUBLIC_KEY);
-        },
-    },
-};
-
-mockServers.fakeSoap = {
-    post: {
-        'WsPgtoCartaoCredito/wspgtocartaocredito.asmx': (_req: Request, res: Response): void => {
-            const response: string = fs.readFileSync(path.join(__dirname, 'soap_response.txt')).toString();
-            res.setHeader('content-type', MimeType.XML_from_applications);
-            res.send(response);
-        },
-    },
-    get: {
-        'WsPgtoCartaoCredito.asmx': (_req: Request, res: Response): void => {
-            res.sendStatus(200);
         },
     },
 };
