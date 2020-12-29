@@ -1,6 +1,6 @@
 import { ConnectionWebServer, ID as WEB_ID } from './mocks/sample_server/connection_web';
 import { Done, after, before, describe, it } from 'mocha';
-import { HttpStatusCode, Rejection, Resolution, Saphira, SaphiraOptions } from '../src/';
+import { HttpStatusCode, Rejection, Resolution, Saphira, SaphiraOptions } from '../src';
 import { LOCALHOST, mockServers } from './mocks/http_servers';
 // cSpell:ignore soapenv tecnologia seguranca detran usuario senha
 import chai, { expect } from 'chai';
@@ -70,7 +70,7 @@ const call: (operation: string) => Promise<unknown> = async (operation: string):
             });
     });
 
-describe('Connections test', () => {
+describe('Web Server test', () => {
     it('Should connect to Webserver', (done: Done) => {
         const promises: Array<unknown> = [
             call('health-check'),
@@ -97,5 +97,30 @@ describe('Connections test', () => {
                 done();
             })
             .catch(done);
+    });
+});
+
+describe('Missing environment variable', () => {
+    it('Should abort server start', (done: Done) => {
+        const server2: Saphira = new Saphira([ConnectionWebServer], {
+            port: 5432,
+            adapters: {
+                webServices: [
+                    {
+                        envVar: 'WEB_SERVER2',
+                        healthCheckEndpoint: '/health-check',
+                    },
+                ],
+            },
+        });
+        server2
+            .listen()
+            .then(() => {
+                done(new Error("Server shouldn't start without a required environment variable"));
+            })
+            .catch((err: Error) => {
+                expect(err.message).to.be.equal('Environment variable WEB_SERVER2 not set');
+                done();
+            });
     });
 });

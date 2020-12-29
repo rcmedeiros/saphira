@@ -108,6 +108,20 @@ describe('Healthy Initialization', () => {
     it('Should work without any configuration', (done: Done) => {
         healthyStart(done);
     });
+    it('Should print routes', (done: Done) => {
+        process.env.SAPHIRA_DEBUG_ROUTES = 'true';
+        healthyStart(() => {
+            delete process.env.SAPHIRA_DEBUG_ROUTES;
+            done();
+        });
+    });
+    it('Should dismiss security when server path is not TLS protected', (done: Done) => {
+        process.env.SAPHIRA_SERVER_PATHS = 'http://localhost:8472';
+        healthyStart(() => {
+            delete process.env.SAPHIRA_SERVER_PATHS;
+            done();
+        });
+    });
     it('Should work in a custom port', (done: Done) => {
         healthyStart(done, { port: 8181 });
     });
@@ -120,7 +134,6 @@ describe('Healthy Initialization', () => {
     it('Should accept cors options with exposedHeader as array', (done: Done) => {
         healthyStart(done, { corsOptions: { exposedHeaders: ['location', HEADER_X_HRTIME] } });
     });
-
     it('Should allow configuration of servers endpoints', (done: Done) => {
         healthyStart(done, { servers: [{ url: new URL('http://localhost'), description: 'Test Description' }] });
     });

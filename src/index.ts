@@ -4,7 +4,7 @@ import * as core from 'express-serve-static-core';
 import * as http from 'http';
 
 import { Adapters, AdaptersConfig, WebServerConfig } from './adapter/adapters';
-import { AdaptersManager, AdaptersResult } from './adapters_manager';
+import { AdaptersManager, AdaptersResult } from './adapter/adapters_manager';
 import { Controller, Handler, HandlersByMethod, Method } from './controller/controller';
 import {
     DEFAULT_HTTPS_PORT,
@@ -27,7 +27,6 @@ import {
 } from './constants/settings';
 import { Express, Request } from './express';
 import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
-import { LogLevel, LogOptions, Logger } from './logger';
 import { NameValue, Rejection, Resolution, StringSet } from './types';
 import bodyParser, { OptionsUrlencoded } from 'body-parser';
 import cert, { CertInfo } from 'cert-info';
@@ -89,7 +88,6 @@ export interface SaphiraOptions {
     servers?: Array<ServerInfo>;
     openApiComponents?: { [index: string]: unknown };
     corsOptions?: CorsOptions;
-    logOptions?: LogOptions;
     adapters?: AdaptersConfig;
 }
 
@@ -116,28 +114,18 @@ export class Saphira {
         this.adapters = this.options.adapters || {};
         this.options.requestLimit = this.options.requestLimit || '100kb';
 
-        if (!this.options.corsOptions) {
-            this.options.corsOptions = {
-                exposedHeaders: [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME],
-            };
-        } else if (!this.options.corsOptions.exposedHeaders) {
-            this.options.corsOptions.exposedHeaders = [HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME];
-        } else {
-            if (typeof this.options.corsOptions.exposedHeaders === 'string') {
-                this.options.corsOptions.exposedHeaders = [this.options.corsOptions.exposedHeaders];
-            }
-            if (this.options.corsOptions.exposedHeaders.indexOf(HEADER_X_PAGINATION) === -1) {
-                this.options.corsOptions.exposedHeaders.push(HEADER_X_PAGINATION);
-            }
-            if (this.options.corsOptions.exposedHeaders.indexOf(HEADER_X_SUMMARY) === -1) {
-                this.options.corsOptions.exposedHeaders.push(HEADER_X_SUMMARY);
-            }
-            if (this.options.corsOptions.exposedHeaders.indexOf(HEADER_X_HRTIME) === -1) {
-                this.options.corsOptions.exposedHeaders.push(HEADER_X_HRTIME);
-            }
-        }
+        this.options.corsOptions = this.options.corsOptions || {};
 
-        Logger.getInstance(this.options.logOptions || { logLevel: Saphira.TEST ? LogLevel.warn : LogLevel.debug });
+        this.options.corsOptions.exposedHeaders =
+            this.options.corsOptions.exposedHeaders && typeof this.options.corsOptions.exposedHeaders === 'string'
+                ? [
+                      ...[this.options.corsOptions.exposedHeaders],
+                      ...[HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME],
+                  ]
+                : [
+                      ...(this?.options?.corsOptions?.exposedHeaders || []),
+                      ...[HEADER_X_PAGINATION, HEADER_X_SUMMARY, HEADER_X_HRTIME],
+                  ];
 
         this.app = express();
         this.app.use(bodyParser.json({ limit: this.options.requestLimit }));
@@ -542,7 +530,6 @@ export {
     Controller,
     DTO,
     Handler,
-    LogOptions,
     Method,
     BadGatewayError,
     ServerError,
