@@ -3,10 +3,10 @@ process.env.TOKEN_SAFETY_MARGIN = '0';
 import '@rcmedeiros/prototypes';
 
 import { Done, describe, it } from 'mocha';
+import { INVALID_RESPONSE, Oauth2Client } from '../src/oauth2_client';
 import { LOCALHOST, mockServers } from './mocks/http_servers';
 
 import { JWT } from '../src';
-import { Oauth2Client } from '../src/oauth2_client';
 import { expect } from 'chai';
 
 describe('Oauth2Client', () => {
@@ -193,33 +193,52 @@ describe('Oauth2Client', () => {
                 expect(true, 'should never succeed').to.be.false;
             })
             .catch((err: Error) => {
-                expect(err.name).to.be.equal('Invalid Server Response');
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
                 done();
             });
     });
 
-    it('Should gracefully deal with malformed responses upon Oauth2Client', (done: Done) => {
+    it('Should gracefully deal with malformed responses upon client Oauth2Client', (done: Done) => {
         new Oauth2Client()
-            .setClient('napier', 'whatever', `${LOCALHOST}:${mockServers.crazyServer.port}`)
+            .setClient('solo', 'whatever', `${LOCALHOST}:${mockServers.crazyServer.port}`)
             .getBearerToken()
             .then(() => {
                 expect(true, 'should never succeed').to.be.false;
             })
             .catch((err: Error) => {
-                expect(err.name).to.be.equal('Invalid Server Response');
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
+                done();
+            });
+    });
+
+    it('Should gracefully deal with malformed responses upon user Oauth2Client', (done: Done) => {
+        new Oauth2Client()
+            .setUser(
+                'the_system2',
+                'the_user2',
+                'th3_p@55w0rd',
+                `${LOCALHOST}:${mockServers.okServer.port}`,
+                `${LOCALHOST}:${mockServers.callback.port}/callback`,
+            )
+            .getBearerToken()
+            .then(() => {
+                expect(true, 'should never succeed').to.be.false;
+            })
+            .catch((err: Error) => {
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
                 done();
             });
     });
 
     it('Should gracefully deal with invalid responses upon client Oauth2Client', (done: Done) => {
         new Oauth2Client()
-            .setClient('fleck', 'neverMind', `${LOCALHOST}:${mockServers.crazyServer.port}`)
+            .setClient('jinn', 'neverMind', `${LOCALHOST}:${mockServers.crazyServer.port}`)
             .getBearerToken()
             .then(() => {
                 expect(true, 'should never succeed').to.be.false;
             })
             .catch((err: Error) => {
-                expect(err.name).to.be.equal('Invalid Server Response');
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
                 done();
             });
     });
@@ -232,7 +251,7 @@ describe('Oauth2Client', () => {
                 expect(true, 'should never succeed').to.be.false;
             })
             .catch((err: Error) => {
-                expect(err.name).to.be.equal('Invalid Server Response');
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
                 done();
             });
     });
@@ -270,7 +289,77 @@ describe('Oauth2Client', () => {
                 expect(true, 'should never succeed').to.be.false;
             })
             .catch((err: Error) => {
-                expect(err.name).to.be.equal('Invalid Server Response');
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
+                done();
+            });
+    });
+
+    it('Should gracefully deal with malformed client bearer tokens', (done: Done) => {
+        new Oauth2Client()
+            .setClient('the_system', 'th3_s3cr37', `${LOCALHOST}:${mockServers.deceitfulServer.port}`)
+            .getBearerToken()
+            .then(() => {
+                expect(true, 'should never succeed').to.be.false;
+            })
+            .catch((err: Error) => {
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
+                done();
+            });
+    });
+
+    it('Should gracefully deal with malformed user bearer tokens', (done: Done) => {
+        new Oauth2Client()
+            .setUser(
+                'the_system',
+                'the_user',
+                'th3_p@55w0rd',
+                `${LOCALHOST}:${mockServers.deceitfulServer.port}`,
+                `${LOCALHOST}:${mockServers.callback.port}/callback`,
+            )
+            .getBearerToken()
+            .then(() => {
+                expect(true, 'should never succeed').to.be.false;
+            })
+            .catch((err: Error) => {
+                expect(err.name).to.be.equal(INVALID_RESPONSE);
+                done();
+            });
+    });
+
+    it('Should deal with down servers when authenticating clients', (done: Done) => {
+        const offlineClientAuth: Oauth2Client = new Oauth2Client().setClient(
+            'the_system',
+            'wrongSecret',
+            `${LOCALHOST}:9000`, // non-existent
+        );
+        offlineClientAuth
+            .getBearerToken()
+            .then(() => {
+                expect(true, 'should never succeed').to.be.false;
+            })
+            .catch((err: Error) => {
+                expect(err.name).to.contain('ECONNREFUSED');
+                expect(offlineClientAuth.isAuthenticated()).to.be.false;
+                done();
+            });
+    });
+
+    it('Should deal with down servers when authenticating users', (done: Done) => {
+        const offlineUserAuth: Oauth2Client = new Oauth2Client().setUser(
+            'the_system',
+            'the_user',
+            'wrongPass',
+            `${LOCALHOST}:9000`, // non-existent
+            `${LOCALHOST}:${mockServers.callback.port}/callback`,
+        );
+        offlineUserAuth
+            .getBearerToken()
+            .then(() => {
+                expect(true, 'should never succeed').to.be.false;
+            })
+            .catch((err: Error) => {
+                expect(err.name).to.contain('ECONNREFUSED');
+                expect(offlineUserAuth.isAuthenticated()).to.be.false;
                 done();
             });
     });

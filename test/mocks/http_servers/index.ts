@@ -87,7 +87,9 @@ export const mockServers: MockServers = {
                 }
             },
             token: (req: Request, res: Response): void => {
-                if (req.body.grant_type === 'client_credentials') {
+                if (req.body.client_id === 'the_system2') {
+                    res.json({ a: 'Move along... move along...' });
+                } else if (req.body.grant_type === 'client_credentials') {
                     oauth2Response(fakeOauth2.clientCredentials(req.body.client_id, req.body.client_secret), res);
                 } else if (req.body.grant_type === 'refresh_token') {
                     oauth2Response(fakeOauth2.refreshToken(req.body.refresh_token), res);
@@ -148,15 +150,28 @@ mockServers.drunkServer = {
     },
 };
 
+mockServers.deceitfulServer = {
+    post: {
+        auth: mockServers.okServer.post.auth,
+        token: (req: Request, res: Response): void => {
+            res.json({
+                token_type: 'Bearer',
+                access_token: 'this is no token',
+                expires_in: 33481690453,
+            });
+        },
+    },
+};
+
 mockServers.crazyServer = {
     post: {
         auth: (req: Request, res: Response): void => {
             switch (req.body.client_id || req.body.username) {
-                case 'napier':
-                    res.json({ a: 'Nobody panics when things go "according to plan". Even if the plan is horrifying' });
+                case 'solo':
+                    res.json({ a: "It's not my fault." });
                     break;
-                case 'fleck':
-                    res.json('All I Have Are Negative Thoughts');
+                case 'jinn':
+                    res.json('Your focus determines your reality.');
                     break;
                 default:
                     res.json({ a: 'there is no access_token' });

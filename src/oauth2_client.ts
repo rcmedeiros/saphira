@@ -1,4 +1,4 @@
-// cSpell: ignore PKCE
+// cSpell: ignore PKCE ECONNRE
 import { Rejection, Resolution } from './types';
 import needle, { NeedleHttpVerbs, NeedleResponse } from 'needle';
 
@@ -38,7 +38,7 @@ export interface UserCredentials {
 
 const POST: NeedleHttpVerbs = 'post';
 const RETURNED: string = 'Server returned: ';
-const INVALID_RESPONSE: string = 'Invalid Server Response';
+export const INVALID_RESPONSE: string = 'Invalid Server Response';
 const AUTH: string = '/auth';
 const TOKEN: string = '/token';
 const ACCESS_TOKEN: string = 'access_token';
@@ -78,11 +78,17 @@ export class Oauth2Client {
         try {
             const e: ERROR = JSON.parse(body);
             const error: Error = new Error(e.error_description || e.error);
-            error.name = e.error || INVALID_RESPONSE;
+            if (!error.message) {
+                throw error;
+            }
+            error.name = e.error;
             return error;
         } catch {
             const error: Error = new Error(RETURNED + body.toString());
-            error.name = INVALID_RESPONSE;
+            error.name =
+                typeof body === 'string' && (body.contains('ECONNRE') || body.contains('ETIMEDOUT'))
+                    ? body
+                    : INVALID_RESPONSE;
             return error;
         }
     }
@@ -102,11 +108,13 @@ export class Oauth2Client {
                             this.accessToken = new JWT(response.access_token, this.publicKey);
                             resolve(this.accessToken);
                         } catch (e) {
-                            reject(e);
+                            reject(this.getError(r.body));
                         }
                     }
                 })
-                .catch(reject);
+                .catch((e: Error) => {
+                    reject(this.getError(e.message));
+                });
         });
     }
 
@@ -151,11 +159,14 @@ export class Oauth2Client {
                                 }
                             })
                             .catch((e: Error) => {
-                                reject(e);
+                                /* istanbul ignore next */
+                                reject(this.getError(e.message));
                             });
                     }
                 })
-                .catch(reject);
+                .catch((e: Error) => {
+                    reject(this.getError(e.message));
+                });
         });
     }
 
@@ -209,10 +220,6 @@ export class Oauth2Client {
         });
     }
 
-    public setPublicKey(publicKey: string): Oauth2Client {
-        this.publicKey = publicKey;
-        return this;
-    }
     public setClient(clientId: string, clientSecret: string, serverURI: string): Oauth2Client {
         this.credentials = {
             clientId: clientId,

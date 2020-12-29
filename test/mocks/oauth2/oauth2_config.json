@@ -10,6 +10,10 @@
         "the_user": {
             "clientId": "the_system",
             "password": "th3_p@55w0rd"
+        },
+        "the_user2": {
+            "clientId": "the_system2",
+            "password": "th3_p@55w0rd"
         }
     }
 }
