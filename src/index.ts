@@ -62,7 +62,7 @@ import https from 'https';
 import path from 'path';
 import swaggerUiExpress from 'swagger-ui-express';
 
-const OAUTH2_SERVER: string = 'OauthServer';
+const OAUTH2_SERVER: string = 'OAUTH2_SERVER';
 export interface ServerInfo {
     url: URL;
     description: string;
@@ -423,16 +423,17 @@ export class Saphira {
             const httpsOptions: TLSOptions = this.loadSecurityLayer();
             this.app.set(PORT, this.options.port || (this.tls ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
 
-            const oauth: boolean = !!process.env.OAUTH2_URI;
+            const oauth: boolean = !!process.env[OAUTH2_SERVER];
 
             if (oauth) {
                 this.adapters.webServices = this.adapters.webServices || [];
-                if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === 'OAUTH2_URI').length === 0) {
-                    this.adapters.webServices.push({
-                        name: OAUTH2_SERVER,
-                        envVar: 'OAUTH2_URI',
-                        healthCheckEndpoint: '/health-check',
-                    });
+                if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER).length === 0) {
+                    this.adapters.webServices.push(OAUTH2_SERVER);
+                    // this.adapters.webServices.push({
+                    //     name: OAUTH2_SERVER,
+                    //     envVar: 'OAUTH2_URI',
+                    //     healthCheckEndpoint: '/health-check',
+                    // });
                 }
             }
 
@@ -508,7 +509,9 @@ export class Saphira {
                         })
                         .catch(reject);
                 })
-                .catch(reject);
+                .catch((e: Error) => {
+                    reject(e);
+                });
         });
     }
 

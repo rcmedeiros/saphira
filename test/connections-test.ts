@@ -1,8 +1,8 @@
+// cSpell:ignore soapenv tecnologia seguranca detran usuario senha
 import { ConnectionWebServer, ID as WEB_ID } from './mocks/sample_server/connection_web';
 import { Done, after, before, describe, it } from 'mocha';
 import { HttpStatusCode, Rejection, Resolution, Saphira, SaphiraOptions } from '../src';
 import { LOCALHOST, mockServers } from './mocks/http_servers';
-// cSpell:ignore soapenv tecnologia seguranca detran usuario senha
 import chai, { expect } from 'chai';
 
 import chaiHttp from 'chai-http';

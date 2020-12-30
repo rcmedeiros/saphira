@@ -1,10 +1,13 @@
 import { v4 } from 'uuid';
 
-export const parseJson: (s: string) => unknown = (s: string): unknown => {
+export const parseJson: (s: string, silent?: boolean) => unknown = (s: string, silent?: boolean): unknown => {
     try {
         return JSON.parse(s);
     } catch (e) {
-        console.error(`Tried to parse invalid JSON string: ${s}`);
+        if (!silent) {
+            console.error(`Tried to parse invalid JSON string: ${s}`);
+        }
+
         return undefined;
     }
 };

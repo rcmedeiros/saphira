@@ -39,14 +39,26 @@ export class AdaptersManager {
             if (this.adapters.webServices) {
                 this.adapters.webServices.forEach((ws: WebServerConfig | string) => {
                     let webServer: WebServerConfig =
-                        typeof ws === 'string' ? { envVar: ws, healthCheckEndpoint: '' } : ws;
-                    const cfg: WebConfig = parseJson(process.env[webServer.envVar]) as WebConfig;
+                        typeof ws === 'string' ? { name: ws, envVar: ws, healthCheckEndpoint: '' } : ws;
+                    const cfg: WebConfig =
+                        (parseJson(process.env[webServer.envVar], true) as WebConfig) ||
+                        (!process.env[webServer.envVar]
+                            ? undefined
+                            : {
+                                  envVar: webServer.envVar,
+                                  // host: process.env[webServer.envVar],
+                                  host: new URL(process.env[webServer.envVar]).toString(),
+                                  healthCheckEndpoint: '',
+                                  coadjuvant: true,
+                              });
                     if (cfg) {
                         webServer = {
                             ...webServer,
                             ...cfg,
                             ...{ parameters: { ...webServer?.parameters, ...cfg?.parameters } },
                         };
+                        webServer.host =
+                            webServer.host.lastChar() === '/' ? webServer.host.substringUpToLast('/') : webServer.host;
                         name.push([webServer.name || 'Web Server', webServer.host, webServer.coadjuvant]);
                         const c: WebConnection = Adapters.setupWebConnection(webServer, webServer.name);
                         if (webServer.systemAuth) {

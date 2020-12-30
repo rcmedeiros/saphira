@@ -21,6 +21,9 @@ describe('The Vault', () => {
                     v4: true,
                     all: {
                         jwt_key: !Vault.getInstance().has('jwt_key') ? undefined : Vault.getInstance().get('jwt_key'),
+                        jwt_opts: !Vault.getInstance().has('jwt_opts')
+                            ? undefined
+                            : Vault.getInstance().get('jwt_opts'),
                         v1: 'abc',
                         v2: 'def',
                         v3: 123.456,

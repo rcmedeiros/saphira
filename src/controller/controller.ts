@@ -3,6 +3,7 @@ import '@rcmedeiros/prototypes';
 import { DataTypes, Type } from '../data-types';
 
 import { BadRequestError } from '../errors/bad_request-error';
+import { JWT } from '../';
 import { PAYLOAD } from '../constants/settings';
 import { Request } from 'express';
 import { Resolution } from '../types';
@@ -48,6 +49,10 @@ export enum Method {
     TRACE = 'trace',
 }
 
+interface SystemRestriction {
+    systems?: string | Array<string>;
+}
+
 export interface Handler {
     tag?: EndpointTag;
     uuid?: string;
@@ -57,6 +62,7 @@ export interface Handler {
     payload?: Param;
     params?: Array<Param>;
     response: Response;
+    restricted?: boolean | SystemRestriction;
 }
 
 export interface HandlersByMethod {
@@ -67,10 +73,12 @@ export class Controller {
     private readonly handlers: { [path: string]: HandlersByMethod } = {};
     private readonly apiPath: string;
     private readonly _tag: ServiceTag;
+    private _restricted: boolean;
 
     constructor(apiPath?: string, tag?: ServiceTag) {
         this.apiPath = apiPath || 'api';
         this._tag = tag;
+        this._restricted = false;
     }
 
     protected route(path: string, handler: Handler): void {
@@ -139,6 +147,16 @@ export class Controller {
                 }
                 handler.uuid = v4();
 
+                if (handler.restricted) {
+                    this._restricted = true;
+
+                    handler.restricted =
+                        typeof handler.restricted !== 'boolean' &&
+                        !Array.isArray((handler.restricted as SystemRestriction)?.systems)
+                            ? { systems: [(handler.restricted as SystemRestriction).systems as string] }
+                            : handler.restricted;
+                }
+
                 paths.forEach((p: string) => {
                     this.handlers[p] = this.handlers[p] || {};
 
@@ -152,6 +170,10 @@ export class Controller {
                 throw new Error('The operation and its method must declare the same parameters');
             }
         }
+    }
+
+    public get restricted(): boolean {
+        return this._restricted;
     }
 
     public get paths(): Array<string> {
@@ -168,6 +190,20 @@ export class Controller {
 
     public handle = async (route: Handler, request: Request): Promise<unknown> =>
         new Promise<unknown>((resolve: Resolution<unknown>, reject: (reason: unknown) => void): void => {
+            let jwt: JWT;
+            if (route.restricted) {
+                try {
+                    jwt = new JWT(request.headers.authorization);
+
+                    if (typeof route.restricted !== 'boolean') {
+                        jwt.tryForSubjects((route.restricted as SystemRestriction).systems as Array<string>);
+                    }
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+            }
+
             if (!route.params) {
                 (route.action.apply(this) as Promise<unknown>).then((result: unknown) => {
                     resolve(result);

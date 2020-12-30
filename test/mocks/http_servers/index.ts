@@ -10,6 +10,7 @@ import { Server } from 'http';
 // cSpell: ignore listofacil
 import bodyParser from 'body-parser';
 import { expect } from 'chai';
+import fs from 'fs';
 
 const fakeOauth2: FakeOauth2 = new FakeOauth2();
 
@@ -38,11 +39,8 @@ export const LOCALHOST: string = 'http://127.0.0.1';
 
 // ..::[[ SERVER LOGIC IS BUT THIS SECTION
 
-export const PUBLIC_KEY: string = `-----BEGIN RSA PUBLIC KEY-----
-MIGJAoGBAIcemcq+Wq+KT72fvGz5yqdF1VKpPxoZekP5kVxIikSJ5GSBqyJQd/4m
-XHBGUdUDaFqpPYnfMm6VC8W49066r4jZ1SyP1dZnE6B0vzD5+x1uP4BYZ5ESAj6P
-Hcm2ooV/HTHDT5Sq+Ppo/xoSFXhUS1fAQ6xQneXuD56JWpUosag9AgMBAAE=
------END RSA PUBLIC KEY-----`;
+export const PUBLIC_KEY: string = JSON.parse(fs.readFileSync('test/mocks/oauth2/oauth2_config.json').toString())
+    .publicKey;
 
 type Oauth2Response = TokenResponse | CodeResponse | ErrorResponse;
 type Oauth2ResponsePostProcess = (r: Oauth2Response) => Oauth2Response;
@@ -217,7 +215,7 @@ mockServers.restServer = {
 
 mockServers.fakeOauth2 = {
     get: {
-        'health-check': (_req: Request, res: Response): void => {
+        '/': (_req: Request, res: Response): void => {
             res.sendStatus(200);
         },
         key: (_req: Request, res: Response): void => {
