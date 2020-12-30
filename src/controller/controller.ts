@@ -152,7 +152,7 @@ export class Controller {
 
                     handler.restricted =
                         typeof handler.restricted !== 'boolean' && !Array.isArray(handler.restricted?.systems)
-                            ? { systems: [handler.restricted.systems as string] }
+                            ? { systems: [handler.restricted.systems] }
                             : handler.restricted;
                 }
 
