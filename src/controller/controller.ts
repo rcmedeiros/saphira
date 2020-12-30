@@ -151,9 +151,8 @@ export class Controller {
                     this._restricted = true;
 
                     handler.restricted =
-                        typeof handler.restricted !== 'boolean' &&
-                        !Array.isArray((handler.restricted as SystemRestriction)?.systems)
-                            ? { systems: [(handler.restricted as SystemRestriction).systems as string] }
+                        typeof handler.restricted !== 'boolean' && !Array.isArray(handler.restricted?.systems)
+                            ? { systems: [handler.restricted.systems as string] }
                             : handler.restricted;
                 }
 
@@ -196,7 +195,7 @@ export class Controller {
                     jwt = new JWT(request.headers.authorization);
 
                     if (typeof route.restricted !== 'boolean') {
-                        jwt.tryForSubjects((route.restricted as SystemRestriction).systems as Array<string>);
+                        jwt.tryForSubjects(route.restricted.systems as Array<string>);
                     }
                 } catch (e) {
                     reject(e);
