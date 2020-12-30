@@ -27,5 +27,8 @@
     "editor.formatOnType": true,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
+    },
+    "sonarlint.connectedMode.project": {
+        "projectKey": "saphira"
     }
 }
