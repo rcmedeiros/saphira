@@ -1,8 +1,10 @@
 import { Adapters, AdaptersConfig, WebServerConfig } from './adapters';
-import { NameValue, Resolution } from '..';
+import { NameValue, Rejection, Resolution } from '..';
 
+import { AuthConfig } from './auth_config';
 import { MISSING_ENV_VAR } from '../constants/messages';
 import { Oauth2Client } from '../oauth2_client';
+import { Resource } from './resource';
 import { WebConfig } from './web-config';
 import { WebConnection } from './web-connection';
 import { parseJson } from '../helpers';
@@ -36,6 +38,39 @@ export class AdaptersManager {
         const promises: Array<Promise<void | Error>> = [];
 
         if (this.adapters) {
+            if (this.adapters.sysAuth) {
+                this.adapters.sysAuth.forEach((auth: AuthConfig) => {
+                    const cfg: AuthConfig = parseJson(process.env[auth.envVar]) as AuthConfig;
+                    if (cfg) {
+                        auth = { ...auth, ...cfg };
+                        name.push([auth.name, auth.serverURI, auth.coadjuvant]);
+
+                        const client: Oauth2Client = new Oauth2Client()
+                            .setClient(auth.clientId, auth.clientSecret, auth.serverURI)
+                            .setPublicKey(auth.publicKey);
+
+                        const promise: Promise<void> = new Promise((resolve: Resolution<void>, reject: Rejection) => {
+                            new Resource(auth.publicKey)
+                                .get()
+                                .then((publicKey: string) => {
+                                    client.setPublicKey(publicKey);
+                                    client
+                                        .keepFresh()
+                                        .then(() => {
+                                            resolve();
+                                        })
+                                        .catch(reject);
+                                })
+                                .catch(reject);
+                        });
+
+                        this.oauth2Clients[auth.name] = client;
+                        promises.push(this.resolve(promise));
+                    } else {
+                        throw new Error(MISSING_ENV_VAR.format(auth.envVar));
+                    }
+                });
+            }
             if (this.adapters.webServices) {
                 this.adapters.webServices.forEach((ws: WebServerConfig | string) => {
                     let webServer: WebServerConfig =

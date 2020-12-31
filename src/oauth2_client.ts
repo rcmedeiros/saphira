@@ -220,6 +220,11 @@ export class Oauth2Client {
         });
     }
 
+    public setPublicKey(publicKey: string): Oauth2Client {
+        this.publicKey = publicKey;
+        return this;
+    }
+
     public setClient(clientId: string, clientSecret: string, serverURI: string): Oauth2Client {
         this.credentials = {
             clientId: clientId,

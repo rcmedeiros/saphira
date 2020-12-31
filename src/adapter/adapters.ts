@@ -1,6 +1,8 @@
-import { Rejection, Resolution } from '../';
+import { Rejection, Resolution, Saphira } from '../';
 
+import { AuthConfig } from './auth_config';
 import { BaseAdapter } from './base-adapter';
+import { MSG_ADAPTER_NOT_FOUND } from '../constants/messages';
 import { WebClient } from './web-client';
 import { WebConfig } from './web-config';
 import { WebConnection } from './web-connection';
@@ -17,7 +19,7 @@ export interface AdapterStatus {
 }
 
 export interface AdaptersConfig {
-    // sysAuth?: Array<AuthConfig>;
+    sysAuth?: Array<AuthConfig>;
     // databases?: Array<Config | string>;
     webServices?: Array<WebServerConfig | string>;
     // soapServers?: Array<SoapServerConfig>;
@@ -43,7 +45,13 @@ export class Adapters {
     }
 
     public static getWebService(name?: string): WebClient {
-        return Adapters.getWebConnection(name || DEFAULT_WEB) as WebClient;
+        const result: WebClient = Adapters.getWebConnection(name || DEFAULT_WEB) as WebClient;
+        /* istanbul ignore else */
+        if (result) {
+            return result;
+        } else {
+            throw new Error(MSG_ADAPTER_NOT_FOUND.format(name || 'Web Service'));
+        }
     }
 
     public static allConnected(): boolean {
@@ -66,16 +74,20 @@ export class Adapters {
 
     public static async closeAll(): Promise<void> {
         return new Promise((resolve: Resolution<void>, reject: Rejection) => {
-            const promises: Array<Promise<void>> = [];
-            Adapters.connections.forEach((c: BaseAdapter) => {
-                promises.push(c.terminate());
-            });
-            Promise.all(promises)
-                .then(() => {
-                    Adapters.connections.clear();
-                    resolve();
-                })
-                .catch(reject);
+            if (Saphira.TEST) {
+                resolve();
+            } else {
+                const promises: Array<Promise<void>> = [];
+                Adapters.connections.forEach((c: BaseAdapter) => {
+                    promises.push(c.terminate());
+                });
+                Promise.all(promises)
+                    .then(() => {
+                        Adapters.connections.clear();
+                        resolve();
+                    })
+                    .catch(reject);
+            }
         });
     }
 

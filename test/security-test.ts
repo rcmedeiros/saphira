@@ -2,10 +2,12 @@ import '@rcmedeiros/prototypes';
 
 import { Done, after, before, describe, it } from 'mocha';
 import { HttpStatusCode, JWT, Rejection, Resolution, Saphira } from '../src';
-import { LOCALHOST, mockServers } from './mocks/http_servers';
+import { LOCALHOST, PUBLIC_KEY, mockServers } from './mocks/http_servers';
 import {
     SECURE_SERVER_JUST_RESTRICTED,
     SECURE_SERVER_RESTRICTED_TO_SYSTEM,
+    SECURE_SERVER_SELF_REQUEST,
+    SELF_REQUEST,
     SecureService,
 } from './mocks/sample_server/secure_service';
 import chai, { expect } from 'chai';
@@ -25,7 +27,22 @@ const SECURE_SERVER_PORT3: number = 6791;
 const server: Saphira = new Saphira([SecureService], {
     port: SECURE_SERVER_PORT,
     adapters: {
-        webServices: [{ envVar: 'OAUTH2_SERVER', healthCheckEndpoint: '' }],
+        sysAuth: [
+            {
+                name: 'OAUTH2_CLIENT',
+                envVar: 'OAUTH2_CLIENT',
+                clientId: 'the_system',
+            },
+        ],
+        webServices: [
+            { envVar: 'OAUTH2_SERVER', healthCheckEndpoint: '' },
+            {
+                name: SELF_REQUEST,
+                envVar: SELF_REQUEST,
+                healthCheckEndpoint: '',
+                coadjuvant: true,
+            },
+        ],
     },
 });
 const server2: Saphira = new Saphira([SecureService], { port: SECURE_SERVER_PORT2 });
@@ -33,8 +50,20 @@ const server3: Saphira = new Saphira([SecureService], { port: SECURE_SERVER_PORT
 
 before((done: Done) => {
     process.env.OAUTH2_SERVER = `${LOCALHOST}:${mockServers.fakeOauth2.port}`;
+    process.env.OAUTH2_CLIENT = JSON.stringify({
+        clientSecret: 'th3_s3cr37',
+        serverURI: `${LOCALHOST}:${mockServers.okServer.port}`,
+        publicKey: PUBLIC_KEY,
+    });
+    process.env[SELF_REQUEST] = JSON.stringify({
+        host: `${LOCALHOST}:${SECURE_SERVER_PORT}`,
+        systemAuth: 'OAUTH2_CLIENT',
+    });
     server.listen().then(() => {
-        process.env.OAUTH2_SERVER = `{"host":"${LOCALHOST}:${mockServers.fakeOauth2.port}","healthCheckEndpoint":""}`;
+        process.env.OAUTH2_SERVER = JSON.stringify({
+            host: `${LOCALHOST}:${mockServers.fakeOauth2.port}`,
+            healthCheckEndpoint: '',
+        });
         server2.listen().then(() => {
             delete process.env.OAUTH2_SERVER;
             process.env.OAUTH2_SERVER = `${LOCALHOST}:${mockServers.okServer.port}`;
@@ -128,6 +157,14 @@ describe('JWT Protected Server', () => {
         chai.request(`${LOCALHOST}:${SECURE_SERVER_PORT2}`)
             .get(SECURE_SERVER_RESTRICTED_TO_SYSTEM)
             .set('Authorization', `Bearer ${goodToken}`)
+            .end((err: Error, res: HttpResponse) => {
+                expect(res.status).to.be.equal(HttpStatusCode.OK);
+                done(err);
+            });
+    });
+    it('Should be able to handle authenticated calls', (done: Done) => {
+        chai.request(`${LOCALHOST}:${SECURE_SERVER_PORT}`)
+            .get(SECURE_SERVER_SELF_REQUEST)
             .end((err: Error, res: HttpResponse) => {
                 expect(res.status).to.be.equal(HttpStatusCode.OK);
                 done(err);
