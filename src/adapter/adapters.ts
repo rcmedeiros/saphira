@@ -74,6 +74,7 @@ export class Adapters {
 
     public static async closeAll(): Promise<void> {
         return new Promise((resolve: Resolution<void>, reject: Rejection) => {
+            /* istanbul ignore else */
             if (Saphira.TEST) {
                 resolve();
             } else {
