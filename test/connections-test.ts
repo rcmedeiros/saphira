@@ -100,8 +100,8 @@ describe('Web Server test', () => {
     });
 });
 
-describe('Missing environment variable', () => {
-    it('Should abort server start', (done: Done) => {
+describe('Starting server with missing environment variable', () => {
+    it('Should abort with error message', (done: Done) => {
         const server2: Saphira = new Saphira([ConnectionWebServer], {
             port: 5432,
             adapters: {
@@ -110,6 +110,29 @@ describe('Missing environment variable', () => {
                         envVar: 'WEB_SERVER2',
                         healthCheckEndpoint: '/health-check',
                     },
+                ],
+            },
+        });
+        server2
+            .listen()
+            .then(() => {
+                done(new Error("Server shouldn't start without a required environment variable"));
+            })
+            .catch((err: Error) => {
+                expect(err.message).to.be.equal('Environment variable WEB_SERVER2 not set');
+                done();
+            });
+    });
+    it('Should abort with error message', (done: Done) => {
+        const server2: Saphira = new Saphira([ConnectionWebServer], {
+            port: 5432,
+            adapters: {
+                webServices: [
+                    {
+                        envVar: 'WEB_SERVER2',
+                        healthCheckEndpoint: '/health-check',
+                    },
+                    'WEB_SERVER3',
                 ],
             },
         });

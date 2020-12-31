@@ -186,7 +186,15 @@ export class Saphira {
             });
 
             if (missing.length) {
-                console.error(`MISSING ENVIRONMENT VARIABLE${missing.length > 1 ? 'S' : ''}: ${missing.join(', ')}.`);
+                let msg: string = `MISSING ENVIRONMENT VARIABLE${missing.length > 1 ? 'S' : ''}: ${missing.join(
+                    ', ',
+                )}.`;
+
+                if (missing.length > 1) {
+                    msg = `${msg.substringUpToLast(',')} and${msg.substringFromLast(',')}`;
+                }
+
+                console.error(msg);
                 return false;
             }
         }
@@ -287,6 +295,7 @@ export class Saphira {
                     verticalLayout: 'default',
                 },
                 (err: Error, data: string) => {
+                    /* istanbul ignore if */
                     if (err) {
                         reject(err);
                     } else {
@@ -429,11 +438,6 @@ export class Saphira {
                 this.adapters.webServices = this.adapters.webServices || [];
                 if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER).length === 0) {
                     this.adapters.webServices.push(OAUTH2_SERVER);
-                    // this.adapters.webServices.push({
-                    //     name: OAUTH2_SERVER,
-                    //     envVar: 'OAUTH2_URI',
-                    //     healthCheckEndpoint: '/health-check',
-                    // });
                 }
             }
 

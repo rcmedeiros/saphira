@@ -22,8 +22,10 @@ import { BadControllerOverhandling } from './mocks/sample_server/bad_controller_
 import { BadControllerParametersMismatch } from './mocks/sample_server/bad_controller_parameters_mismatch';
 import { BadControllerPayloadConflict } from './mocks/sample_server/bad_controller_payload_conflict';
 import { BadControllerTwoParentPathParameters } from './mocks/sample_server/bad_controller_two_parent_path_parameters';
+import { BootPanel } from './boot_panel';
 import { HttpResponse } from 'chai-http-ext';
 import { HttpStatusCode } from '../src/constants/http_status_codes';
+import { LogCapture } from './log_capture';
 import { Service1 } from './mocks/sample_server/service_1';
 import chaiHttp from 'chai-http';
 import fs from 'fs';
@@ -72,34 +74,106 @@ describe('Healthy Initialization with TLS', () => {
             { days: 365 },
             (err: Error, pems: SelfSignedPEMs) => {
                 saveEnvVar(ENV_TLS, JSON.stringify({ cert: pems.cert, key: pems.private }));
-                healthyStart(done, undefined, true);
+                const stdOut: LogCapture = new LogCapture(process.stdout);
+                healthyStart(
+                    (e: Error) => {
+                        const m: string = stdOut.getCaptured();
+                        const tlsStatus: string = new BootPanel(m).getStatus('TLS Certificate');
+                        console.info(tlsStatus);
+                        expect(tlsStatus).to.be.equals("'Valid'");
+                        done(e);
+                    },
+                    undefined,
+                    true,
+                );
+
                 deleteEnvVar(ENV_TLS);
             },
         );
     });
+    it('Should alert certificate with close expiration date', (done: Done) => {
+        selfSigned.generate(
+            [{ name: 'commonName', value: 'localhost' }],
+            { days: 29 },
+            (err: Error, pems: SelfSignedPEMs) => {
+                saveEnvVar(ENV_TLS, JSON.stringify({ cert: pems.cert, key: pems.private }));
+                const stdOut: LogCapture = new LogCapture(process.stdout);
+                healthyStart(
+                    (e: Error) => {
+                        expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals(
+                            "'expiring...'",
+                        );
+                        done(e);
+                    },
+                    undefined,
+                    true,
+                );
+                deleteEnvVar(ENV_TLS);
+            },
+        );
+    });
+
     const relPath: string = 'test/mocks/sample_server';
+
+    it('Should accuse expired certificate', (done: Done) => {
+        saveEnvVar(
+            ENV_TLS,
+            JSON.stringify({
+                cert: fs.readFileSync(path.join(relPath, `${FILENAME_TLS_CERTIFICATE}.expired`)).toString(),
+                key: fs.readFileSync(path.join(relPath, `${FILENAME_TLS_KEY}.expired`)).toString(),
+            }),
+        );
+        const stdOut: LogCapture = new LogCapture(process.stdout);
+        healthyStart(
+            (e: Error) => {
+                expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals("'EXPIRED'");
+                done(e);
+            },
+            undefined,
+            true,
+        );
+        deleteEnvVar(ENV_TLS);
+    });
     const absPath: string = path.join(process.cwd(), relPath);
     it('Should load SSL from relative files', (done: Done) => {
-        const keyFile: string = path.join(relPath, FILENAME_TLS_KEY);
         const certFile: string = path.join(relPath, FILENAME_TLS_CERTIFICATE);
+        const keyFile: string = path.join(relPath, FILENAME_TLS_KEY);
         selfSigned.generate(
             [{ name: 'commonName', value: 'localhost' }],
             { days: 365 },
             (_err: Error, pems: SelfSignedPEMs) => {
-                fs.writeFileSync(keyFile, pems.private, UTF8);
                 fs.writeFileSync(certFile, pems.cert, UTF8);
+                fs.writeFileSync(keyFile, pems.private, UTF8);
                 saveEnvVar(ENV_TLS, relPath);
-                healthyStart(done, undefined, true);
+                const stdOut: LogCapture = new LogCapture(process.stdout);
+                healthyStart(
+                    (e: Error) => {
+                        expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals(
+                            "'Valid'",
+                        );
+                        done(e);
+                    },
+                    undefined,
+                    true,
+                );
             },
         );
     });
     it('Should load SSL from absolute files', (done: Done) => {
-        const keyFile: string = path.join(absPath, FILENAME_TLS_KEY);
         const certFile: string = path.join(absPath, FILENAME_TLS_CERTIFICATE);
+        const keyFile: string = path.join(absPath, FILENAME_TLS_KEY);
         saveEnvVar(ENV_TLS, absPath);
-        healthyStart(done, undefined, true);
-        fs.unlinkSync(keyFile);
+        const stdOut: LogCapture = new LogCapture(process.stdout);
+        healthyStart(
+            (e: Error) => {
+                expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals("'Valid'");
+                done(e);
+            },
+            undefined,
+            true,
+        );
         fs.unlinkSync(certFile);
+        fs.unlinkSync(keyFile);
         deleteEnvVar(ENV_TLS);
     });
 });
@@ -110,16 +184,19 @@ describe('Healthy Initialization', () => {
     });
     it('Should print routes', (done: Done) => {
         process.env.SAPHIRA_DEBUG_ROUTES = 'true';
-        healthyStart(() => {
+        const stdOut: LogCapture = new LogCapture(process.stdout);
+        healthyStart((e: Error) => {
             delete process.env.SAPHIRA_DEBUG_ROUTES;
-            done();
+            const bootLog: string = stdOut.getCaptured();
+            expect(bootLog).to.contain(ENDPOINT_HEALTH_CHECK); // known bug: API_SPEC endpoint is missing
+            done(e);
         });
     });
     it('Should dismiss security when server path is not TLS protected', (done: Done) => {
         process.env.SAPHIRA_SERVER_PATHS = 'http://localhost:8472';
-        healthyStart(() => {
+        healthyStart((e: Error) => {
             delete process.env.SAPHIRA_SERVER_PATHS;
-            done();
+            done(e);
         });
     });
     it('Should work in a custom port', (done: Done) => {
