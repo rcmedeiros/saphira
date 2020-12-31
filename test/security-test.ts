@@ -40,7 +40,7 @@ const server: Saphira = new Saphira([SecureService], {
                 name: SELF_REQUEST,
                 envVar: SELF_REQUEST,
                 healthCheckEndpoint: '',
-                coadjuvant: true,
+                independent: true,
             },
         ],
     },

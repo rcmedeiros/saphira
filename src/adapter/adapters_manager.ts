@@ -43,7 +43,7 @@ export class AdaptersManager {
                     const cfg: AuthConfig = parseJson(process.env[auth.envVar]) as AuthConfig;
                     if (cfg) {
                         auth = { ...auth, ...cfg };
-                        name.push([auth.name, auth.serverURI, auth.coadjuvant]);
+                        name.push([auth.name, auth.serverURI, auth.independent]);
 
                         const client: Oauth2Client = new Oauth2Client()
                             .setClient(auth.clientId, auth.clientSecret, auth.serverURI)
@@ -84,7 +84,7 @@ export class AdaptersManager {
                                   // host: process.env[webServer.envVar],
                                   host: new URL(process.env[webServer.envVar]).toString(),
                                   healthCheckEndpoint: '',
-                                  coadjuvant: true,
+                                  independent: true,
                               });
                     if (cfg) {
                         webServer = {
@@ -94,7 +94,7 @@ export class AdaptersManager {
                         };
                         webServer.host =
                             webServer.host.lastChar() === '/' ? webServer.host.substringUpToLast('/') : webServer.host;
-                        name.push([webServer.name || 'Web Server', webServer.host, webServer.coadjuvant]);
+                        name.push([webServer.name || 'Web Server', webServer.host, webServer.independent]);
                         const c: WebConnection = Adapters.setupWebConnection(webServer, webServer.name);
                         if (webServer.systemAuth) {
                             c.setOauth2Client(this.oauth2Clients[webServer.systemAuth]);

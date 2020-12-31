@@ -21,7 +21,7 @@ export class Connection {
     // private readonly cloudMetrics: CloudMetrics;
     private _lastSuccess: Date;
     private _lastError: Error;
-    private _isCoadjuvant: boolean = false;
+    private _isIndependent: boolean = false;
     protected readonly name: string;
 
     constructor(name: string) {
@@ -70,11 +70,11 @@ export class Connection {
         return this._lastError;
     }
 
-    public get isCoadjuvant(): boolean {
-        return this._isCoadjuvant;
+    public get isIndependent(): boolean {
+        return this._isIndependent;
     }
 
-    public set isCoadjuvant(v: boolean) {
-        this._isCoadjuvant = v;
+    public set isIndependent(v: boolean) {
+        this._isIndependent = v;
     }
 }
