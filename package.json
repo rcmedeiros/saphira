@@ -11,6 +11,7 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc mocha --trace-warnings --require ts-node/register --check-leaks --recursive -exit test/**/*test.ts",
     "coverage": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc --reporter=html mocha --require ts-node/register --check-leaks --recursive -exit test/**/*test.ts",
+    "coverage:one": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc --reporter=html mocha --require ts-node/register --check-leaks --recursive -exit test/**/initialization-test.ts",
     "docs": "python -m mkdocs serve"
   },
   "nyc": {

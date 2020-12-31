@@ -74,7 +74,7 @@ describe('Healthy Initialization with TLS', () => {
             { days: 365 },
             (err: Error, pems: SelfSignedPEMs) => {
                 saveEnvVar(ENV_TLS, JSON.stringify({ cert: pems.cert, key: pems.private }));
-                const stdOut: LogCapture = new LogCapture(process.stdout);
+                const stdOut: LogCapture = new LogCapture();
                 healthyStart(
                     (e: Error) => {
                         const m: string = stdOut.getCaptured();
@@ -97,7 +97,7 @@ describe('Healthy Initialization with TLS', () => {
             { days: 29 },
             (err: Error, pems: SelfSignedPEMs) => {
                 saveEnvVar(ENV_TLS, JSON.stringify({ cert: pems.cert, key: pems.private }));
-                const stdOut: LogCapture = new LogCapture(process.stdout);
+                const stdOut: LogCapture = new LogCapture();
                 healthyStart(
                     (e: Error) => {
                         expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals(
@@ -123,7 +123,7 @@ describe('Healthy Initialization with TLS', () => {
                 key: fs.readFileSync(path.join(relPath, `${FILENAME_TLS_KEY}.expired`)).toString(),
             }),
         );
-        const stdOut: LogCapture = new LogCapture(process.stdout);
+        const stdOut: LogCapture = new LogCapture();
         healthyStart(
             (e: Error) => {
                 expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals("'EXPIRED'");
@@ -145,7 +145,7 @@ describe('Healthy Initialization with TLS', () => {
                 fs.writeFileSync(certFile, pems.cert, UTF8);
                 fs.writeFileSync(keyFile, pems.private, UTF8);
                 saveEnvVar(ENV_TLS, relPath);
-                const stdOut: LogCapture = new LogCapture(process.stdout);
+                const stdOut: LogCapture = new LogCapture();
                 healthyStart(
                     (e: Error) => {
                         expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals(
@@ -163,7 +163,7 @@ describe('Healthy Initialization with TLS', () => {
         const certFile: string = path.join(absPath, FILENAME_TLS_CERTIFICATE);
         const keyFile: string = path.join(absPath, FILENAME_TLS_KEY);
         saveEnvVar(ENV_TLS, absPath);
-        const stdOut: LogCapture = new LogCapture(process.stdout);
+        const stdOut: LogCapture = new LogCapture();
         healthyStart(
             (e: Error) => {
                 expect(new BootPanel(stdOut.getCaptured()).getStatus('TLS Certificate')).to.be.equals("'Valid'");
@@ -184,7 +184,7 @@ describe('Healthy Initialization', () => {
     });
     it('Should print routes', (done: Done) => {
         process.env.SAPHIRA_DEBUG_ROUTES = 'true';
-        const stdOut: LogCapture = new LogCapture(process.stdout);
+        const stdOut: LogCapture = new LogCapture();
         healthyStart((e: Error) => {
             delete process.env.SAPHIRA_DEBUG_ROUTES;
             const bootLog: string = stdOut.getCaptured();

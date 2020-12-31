@@ -23,6 +23,7 @@ import {
     JWT_CLOCK_TOLERANCE,
     JWT_KEY,
     JWT_OPTS,
+    OAUTH2_SERVER,
     UTF8,
 } from './constants/settings';
 import { Express, Request } from './express';
@@ -62,7 +63,6 @@ import https from 'https';
 import path from 'path';
 import swaggerUiExpress from 'swagger-ui-express';
 
-const OAUTH2_SERVER: string = 'OAUTH2_SERVER';
 export interface ServerInfo {
     url: URL;
     description: string;
@@ -439,6 +439,12 @@ export class Saphira {
                 if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER).length === 0) {
                     this.adapters.webServices.push(OAUTH2_SERVER);
                 }
+
+                this.adapters.webServices
+                    .filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER)
+                    .forEach((ws: WebServerConfig) => {
+                        ws.name = OAUTH2_SERVER;
+                    });
             }
 
             const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
@@ -460,9 +466,9 @@ export class Saphira {
                                     Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
                                 })
                                 .catch((e: Error) => {
-                                    console.error('FAILED to obtain key from Oauth2 Server');
+                                    console.error('FAILED to obtain OAuth2 Server key');
                                     console.error(e);
-                                    (connections.data.OauthServer as { status: string }).status = e.name;
+                                    (connections.data[OAUTH2_SERVER] as { status: string }).status = e.name;
                                     res();
                                 });
                         } else {
@@ -511,7 +517,9 @@ export class Saphira {
                                     .catch(console.error);
                             }
                         })
-                        .catch(reject);
+                        .catch((e: Error) => {
+                            reject(e);
+                        });
                 })
                 .catch((e: Error) => {
                     reject(e);

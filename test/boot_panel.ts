@@ -11,6 +11,7 @@ export class BootPanel {
     constructor(panel: string) {
         panel
             .substringFrom('┤\n')
+            .substringUpTo('┘')
             .split('\n')
             .forEach((line: string) => {
                 line = line.substring(1, line.length - 1);

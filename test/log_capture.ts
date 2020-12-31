@@ -5,7 +5,11 @@ export class LogCapture {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private readonly sourceWrite: any;
     private output = '';
-    public constructor(logOutput: NodeJS.WriteStream) {
+    public constructor(logOutput?: NodeJS.WriteStream) {
+        if (!logOutput) {
+            logOutput = process.stdout;
+        }
+
         this.sourceOutput = logOutput;
         this.sourceWrite = logOutput.write;
         logOutput.write = (chunk: unknown, encoding: string | callback, cb?: callback): boolean => {
