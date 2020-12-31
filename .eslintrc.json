@@ -11,6 +11,10 @@
     "rules": {
         "indent": "off",
         "no-null/no-null": ["error"],
+        "max-classes-per-file": [
+            "error",
+            1
+        ],
         "sort-imports": ["warn"],
         "no-console": ["error", { "allow": ["debug", "info", "table", "warn", "error"] }],
         "prefer-exponentiation-operator": ["warn"],
