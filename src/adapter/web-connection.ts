@@ -10,8 +10,6 @@ export interface WebConnection extends BaseAdapter {
     head(endpoint: string, payload?: string | unknown): Promise<WebResponse>;
     delete(endpoint: string, payload?: string | unknown): Promise<WebResponse>;
 
-    call(operation: string, requestArgs: unknown): Promise<unknown>;
-
     setHeader(name: string, value: string): void;
     setOauth2Client(v: Oauth2Client): void;
 }

@@ -4,7 +4,6 @@ import needle, { NeedleHttpVerbs, NeedleOptions, NeedleResponse } from 'needle';
 import { Connection } from './connection';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { JWT } from '../jwt';
-import { NOT_SOAP } from '../constants/messages';
 import { Oauth2Client } from '../oauth2_client';
 import { WebConfig } from './web-config';
 import { WebConnection } from './web-connection';
@@ -149,10 +148,6 @@ export class WebClient extends Connection implements WebConnection {
 
     public setHeader(name: string, value: string): void {
         this._config.webOptions.headers[name] = value;
-    }
-
-    public async call(_operation: string, _requestArgs: unknown): Promise<unknown> {
-        return Promise.reject(new Error(NOT_SOAP));
     }
 
     public async terminate(): Promise<void> {
