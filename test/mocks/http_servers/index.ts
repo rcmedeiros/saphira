@@ -225,6 +225,19 @@ mockServers.fakeOauth2 = {
     },
 };
 
+export const RESOURCE_FILE: string = 'test/mocks/http_servers/file_to_load.txt';
+mockServers.resourceText = {
+    get: {
+        '/': (_req: Request, res: Response): void => {
+            res.sendStatus(200);
+        },
+        text: (_req: Request, res: Response): void => {
+            res.setHeader('content-type', MimeType.Text);
+            res.send(fs.readFileSync('test/mocks/http_servers/file_to_load.txt').toString());
+        },
+    },
+};
+
 // End of mock logic ]]::..
 
 let port: number = 10000;
