@@ -42,7 +42,14 @@ export class SecureService extends Controller {
     };
 
     public selfRequest = async (): Promise<number> => {
-        return (await Adapters.getWebService(SELF_REQUEST).get(SECURE_SERVER_RESTRICTED_TO_SYSTEM)).okOnly()
+        // Calling twice to cover both okOnly (200) and successOnly (200~206)
+
+        const n1: number = (await Adapters.getWebService(SELF_REQUEST).get(SECURE_SERVER_RESTRICTED_TO_SYSTEM)).okOnly()
             .body as number;
+        const n2: number = (
+            await Adapters.getWebService(SELF_REQUEST).get(SECURE_SERVER_RESTRICTED_TO_SYSTEM)
+        ).successOnly().body as number;
+
+        return Promise.resolve(n1 || n2);
     };
 }
