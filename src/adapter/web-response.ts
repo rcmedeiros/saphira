@@ -28,12 +28,7 @@ export class WebResponse {
     private getError(): Error {
         const result: Error = new Error();
         result.name = `Status code ${this.statusCode}`;
-        let b: string = this.body.toString();
-
-        // code bellow just for convenience. Might or might not work
-        if (b.contains('<title>Error</title>')) {
-            b = b.substringFrom('<body>').substringUpTo('</body>').trim();
-        }
+        const b: string = this.body.toString();
 
         result.message = b;
         return result;
