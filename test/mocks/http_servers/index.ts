@@ -195,6 +195,9 @@ mockServers.senileServer = {
 
 mockServers.restServer = {
     use: {
+        '/': (_req: Request, res: Response): void => {
+            res.sendStatus(200);
+        },
         endpoint: (req: Request, res: Response): void => {
             const a: { [id: string]: number } = (req.query || req.body || {}) as { [id: string]: number };
             if (!a || !Object.keys(a).length) {

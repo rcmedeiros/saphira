@@ -1,10 +1,12 @@
 // cSpell:ignore soapenv tecnologia seguranca detran usuario senha
 import { ConnectionWebServer, ID as WEB_ID } from './mocks/sample_server/connection_web';
 import { Done, after, before, describe, it } from 'mocha';
-import { HttpStatusCode, Rejection, Resolution, Saphira, SaphiraOptions } from '../src';
+import { ENDPOINT_API_SPEC, ENDPOINT_HEALTH_CHECK, ENDPOINT_INFO, ENDPOINT_OPEN_API } from '../src/constants/settings';
+import { HttpStatusCode, NameValue, Rejection, Resolution, Saphira, SaphiraOptions } from '../src';
 import { LOCALHOST, mockServers } from './mocks/http_servers';
 import chai, { expect } from 'chai';
 
+import { WebServerConfig } from '../src/adapter/adapters';
 import chaiHttp from 'chai-http';
 import request from 'superagent';
 
@@ -55,45 +57,73 @@ after((done: Done) => {
     }
 });
 
-const call: (operation: string) => Promise<unknown> = async (operation: string): Promise<unknown> =>
-    new Promise((resolve: Resolution<unknown>, reject: Rejection): void => {
+const call: (operation: string) => Promise<[string, unknown]> = async (operation: string): Promise<[string, unknown]> =>
+    new Promise((resolve: Resolution<[string, unknown]>, reject: Rejection): void => {
         chai.request(`http://127.0.0.1:${options.port}`)
-            .get(`/${operation}`)
+            .get(operation)
             .end(async (err: Error, res: request.Response) => {
                 if (err) {
                     reject(err);
                 } else if (res.status < HttpStatusCode.OK || res.status > HttpStatusCode.PARTIAL_CONTENT) {
                     reject(new Error(`Status code: ${res.status}`));
                 } else {
-                    resolve(res.body);
+                    resolve([operation, res.body]);
                 }
             });
     });
 
 describe('Web Server test', () => {
     it('Should connect to Webserver', (done: Done) => {
-        const promises: Array<unknown> = [
-            call('health-check'),
-            call('api-info'),
-            call('api/connectionWebServer/pureGet'),
-            call('api/connectionWebServer/getUrlEncoded'),
-            call('api/connectionWebServer/getWithObject'),
-            call('api/connectionWebServer/purePost'),
-            call('api/connectionWebServer/postUrlEncoded'),
-            call('api/connectionWebServer/postWithObject'),
-            call('api/connectionWebServer/purePut'),
-            call('api/connectionWebServer/purePatch'),
-            call('api/connectionWebServer/pureHead'),
-            call('api/connectionWebServer/pureDelete'),
+        const promises: Array<Promise<[string, unknown]>> = [
+            call(ENDPOINT_HEALTH_CHECK),
+            call(ENDPOINT_OPEN_API),
+            call(ENDPOINT_API_SPEC),
+            call(ENDPOINT_INFO),
+            call('/api/connectionWebServer/pureGet'),
+            call('/api/connectionWebServer/getUrlEncoded'),
+            call('/api/connectionWebServer/getWithObject'),
+            call('/api/connectionWebServer/purePost'),
+            call('/api/connectionWebServer/postUrlEncoded'),
+            call('/api/connectionWebServer/postWithObject'),
+            call('/api/connectionWebServer/purePut'),
+            call('/api/connectionWebServer/purePatch'),
+            call('/api/connectionWebServer/pureHead'),
+            call('/api/connectionWebServer/pureDelete'),
         ];
 
         Promise.all(promises)
-            .then((results: Array<unknown>) => {
-                results.forEach((respBody: unknown, index: number) => {
-                    if (index > 2) {
-                        expect(respBody).to.be.equal(1);
-                    }
-                });
+            .then((results: Array<[string, unknown]>) => {
+                results
+                    .map((result: [string, unknown]) => result[1])
+                    .forEach((respBody: unknown, index: number) => {
+                        switch (index) {
+                            case 0:
+                            case 1:
+                            case 2:
+                                console.debug(respBody);
+                                break;
+                            case 3:
+                                const resp: NameValue = respBody as NameValue;
+                                expect(resp.name).to.be.equal(__moduleInfo.name);
+                                expect(resp.version).to.be.equal(__moduleInfo.version);
+                                expect(Date.parse(resp.since as string)).not.to.be.null;
+                                const connectionKeys: Array<string> = Object.keys(resp.connections);
+                                const wsKeys: Array<string> = options.adapters.webServices.map(
+                                    (ws: WebServerConfig | string) =>
+                                        (ws as WebServerConfig).envVar
+                                            ? (ws as WebServerConfig).name || 'DEFAULT_WEB'
+                                            : (ws as string),
+                                );
+                                wsKeys.forEach((key: string) => {
+                                    expect(connectionKeys).to.contain(key);
+                                });
+
+                                break;
+                            default:
+                                expect(respBody).to.be.equal(1);
+                                break;
+                        }
+                    });
                 done();
             })
             .catch(done);

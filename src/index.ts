@@ -107,6 +107,7 @@ export class Saphira {
     private readonly controllerTypes: Array<typeof Controller>;
     private info: NameValue;
     private readonly adapters: AdaptersConfig;
+    private since: Date;
     public tls: [string, string];
 
     constructor(controllerTypes: Array<typeof Controller>, options?: SaphiraOptions) {
@@ -173,7 +174,11 @@ export class Saphira {
         }
 
         response.setHeader('Content-Type', MimeType.JSON_format);
-        response.send({ ...this.info, ...{ connections: Adapters.status() } });
+        response.send({
+            ...this.info,
+            ...{ since: this.since.toLocalISOString() },
+            ...{ connections: Adapters.status() },
+        });
     }
 
     private verifyRequiredEnvVars(requiredEnvVars: Array<string>): boolean {
@@ -423,6 +428,7 @@ export class Saphira {
     }
 
     public async listen(): Promise<void> {
+        this.since = new Date();
         return new Promise((resolve: Resolution<void>, reject: Rejection) => {
             this.server = ({ close: (): Promise<void> => Promise.resolve() } as unknown) as http.Server;
 
