@@ -34,7 +34,7 @@ import cert, { CertInfo } from 'cert-info';
 import { envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
 import express, { Request as ERequest, Response, Router } from 'express';
 import sshpk, { Key } from 'sshpk';
-import yaml, { DEFAULT_SAFE_SCHEMA, JSON_SCHEMA } from 'js-yaml';
+import yaml, { DEFAULT_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
@@ -417,8 +417,8 @@ export class Saphira {
                 swaggerUiExpress.setup(doc, { customSiteTitle: __moduleInfo.name }),
             );
 
-            const spec: string = yaml.safeDump(yaml.safeLoad(JSON.stringify(doc), { schema: JSON_SCHEMA }), {
-                schema: DEFAULT_SAFE_SCHEMA,
+            const spec: string = yaml.dump(yaml.load(JSON.stringify(doc), { schema: JSON_SCHEMA }), {
+                schema: DEFAULT_SCHEMA,
             });
             app.use(ENDPOINT_API_SPEC, (_req: Request, res: Response) => {
                 res.setHeader('Content-Type', MimeType.YAML_from_users);
