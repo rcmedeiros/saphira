@@ -46,8 +46,15 @@ export class AdaptersManager {
                         name.push([auth.name, auth.serverURI, auth.independent]);
 
                         const client: Oauth2Client = new Oauth2Client()
-                            .setClient(auth.clientId, auth.clientSecret, auth.serverURI)
-                            .setPublicKey(auth.publicKey);
+                            .setClient(auth.clientId, auth.clientSecret, auth.serverURI, auth.tokenEndpoint)
+                            .setPublicKey(auth.publicKey)
+                            .setCustomArgs(
+                                auth.clientIdProp,
+                                auth.clientSecretProp,
+                                auth.tokenProp,
+                                auth.subjectProp,
+                                auth.fixedExpiration,
+                            );
 
                         const promise: Promise<void> = new Promise((resolve: Resolution<void>, reject: Rejection) => {
                             new Resource(auth.publicKey)

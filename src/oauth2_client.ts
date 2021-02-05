@@ -3,6 +3,7 @@ import { Rejection, Resolution } from './types';
 import needle, { NeedleHttpVerbs, NeedleResponse } from 'needle';
 
 import { JWT } from './jwt';
+import { NameValue } from '../src';
 import crypto from 'crypto';
 
 interface PKCE {
@@ -40,11 +41,11 @@ const POST: NeedleHttpVerbs = 'post';
 const RETURNED: string = 'Server returned: ';
 export const INVALID_RESPONSE: string = 'Invalid Server Response';
 const AUTH: string = '/auth';
-const TOKEN: string = '/token';
 const ACCESS_TOKEN: string = 'access_token';
 const CODE: string = 'code';
 const PARAMS_REFRESH_TOKEN: string = 'grant_type=refresh_token&client_id={0}&refresh_token={1}';
-const PARAMS_CLIENT_CREDENTIALS: string = 'grant_type=client_credentials&client_id={0}&client_secret={1}&scope=SCOPE1';
+const CLIENT_CREDENTIALS_TEMPLATE: string =
+    'grant_type=client_credentials&client_id={0}&client_secret={1}&scope=SCOPE1';
 const PARAM_AUTH_CODE: string = 'grant_type=authorization_code&code={0}&code_verifier={1}&client_id={2}';
 const PARAMS_CODE: string =
     'response_type=code&client_id={0}&redirect_uri={1}&state=foobar&grant_type=implicit&' +
@@ -55,6 +56,15 @@ export class Oauth2Client {
     private accessToken: JWT;
     private refreshToken: JWT;
     private publicKey: string;
+    private tokenEndpoint: string;
+    private paramsClientCredentials: string;
+    private tokenProperty: string[] = [ACCESS_TOKEN];
+    private subjectProperty: string;
+    private fixedExpiration: number;
+
+    constructor() {
+        this.paramsClientCredentials = CLIENT_CREDENTIALS_TEMPLATE;
+    }
 
     private base64URLEncode(buff: Buffer): string {
         return buff.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -96,16 +106,29 @@ export class Oauth2Client {
     private async authenticateClient(): Promise<JWT> {
         return new Promise((resolve: Resolution<JWT>, reject: Rejection): void => {
             const c: ClientCredentials = this.credentials as ClientCredentials;
-            needle(POST, c.serverURI + TOKEN, PARAMS_CLIENT_CREDENTIALS.format(c.clientId, c.clientSecret), {
-                parse: false,
-            })
+            needle(
+                POST,
+                c.serverURI + this.tokenEndpoint,
+                this.paramsClientCredentials.format(c.clientId, c.clientSecret),
+                {
+                    parse: false,
+                },
+            )
                 .then((r: NeedleResponse) => {
-                    if (!r.body || r.body.toString().indexOf(ACCESS_TOKEN) === -1) {
+                    if (!r.body || r.body.toString().indexOf(this.tokenProperty.last()) === -1) {
                         reject(this.getError(r.body));
                     } else {
                         try {
-                            const response: Response = JSON.parse(r.body.toString());
-                            this.accessToken = new JWT(response.access_token, this.publicKey);
+                            let response: NameValue = JSON.parse(r.body.toString());
+
+                            this.tokenProperty.forEach((prop: string) => {
+                                response = response[prop] as NameValue;
+                            });
+
+                            this.accessToken = new JWT((response as unknown) as string, this.publicKey)
+                                .setSubjectFromPath(this.subjectProperty)
+                                .setExpiration(this.fixedExpiration);
+
                             resolve(this.accessToken);
                         } catch (e) {
                             reject(this.getError(r.body));
@@ -134,7 +157,7 @@ export class Oauth2Client {
                     } else {
                         needle(
                             POST,
-                            c.serverURI + TOKEN,
+                            c.serverURI + this.tokenEndpoint,
                             PARAM_AUTH_CODE.format(
                                 encodeURIComponent(JSON.parse(r.body.toString()).code),
                                 pkce.verifier,
@@ -182,7 +205,7 @@ export class Oauth2Client {
                 if (this.refreshToken) {
                     needle(
                         POST,
-                        this.credentials.serverURI + TOKEN,
+                        this.credentials.serverURI + this.tokenEndpoint,
                         PARAMS_REFRESH_TOKEN.format(this.refreshToken.clientId, this.refreshToken.toString()),
                         { parse: false },
                     )
@@ -225,7 +248,28 @@ export class Oauth2Client {
         return this;
     }
 
-    public setClient(clientId: string, clientSecret: string, serverURI: string): Oauth2Client {
+    public setCustomArgs(
+        clientIdProp: string,
+        clientSecretProp: string,
+        tokenResponsePath: string,
+        subjectProp: string,
+        fixedExpiration: number,
+    ): Oauth2Client {
+        this.tokenProperty = tokenResponsePath ? tokenResponsePath.split('.') : this.tokenProperty;
+        this.subjectProperty = subjectProp;
+        this.fixedExpiration = fixedExpiration;
+        if (clientIdProp) {
+            this.paramsClientCredentials = this.paramsClientCredentials.replace('client_id', clientIdProp);
+        }
+        if (clientSecretProp) {
+            this.paramsClientCredentials = this.paramsClientCredentials.replace('client_secret', clientSecretProp);
+        }
+
+        return this;
+    }
+
+    public setClient(clientId: string, clientSecret: string, serverURI: string, tokenEndpoint: string): Oauth2Client {
+        this.tokenEndpoint = tokenEndpoint?.firstChar() === '/' ? tokenEndpoint : '/'.concat(tokenEndpoint);
         this.credentials = {
             clientId: clientId,
             clientSecret: clientSecret,
@@ -238,9 +282,11 @@ export class Oauth2Client {
         clientId: string,
         username: string,
         password: string,
-        serverURI?: string,
+        serverURI: string,
+        tokenEndpoint: string,
         callbackURI?: string,
     ): Oauth2Client {
+        this.tokenEndpoint = tokenEndpoint?.firstChar() === '/' ? tokenEndpoint : '/'.concat(tokenEndpoint);
         this.credentials = {
             clientId: clientId,
             username: username,

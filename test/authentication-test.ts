@@ -16,6 +16,7 @@ describe('Oauth2Client', () => {
             'the_user',
             'wrongPass',
             `${LOCALHOST}:${mockServers.okServer.port}`,
+            'token',
             `${LOCALHOST}:${mockServers.callback.port}/callback`,
         );
         wrongUserAuth
@@ -34,6 +35,7 @@ describe('Oauth2Client', () => {
             'the_system',
             'wrongSecret',
             `${LOCALHOST}:${mockServers.okServer.port}`,
+            'token',
         );
         wrongClientAuth
             .getBearerToken()
@@ -52,6 +54,7 @@ describe('Oauth2Client', () => {
         'the_user',
         'th3_p@55w0rd',
         `${LOCALHOST}:${mockServers.okServer.port}`,
+        'token',
         `${LOCALHOST}:${mockServers.callback.port}/callback`,
     );
     let userToken: string;
@@ -80,6 +83,7 @@ describe('Oauth2Client', () => {
         'the_system',
         'th3_s3cr37',
         `${LOCALHOST}:${mockServers.okServer.port}`,
+        'token',
     );
     let clientToken: string;
     it('Should authenticate Client', (done: Done) => {
@@ -104,6 +108,7 @@ describe('Oauth2Client', () => {
         'the_user',
         'th3_p@55w0rd',
         `${LOCALHOST}:${mockServers.distrustfulServer.port}`,
+        'token',
         `${LOCALHOST}:${mockServers.callback.port}/callback`,
     );
     let userToken2: string;
@@ -124,6 +129,7 @@ describe('Oauth2Client', () => {
         'the_user',
         'th3_p@55w0rd',
         `${LOCALHOST}:${mockServers.trollServer.port}`,
+        'token',
         `${LOCALHOST}:${mockServers.callback.port}/callback`,
     );
     const failRefresh2: Oauth2Client = new Oauth2Client().setUser(
@@ -131,6 +137,7 @@ describe('Oauth2Client', () => {
         'the_user',
         'th3_p@55w0rd',
         `${LOCALHOST}:${mockServers.drunkServer.port}`,
+        'token',
         `${LOCALHOST}:${mockServers.callback.port}/callback`,
     );
 
@@ -200,7 +207,7 @@ describe('Oauth2Client', () => {
 
     it('Should gracefully deal with malformed responses upon client Oauth2Client', (done: Done) => {
         new Oauth2Client()
-            .setClient('solo', 'whatever', `${LOCALHOST}:${mockServers.crazyServer.port}`)
+            .setClient('solo', 'whatever', `${LOCALHOST}:${mockServers.crazyServer.port}`, 'token')
             .getBearerToken()
             .then(() => {
                 expect(true, 'should never succeed').to.be.false;
@@ -218,6 +225,7 @@ describe('Oauth2Client', () => {
                 'the_user2',
                 'th3_p@55w0rd',
                 `${LOCALHOST}:${mockServers.okServer.port}`,
+                'token',
                 `${LOCALHOST}:${mockServers.callback.port}/callback`,
             )
             .getBearerToken()
@@ -232,7 +240,7 @@ describe('Oauth2Client', () => {
 
     it('Should gracefully deal with invalid responses upon client Oauth2Client', (done: Done) => {
         new Oauth2Client()
-            .setClient('jinn', 'neverMind', `${LOCALHOST}:${mockServers.crazyServer.port}`)
+            .setClient('jinn', 'neverMind', `${LOCALHOST}:${mockServers.crazyServer.port}`, 'token')
             .getBearerToken()
             .then(() => {
                 expect(true, 'should never succeed').to.be.false;
@@ -245,7 +253,7 @@ describe('Oauth2Client', () => {
 
     it('Should gracefully deal with malformed successes upon client Oauth2Client', (done: Done) => {
         new Oauth2Client()
-            .setClient('nobody', 'neverMind', `${LOCALHOST}:${mockServers.crazyServer.port}`)
+            .setClient('nobody', 'neverMind', `${LOCALHOST}:${mockServers.crazyServer.port}`, 'token')
             .getBearerToken()
             .then(() => {
                 expect(true, 'should never succeed').to.be.false;
@@ -263,6 +271,7 @@ describe('Oauth2Client', () => {
                 'the_user',
                 'th3_p@55w0rd',
                 `${LOCALHOST}:${mockServers.senileServer.port}`,
+                'token',
                 `${LOCALHOST}:${mockServers.callback.port}/callback`,
             )
             .getBearerToken()
@@ -282,6 +291,7 @@ describe('Oauth2Client', () => {
                 'the_user',
                 'th3_p@55w0rd',
                 `${LOCALHOST}:${mockServers.senileServer.port}`,
+                'token',
                 `${LOCALHOST}:${mockServers.callback.port}/callback`,
             )
             .getBearerToken()
@@ -296,7 +306,7 @@ describe('Oauth2Client', () => {
 
     it('Should gracefully deal with malformed client bearer tokens', (done: Done) => {
         new Oauth2Client()
-            .setClient('the_system', 'th3_s3cr37', `${LOCALHOST}:${mockServers.deceitfulServer.port}`)
+            .setClient('the_system', 'th3_s3cr37', `${LOCALHOST}:${mockServers.deceitfulServer.port}`, 'token')
             .getBearerToken()
             .then(() => {
                 expect(true, 'should never succeed').to.be.false;
@@ -314,6 +324,7 @@ describe('Oauth2Client', () => {
                 'the_user',
                 'th3_p@55w0rd',
                 `${LOCALHOST}:${mockServers.deceitfulServer.port}`,
+                'token',
                 `${LOCALHOST}:${mockServers.callback.port}/callback`,
             )
             .getBearerToken()
@@ -331,6 +342,7 @@ describe('Oauth2Client', () => {
             'the_system',
             'wrongSecret',
             `${LOCALHOST}:9000`, // non-existent
+            'token',
         );
         offlineClientAuth
             .getBearerToken()
@@ -350,6 +362,7 @@ describe('Oauth2Client', () => {
             'the_user',
             'wrongPass',
             `${LOCALHOST}:9000`, // non-existent
+            'token',
             `${LOCALHOST}:${mockServers.callback.port}/callback`,
         );
         offlineUserAuth

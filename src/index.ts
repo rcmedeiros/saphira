@@ -281,7 +281,7 @@ export class Saphira {
             let key: Key;
 
             try {
-                key = sshpk.parseKey(Vault.getInstance().get(JWT_KEY) as string, 'auto');
+                key = sshpk.parseKey(k, 'auto');
             } catch {
                 return undefined;
             }
@@ -573,4 +573,5 @@ export {
     envVarAsBoolean,
     HttpStatusCode,
     JWT,
+    MimeType,
 };

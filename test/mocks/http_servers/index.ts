@@ -228,6 +228,41 @@ mockServers.fakeOauth2 = {
     },
 };
 
+const CUSTOM_TOKEN: string =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJob3NwaXRhbCI6eyJkb2N1bWVudHMiOnsiY25waiI6IjYwOTIyMTY4MDAwNzcxIn0sImV4cGlyYXRpb24iOjMwMCwidXJsIjoiaHR0cHM6Ly9kZXYub3JjaGVzdHJhdGlvbi5jcm50LmNvbS5ici8iLCJfaWQiOiI1ZDkzYzk0YjhlNDQwZTAwMWM3NGRmYWYiLCJuYW1lIjoiSE9TUElUQUwgU0FOVEEgQ0FUQVJJTkEiLCJhZGRyZXNzIjoiQXYgUGF1bGlzdGEgbjIwMCIsImxvZ28iOiI1ZDkzYzk0YjhlNDQwZTAwMWM3NGRmYWZfbG9nbyIsInVzZS1lcnAiOmZhbHNlLCJjcmVhdGVkQXQiOiIyMDIwLTA4LTIwVDE4OjIyOjUyLjkyN1oiLCJ1cGRhdGVkQXQiOiIyMDIwLTEwLTAxVDE3OjI2OjM1LjMzMloifSwiZW1haWwiOiJzdXBvcnRlQGNhcmVuZXQuY29tLmJyIiwiY29tcGFueUZ1bmN0aW9uIjoiQ2FyZW5ldCIsInBob25lTnVtYmVyIjpudWxsLCJlcnBDb2RlIjpudWxsLCJkZWxldGVkQXQiOm51bGwsImRpc2FsbG93RXhwaXJhdGlvbiI6ZmFsc2UsImdlbmVyYXRlZFBhc3N3b3JkIjpmYWxzZSwiX2lkIjoiNWZlYTNlN2VmMDRhYTkwMDExMGYwNjg1IiwibmFtZSI6ImFkbWluaXN0cmF0b3IiLCJpZFByb2Zpc3Npb25hbCI6ImFkbWluaXN0cmFkb3IiLCJhdXRob3JpemF0aW9uTmFtZSI6bnVsbCwiY3JlYXRlZEF0IjoiMjAyMC0xMi0yOFQyMDoyMjoyMi4xMjBaIiwidXBkYXRlZEF0IjoiMjAyMC0xMi0yOFQyMDoyMjoyMi4xMjBaIiwiX192IjowLCJpc0FkbWluIjp0cnVlLCJhdXRob3JpemF0aW9ucyI6W3sibmFtZSI6ImNoYW5nZV9pY3UiLCJwZXJtaXNzaW9uIjp0cnVlfSx7Im5hbWUiOiJjaGFuZ2Vfc2VuZF9lcnBfdmFsdWVzIiwicGVybWlzc2lvbiI6dHJ1ZX0seyJuYW1lIjoidXNlcl9nZXQiLCJwZXJtaXNzaW9uIjp0cnVlfSx7Im5hbWUiOiJzaWNrYmVkc19nZXRfc29ja2V0IiwicGVybWlzc2lvbiI6ZmFsc2V9LHsibmFtZSI6ImNoYW5nZV91c2VyIiwicGVybWlzc2lvbiI6dHJ1ZX0seyJuYW1lIjoiZGVsZXRlX3VzZXIiLCJwZXJtaXNzaW9uIjp0cnVlfSx7Im5hbWUiOiJzaWNrYmVkc19pbyIsInBlcm1pc3Npb24iOmZhbHNlfSx7Im5hbWUiOiJpY3VzX2dldCIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6InZpdGFsLXNpZ24vZ3JvdXBfZ2V0IiwicGVybWlzc2lvbiI6ZmFsc2V9LHsibmFtZSI6InVzZXJzX2dldCIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6InNlbmRfZXJwX3ZhbGlkYXRpb25fZ2V0IiwicGVybWlzc2lvbiI6dHJ1ZX0seyJuYW1lIjoibW9uaXRvcl9oaXN0b3J5X2dldCIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6InVzZXJfYXV0aG9yaXphdGlvbl9nZXQiLCJwZXJtaXNzaW9uIjp0cnVlfSx7Im5hbWUiOiJzZW5kX2VycCIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6ImNoYW5nZV9wcmVzZXRfYWxhcm1zIiwicGVybWlzc2lvbiI6dHJ1ZX0seyJuYW1lIjoiY2hhbmdlX3BhcmFtc19zZW5kX2VycCIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6InBhcmFtc19zZW5kX2VycF9nZXQiLCJwZXJtaXNzaW9uIjp0cnVlfSx7Im5hbWUiOiJjcmVhdGVfdXNlciIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6InNpY2tiZWRzX2dldCIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6ImFsYXJtc19nZXQiLCJwZXJtaXNzaW9uIjp0cnVlfSx7Im5hbWUiOiJjaGFuZ2VfYWxhcm1zX3ZhbHVlcyIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6ImdldF9wYXRpZW50IiwicGVybWlzc2lvbiI6dHJ1ZX0seyJuYW1lIjoidXNlci1sb2dzX2dldCIsInBlcm1pc3Npb24iOnRydWV9LHsibmFtZSI6Imhvc3BpdGFsX3VwZGF0ZSIsInBlcm1pc3Npb24iOmZhbHNlfSx7Im5hbWUiOiJ2aXRhbC1zaWduIiwicGVybWlzc2lvbiI6dHJ1ZX0seyJuYW1lIjoicHVsbW9uYXJ5LXZlbnRpbGF0b3IiLCJwZXJtaXNzaW9uIjp0cnVlfSx7Im5hbWUiOiJzaWNrYmVkX2dldCIsInBlcm1pc3Npb24iOnRydWV9XSwiaWF0IjoxNjExOTIxODI2fQ.-tlu7solZQMcuX8OSkN3XkoiDaRMkNkDvxM9XCP4VwM';
+mockServers.fakeCustomOauth = {
+    get: {
+        '/': (req: Request, res: Response): void => {
+            if (req.header('authorization') === 'Bearer '.concat(CUSTOM_TOKEN)) {
+                res.sendStatus(200);
+            } else {
+                res.sendStatus(401);
+            }
+        },
+    },
+    post: {
+        login: (req: Request, res: Response): void => {
+            let alright: boolean = req.body?.idClient === 'custom_sys';
+            alright = alright && req.body?.password === 'cu570m_s3cr37';
+
+            if (!alright) {
+                res.sendStatus(400);
+            } else {
+                res.send({
+                    response: {
+                        data: {
+                            bearerToken: CUSTOM_TOKEN,
+                        },
+                    },
+                });
+            }
+        },
+        someCall: (_req: Request, res: Response): void => {
+            res.sendStatus(200);
+        },
+    },
+};
+
 export const RESOURCE_FILE: string = 'test/mocks/http_servers/file_to_load.txt';
 mockServers.resourceText = {
     get: {

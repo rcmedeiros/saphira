@@ -18,6 +18,10 @@ export class Vault {
         return this.properties[name];
     }
 
+    public delete(name: string): void {
+        delete this.properties[name];
+    }
+
     public set(name: string, value: unknown): Vault {
         this.properties[name] = value;
         return this;

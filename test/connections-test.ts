@@ -12,67 +12,69 @@ import request from 'superagent';
 
 chai.use(chaiHttp);
 
-process.env.NODE_ENV = 'test';
-process.env.WEB_SERVER = `{"host": "${LOCALHOST}:${mockServers.restServer.port}"}`;
+describe('Web Server test', () => {
+    process.env.NODE_ENV = 'test';
+    process.env.WEB_SERVER = `{"host": "${LOCALHOST}:${mockServers.restServer.port}"}`;
 
-const options: SaphiraOptions = {
-    port: 4321,
-    adapters: {
-        webServices: [
-            {
-                // test default name
-                envVar: 'WEB_SERVER',
-                healthCheckEndpoint: '/health-check',
-                parameters: {
-                    revenant: 4,
+    const options: SaphiraOptions = {
+        port: 4321,
+        adapters: {
+            webServices: [
+                {
+                    // test default name
+                    envVar: 'WEB_SERVER',
+                    healthCheckEndpoint: '/health-check',
+                    parameters: {
+                        revenant: 4,
+                    },
                 },
-            },
-            {
-                name: WEB_ID,
-                envVar: 'WEB_SERVER',
-                healthCheckEndpoint: '/health-check',
-                parameters: {
-                    revenant: 4,
+                {
+                    name: WEB_ID,
+                    envVar: 'WEB_SERVER',
+                    healthCheckEndpoint: '/health-check',
+                    parameters: {
+                        revenant: 4,
+                    },
                 },
-            },
-        ],
-    },
-};
+            ],
+        },
+    };
 
-const server: Saphira = new Saphira([ConnectionWebServer], options);
+    const server: Saphira = new Saphira([ConnectionWebServer], options);
 
-before((done: Done) => {
-    server.listen().then(() => {
-        done();
-    }, done);
-});
-
-after((done: Done) => {
-    if (server) {
-        server.close().then(() => {
+    before((done: Done) => {
+        server.listen().then(() => {
             done();
         }, done);
-    } else {
-        done();
-    }
-});
-
-const call: (operation: string) => Promise<[string, unknown]> = async (operation: string): Promise<[string, unknown]> =>
-    new Promise((resolve: Resolution<[string, unknown]>, reject: Rejection): void => {
-        chai.request(`http://127.0.0.1:${options.port}`)
-            .get(operation)
-            .end(async (err: Error, res: request.Response) => {
-                if (err) {
-                    reject(err);
-                } else if (res.status < HttpStatusCode.OK || res.status > HttpStatusCode.PARTIAL_CONTENT) {
-                    reject(new Error(`Status code: ${res.status}`));
-                } else {
-                    resolve([operation, res.body]);
-                }
-            });
     });
 
-describe('Web Server test', () => {
+    after((done: Done) => {
+        if (server) {
+            server.close().then(() => {
+                done();
+            }, done);
+        } else {
+            done();
+        }
+    });
+
+    const call: (operation: string) => Promise<[string, unknown]> = async (
+        operation: string,
+    ): Promise<[string, unknown]> =>
+        new Promise((resolve: Resolution<[string, unknown]>, reject: Rejection): void => {
+            chai.request(`http://127.0.0.1:${options.port}`)
+                .get(operation)
+                .end(async (err: Error, res: request.Response) => {
+                    if (err) {
+                        reject(err);
+                    } else if (res.status < HttpStatusCode.OK || res.status > HttpStatusCode.PARTIAL_CONTENT) {
+                        reject(new Error(`Status code: ${res.status}`));
+                    } else {
+                        resolve([operation, res.body]);
+                    }
+                });
+        });
+
     it('Should connect to Webserver', (done: Done) => {
         const promises: Array<Promise<[string, unknown]>> = [
             call(ENDPOINT_HEALTH_CHECK),
