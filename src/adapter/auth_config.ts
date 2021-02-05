@@ -1,7 +1,7 @@
 import { Config } from './config';
 
 export interface AuthConfig extends Config {
-    clientId: string;
+    clientId?: string;
     clientSecret?: string;
     serverURI?: string;
     tokenEndpoint?: string;
