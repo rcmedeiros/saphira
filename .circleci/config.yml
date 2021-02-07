@@ -368,6 +368,7 @@ workflows:
           requires:
             - dependencies
             - dev_dependencies
+            - stamp
           filters:
             branches:
               only: develop
@@ -430,6 +431,7 @@ workflows:
             - dependencies
             - dev_dependencies
             - audit_dependencies
+            - stamp
           filters:
             branches:
               only:
@@ -546,6 +548,7 @@ workflows:
           requires:
             - dependencies
             - dev_dependencies
+            - stamp
           filters:
             branches:
               ignore:
@@ -556,6 +559,7 @@ workflows:
           requires:
             - dependencies
             - dev_dependencies
+            - stamp
           filters:
             branches:
               ignore:
