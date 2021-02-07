@@ -2,7 +2,7 @@ import { JWT_CLOCK_TOLERANCE, JWT_KEY, JWT_OPTS } from './constants/settings';
 import { VerifyOptions, decode, verify } from 'jsonwebtoken';
 
 import { ForbiddenError } from './errors/forbidden-error';
-import { NameValue } from '../src';
+import { NameValue } from './';
 import { ServerError } from './errors/server-error';
 import { UnauthorizedError } from './errors/unauthorized-error';
 import { Vault } from './vault';

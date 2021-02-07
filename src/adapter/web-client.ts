@@ -2,7 +2,7 @@ import { NameValue, Rejection, Resolution } from '../types';
 import needle, { NeedleHttpVerbs, NeedleOptions, NeedleResponse } from 'needle';
 
 import { Connection } from './connection';
-import { ENDPOINT_HEALTH_CHECK } from '../../src/constants/settings';
+import { ENDPOINT_HEALTH_CHECK } from '../constants/settings';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { JWT } from '../jwt';
 import { Oauth2Client } from '../oauth2_client';

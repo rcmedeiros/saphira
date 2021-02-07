@@ -3,7 +3,7 @@ import { Rejection, Resolution } from './types';
 import needle, { NeedleHttpVerbs, NeedleResponse } from 'needle';
 
 import { JWT } from './jwt';
-import { NameValue } from '../src';
+import { NameValue } from './';
 import crypto from 'crypto';
 
 interface PKCE {
