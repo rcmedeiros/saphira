@@ -170,7 +170,7 @@ jobs:
           name: Run Tests!
           command: |
             ./node_modules/.bin/nyc ./node_modules/.bin/mocha \
-            --require ts-node/register --check-leaks --timeout 300 \
+            --require ts-node/register --check-leaks --timeout 600 \
             --recursive -exit test/*-test.ts --reporter mocha-junit-reporter \
             --reporter-options mochaFile=reports/mocha/test-results.xml &&\
             mkdir coverage &&\
