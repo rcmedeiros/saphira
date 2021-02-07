@@ -41,7 +41,7 @@ describe('JWT Protected Server', () => {
                     name: SELF_REQUEST,
                     envVar: SELF_REQUEST,
                     healthCheckEndpoint: '',
-                    independent: true,
+                    required: false,
                 },
             ],
         },

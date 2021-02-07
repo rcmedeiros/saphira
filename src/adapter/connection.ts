@@ -21,7 +21,7 @@ export class Connection {
     // private readonly cloudMetrics: CloudMetrics;
     private _lastSuccess: Date;
     private _lastError: Error;
-    private _isIndependent: boolean = false;
+    private _isRequired: boolean = true;
     protected readonly name: string;
 
     constructor(name: string) {
@@ -70,11 +70,11 @@ export class Connection {
         return this._lastError;
     }
 
-    public get isIndependent(): boolean {
-        return this._isIndependent;
+    public get isRequired(): boolean {
+        return this._isRequired;
     }
 
-    public set isIndependent(v: boolean) {
-        this._isIndependent = v;
+    public set isRequired(v: boolean) {
+        this._isRequired = v;
     }
 }

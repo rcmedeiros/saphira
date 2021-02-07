@@ -43,7 +43,7 @@ export class AdaptersManager {
                     const cfg: AuthConfig = parseJson(process.env[auth.envVar]) as AuthConfig;
                     if (cfg) {
                         auth = { ...auth, ...cfg };
-                        name.push([auth.name, auth.serverURI, auth.independent]);
+                        name.push([auth.name, auth.serverURI, auth.required]);
 
                         const client: Oauth2Client = new Oauth2Client()
                             .setClient(auth.clientId, auth.clientSecret, auth.serverURI, auth.tokenEndpoint)
@@ -91,7 +91,7 @@ export class AdaptersManager {
                                   // host: process.env[webServer.envVar],
                                   host: new URL(process.env[webServer.envVar]).toString(),
                                   healthCheckEndpoint: '',
-                                  independent: true,
+                                  required: false,
                               });
                     if (cfg) {
                         webServer = {
@@ -101,7 +101,7 @@ export class AdaptersManager {
                         };
                         webServer.host =
                             webServer.host.lastChar() === '/' ? webServer.host.substringUpToLast('/') : webServer.host;
-                        name.push([webServer.name || 'Web Server', webServer.host, webServer.independent]);
+                        name.push([webServer.name || 'Web Server', webServer.host, webServer.required]);
                         const c: WebConnection = Adapters.setupWebConnection(webServer, webServer.name);
                         if (webServer.systemAuth) {
                             c.setOauth2Client(this.oauth2Clients[webServer.systemAuth]);
@@ -121,7 +121,7 @@ export class AdaptersManager {
             result.data[name[i][0]] = { '': name[i][1], status: 'OK' };
             if (e) {
                 (result.data[name[i][0]] as { status: string }).status = e.code || e.name;
-                result.success = name[i][2] ? result.success : false;
+                result.success = !name[i][2] ? result.success : false;
             }
         });
 

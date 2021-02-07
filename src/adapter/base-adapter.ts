@@ -2,8 +2,8 @@ export interface BaseAdapter {
     lastSuccess: Date;
     lastError: Error;
     isConnected: boolean;
-    /** Independent connections, whe offline, doesn't influence the server's health */
-    isIndependent: boolean;
+    /** Required connections, whe offline, influence the server's health */
+    isRequired: boolean;
     connect(): Promise<void>;
     terminate(): Promise<void>;
 }
