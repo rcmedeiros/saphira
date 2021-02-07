@@ -183,7 +183,9 @@ jobs:
             ./.circleci/install_sonar-scanner.sh
       - run:
           name: Stamp version
-          command: node ./.circleci/replace.js json-to-prop package.json version sonar-project.properties sonar.projectVersion
+          command: |
+            cat package.json
+            node ./.circleci/replace.js json-to-prop package.json version sonar-project.properties sonar.projectVersion
       - run:
           name: Sonarcloud Scan
           command: |
