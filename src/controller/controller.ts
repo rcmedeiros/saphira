@@ -3,6 +3,7 @@ import '@rcmedeiros/prototypes';
 import { DataTypes, Type } from '../data-types';
 
 import { BadRequestError } from '../errors/bad_request-error';
+import { ConcreteDTO } from '../dto/dto';
 import { JWT } from '../';
 import { PAYLOAD } from '../constants/settings';
 import { Request } from 'express';
@@ -13,6 +14,7 @@ import { v4 } from 'uuid';
 export interface Param {
     name?: string;
     type: Type;
+    dto?: ConcreteDTO;
     required?: boolean;
     path?: boolean;
     ignore?: Array<string>; // FIXME: Fast & lazy solution. Can be calculated.
@@ -239,7 +241,7 @@ export class Controller {
                             resolve({ rejectedByHandler: 'FALSE_PATH_PARAM' });
                         } else {
                             try {
-                                args.push(DataTypes.get(param.type).digest(v));
+                                args.push(DataTypes.get(param.type).digest(v, param.dto));
                                 return true;
                             } catch {
                                 reject(new BadRequestError(`${param.name} should be of type ${param.type}`));

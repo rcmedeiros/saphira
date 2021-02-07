@@ -1,6 +1,11 @@
 import { Saphira } from '../';
 
 export abstract class DTO {
+    constructor(object?: unknown) {
+        if (object) {
+            this.assign(object);
+        }
+    }
     public toJSON(): unknown {
         const serialized: unknown = {};
 
@@ -25,3 +30,5 @@ export abstract class DTO {
 
     public abstract assign(record: unknown): void;
 }
+
+export type ConcreteDTO = new (object?: unknown) => DTO;

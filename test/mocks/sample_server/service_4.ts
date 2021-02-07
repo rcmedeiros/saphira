@@ -7,7 +7,7 @@ export class Service4 extends Controller {
 
         this.route('AnObject', {
             tag: {
-                summary: 'Put an object',
+                summary: 'Post an object',
             },
             method: Method.POST,
             action: this.returnWhateverIsSent,
@@ -20,7 +20,7 @@ export class Service4 extends Controller {
 
         this.route('AnArray', {
             tag: {
-                summary: 'Put an object',
+                summary: 'Post an array of objects',
             },
             method: Method.POST,
             action: this.returnWhateverIsSent,

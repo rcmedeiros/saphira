@@ -1,15 +1,16 @@
+import { ConcreteDTO } from '../dto/dto';
 import { DataType } from './data_type';
 import { InvalidDataTypeError } from '../errors/invalid_data_type-error';
 
 export class ObjectArrayDataType extends DataType {
-    public digest(v: unknown): Array<unknown> {
+    public digest(v: unknown, dto?: ConcreteDTO): Array<unknown> {
         let invalid: boolean = false;
         let result: Array<unknown> = [];
         if (typeof v === 'object' && v.constructor === Array) {
             invalid = !(v as Array<unknown>).every((e: unknown) => {
                 if (typeof e === 'string') {
                     try {
-                        result.push(JSON.parse(e) as unknown);
+                        result.push(JSON.parse(e));
                     } catch {
                         return false;
                     }
@@ -39,6 +40,9 @@ export class ObjectArrayDataType extends DataType {
             invalid = true;
         }
         if (!invalid) {
+            if (dto) {
+                result = result.map((obj: unknown) => new dto(obj));
+            }
             return result;
         }
         throw new InvalidDataTypeError();
