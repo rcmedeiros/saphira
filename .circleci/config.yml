@@ -186,6 +186,7 @@ jobs:
           command: |
             cat package.json
             node ./.circleci/replace.js json-to-prop package.json version sonar-project.properties sonar.projectVersion
+            cat sonar-project.properties
       - run:
           name: Sonarcloud Scan
           command: |
