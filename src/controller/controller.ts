@@ -75,12 +75,10 @@ export class Controller {
     private readonly handlers: { [path: string]: HandlersByMethod } = {};
     private readonly apiPath: string;
     private readonly _tag: ServiceTag;
-    private _restricted: boolean;
 
     constructor(apiPath?: string, tag?: ServiceTag) {
         this.apiPath = apiPath || 'api';
         this._tag = tag;
-        this._restricted = false;
     }
 
     protected route(path: string, handler: Handler): void {
@@ -150,8 +148,6 @@ export class Controller {
                 handler.uuid = v4();
 
                 if (handler.restricted) {
-                    this._restricted = true;
-
                     handler.restricted =
                         typeof handler.restricted !== 'boolean' && !Array.isArray(handler.restricted?.systems)
                             ? { systems: [handler.restricted.systems] }
@@ -171,10 +167,6 @@ export class Controller {
                 throw new Error('The operation and its method must declare the same parameters');
             }
         }
-    }
-
-    public get restricted(): boolean {
-        return this._restricted;
     }
 
     public get paths(): Array<string> {
