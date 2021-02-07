@@ -1,7 +1,7 @@
 // cSpell: ignore abiword freearc msvideo bzip msword openxmlformats officedocument wordprocessingml fontobject epub opendocument appliction
 // cSpell: ignore powerpoint presentationml visio webm webp woff spreadsheetml
 
-export enum MimeType {
+export enum ContentType {
     AAC_audio = 'audio/aac',
     AbiWord_document = 'application/x-abiword',
     Archive_document = 'application/x-freearc',

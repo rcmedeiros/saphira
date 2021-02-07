@@ -38,11 +38,11 @@ import yaml, { DEFAULT_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
+import { ContentType } from './constants/content_types';
 import { DTO } from './dto/dto';
 import { HttpError } from './errors/http-error';
 import { HttpStatusCode } from './constants/http_status_codes';
 import { JWT } from './jwt';
-import { MimeType } from './constants/mime_types';
 import { PagedResult } from './controller/paged_result';
 import { Responder } from './controller/responder';
 import { ServerError } from './errors/server-error';
@@ -173,7 +173,7 @@ export class Saphira {
             }
         }
 
-        response.setHeader('Content-Type', MimeType.JSON_format);
+        response.setHeader('Content-Type', ContentType.JSON_format);
         response.send({
             ...this.info,
             ...{ upSince: this.since.toLocalISOString() },
@@ -422,7 +422,7 @@ export class Saphira {
                 schema: DEFAULT_SCHEMA,
             });
             app.use(ENDPOINT_API_SPEC, (_req: Request, res: Response) => {
-                res.setHeader('Content-Type', MimeType.YAML_from_users);
+                res.setHeader('Content-Type', ContentType.YAML_from_users);
                 res.send(spec);
             });
         }
@@ -574,5 +574,5 @@ export {
     envVarAsBoolean,
     HttpStatusCode,
     JWT,
-    MimeType,
+    ContentType,
 };

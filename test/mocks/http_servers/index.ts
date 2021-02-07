@@ -5,8 +5,8 @@ import { Done, after, before, describe, it } from 'mocha';
 import { Rejection, Resolution } from '../../../src';
 import express, { Request as ERequest, Response as EResponse, NextFunction } from 'express';
 
+import { ContentType } from '../../../src/constants/content_types';
 import { ENDPOINT_HEALTH_CHECK } from '../../../src/constants/settings';
-import { MimeType } from '../../../src/constants/mime_types';
 import { Server } from 'http';
 // cSpell: ignore listofacil
 import bodyParser from 'body-parser';
@@ -223,7 +223,7 @@ mockServers.fakeOauth2 = {
             res.sendStatus(200);
         },
         key: (_req: Request, res: Response): void => {
-            res.setHeader('content-type', MimeType.Text);
+            res.setHeader('content-type', ContentType.Text);
             res.send(PUBLIC_KEY);
         },
     },
@@ -271,7 +271,7 @@ mockServers.resourceText = {
             res.sendStatus(200);
         },
         text: (_req: Request, res: Response): void => {
-            res.setHeader('content-type', MimeType.Text);
+            res.setHeader('content-type', ContentType.Text);
             res.send(fs.readFileSync('test/mocks/http_servers/file_to_load.txt').toString());
         },
     },

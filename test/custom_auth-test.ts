@@ -1,7 +1,7 @@
 import '@rcmedeiros/prototypes';
 
+import { ContentType, HttpStatusCode, Saphira, Vault } from '../src';
 import { Done, after, before, describe, it } from 'mocha';
-import { HttpStatusCode, MimeType, Saphira, Vault } from '../src';
 import { LOCALHOST, mockServers } from './mocks/http_servers';
 import { SECURE_SERVER_POST, ServiceCaller } from './mocks/sample_server/service_caller';
 import chai, { expect } from 'chai';
@@ -63,7 +63,7 @@ describe('Custom Oauth Token Server', () => {
     it('Should call', (done: Done) => {
         chai.request(`${LOCALHOST}:${SERVER_PORT}`)
             .post(SECURE_SERVER_POST)
-            .set('content-type', MimeType.JSON_format)
+            .set('content-type', ContentType.JSON_format)
             .send(
                 JSON.stringify({
                     service: 'SOME_SERVICE',

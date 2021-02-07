@@ -1,15 +1,15 @@
-import { MimeType } from './constants/mime_types';
+import { ContentType } from './constants/content_types';
 
 export class FileBuffer {
     private readonly _buffer: Buffer;
     private readonly _fileName: string;
-    private readonly _contentType: Array<MimeType>;
+    private readonly _contentType: Array<ContentType>;
 
-    constructor(buffer: Buffer, fileName: string, contentType?: MimeType | Array<MimeType>) {
+    constructor(buffer: Buffer, fileName: string, contentType?: ContentType | Array<ContentType>) {
         this._buffer = buffer;
         this._fileName = fileName;
         this._contentType = !contentType
-            ? [MimeType.Any_kind_of_binary_data]
+            ? [ContentType.Any_kind_of_binary_data]
             : Array.isArray(contentType)
             ? contentType
             : [contentType];
