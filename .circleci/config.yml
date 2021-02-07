@@ -148,6 +148,8 @@ jobs:
       NODE_ENV: test
     steps:
       - checkout
+      - attach_workspace:
+          at: ./
       - restore_cache:
           name: Restore Development Dependencies
           key: dev_dependencies-{{ checksum "package-lock.json" }}
