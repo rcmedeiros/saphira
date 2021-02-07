@@ -176,7 +176,8 @@ export class Saphira {
         response.setHeader('Content-Type', MimeType.JSON_format);
         response.send({
             ...this.info,
-            ...{ since: this.since.toLocalISOString() },
+            ...{ upSince: this.since.toLocalISOString() },
+            ...{ upTime: this.since.period() },
             ...{ connections: Adapters.status() },
         });
     }
