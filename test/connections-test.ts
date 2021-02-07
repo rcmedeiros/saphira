@@ -23,7 +23,6 @@ describe('Web Server test', () => {
                 {
                     // test default name
                     envVar: 'WEB_SERVER',
-                    healthCheckEndpoint: '/health-check',
                     parameters: {
                         revenant: 4,
                     },
@@ -31,7 +30,6 @@ describe('Web Server test', () => {
                 {
                     name: WEB_ID,
                     envVar: 'WEB_SERVER',
-                    healthCheckEndpoint: '/health-check',
                     parameters: {
                         revenant: 4,
                     },
@@ -140,7 +138,6 @@ describe('Starting server with missing environment variable', () => {
                 webServices: [
                     {
                         envVar: 'WEB_SERVER2',
-                        healthCheckEndpoint: '/health-check',
                     },
                 ],
             },
@@ -162,7 +159,6 @@ describe('Starting server with missing environment variable', () => {
                 webServices: [
                     {
                         envVar: 'WEB_SERVER2',
-                        healthCheckEndpoint: '/health-check',
                     },
                     'WEB_SERVER3',
                 ],

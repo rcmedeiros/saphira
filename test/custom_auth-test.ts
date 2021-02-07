@@ -30,7 +30,7 @@ describe('Custom Oauth Token Server', () => {
                     tokenEndpoint: 'login',
                 },
             ],
-            webServices: [{ envVar: 'SOME_SERVICE', healthCheckEndpoint: '/' }],
+            webServices: [{ envVar: 'SOME_SERVICE' }],
         },
     });
 
@@ -45,7 +45,6 @@ describe('Custom Oauth Token Server', () => {
         process.env.SOME_SERVICE = JSON.stringify({
             name: 'SOME_SERVICE',
             host: `${LOCALHOST}:${mockServers.fakeCustomOauth.port}`,
-            healthCheckEndpoint: '',
             systemAuth: 'OAUTH2_CUSTOM_CLIENT',
         });
         somebodyElsesJwtKey = vault.get(JWT_KEY) as string;

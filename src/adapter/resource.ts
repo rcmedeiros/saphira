@@ -23,7 +23,6 @@ export class Resource {
             } else if (this._resource.startsWith('http')) {
                 const c: WebClient = new WebClient(Resource.name, {
                     host: this._resource,
-                    healthCheckEndpoint: undefined,
                     envVar: undefined,
                 });
                 const r: WebResponse = await c.get();

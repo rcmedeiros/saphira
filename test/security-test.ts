@@ -36,12 +36,10 @@ describe('JWT Protected Server', () => {
                 },
             ],
             webServices: [
-                { envVar: 'OAUTH2_SERVER', healthCheckEndpoint: '' },
+                { envVar: 'OAUTH2_SERVER' },
                 {
                     name: SELF_REQUEST,
                     envVar: SELF_REQUEST,
-                    healthCheckEndpoint: '',
-                    required: false,
                 },
             ],
         },
@@ -64,7 +62,6 @@ describe('JWT Protected Server', () => {
         server.listen().then(() => {
             process.env.OAUTH2_SERVER = JSON.stringify({
                 host: `${LOCALHOST}:${mockServers.fakeOauth2.port}`,
-                healthCheckEndpoint: '',
             });
             server2.listen().then(() => {
                 delete process.env.OAUTH2_SERVER;

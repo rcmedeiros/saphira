@@ -3,7 +3,7 @@ import { NameValue } from '../types';
 import { WebOptions } from './web-options';
 
 export interface WebConfig extends Config {
-    healthCheckEndpoint: string;
+    healthCheckEndpoint?: string;
     host?: string;
     parameters?: NameValue;
     webOptions?: WebOptions;

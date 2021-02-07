@@ -5,6 +5,7 @@ import { Done, after, before, describe, it } from 'mocha';
 import { Rejection, Resolution } from '../../../src';
 import express, { Request as ERequest, Response as EResponse, NextFunction } from 'express';
 
+import { ENDPOINT_HEALTH_CHECK } from '../../../src/constants/settings';
 import { MimeType } from '../../../src/constants/mime_types';
 import { Server } from 'http';
 // cSpell: ignore listofacil
@@ -293,7 +294,7 @@ const start: (mock: MockServer) => Promise<Server> = async (mock: MockServer): P
             mock.app.use(bodyParser.urlencoded({ extended: false }));
             mock.app.set('port', mock.port);
 
-            mock.app.get('/health-check', (_req: Request, res: Response): void => {
+            mock.app.get(ENDPOINT_HEALTH_CHECK, (_req: Request, res: Response): void => {
                 res.sendStatus(200);
             });
 

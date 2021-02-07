@@ -2,6 +2,7 @@ import { NameValue, Rejection, Resolution } from '../types';
 import needle, { NeedleHttpVerbs, NeedleOptions, NeedleResponse } from 'needle';
 
 import { Connection } from './connection';
+import { ENDPOINT_HEALTH_CHECK } from '../../src/constants/settings';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { JWT } from '../jwt';
 import { Oauth2Client } from '../oauth2_client';
@@ -105,7 +106,10 @@ export class WebClient extends Connection implements WebConnection {
             new Promise(
                 async (resolve: Resolution<void>, reject: Rejection): Promise<void> => {
                     try {
-                        const r: WebResponse = await this.request(GET, this._config.healthCheckEndpoint);
+                        const r: WebResponse = await this.request(
+                            GET,
+                            this._config.healthCheckEndpoint || ENDPOINT_HEALTH_CHECK,
+                        );
                         if (r.statusCode >= HttpStatusCode.OK && r.statusCode < HttpStatusCode.PARTIAL_CONTENT) {
                             this._connected = true;
                             resolve();
