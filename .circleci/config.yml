@@ -97,7 +97,9 @@ jobs:
           command: npm i snyk@latest
       - run:
           name: Audit with Snyk
-          command: ./node_modules/.bin/snyk test
+          command: |
+            ./node_modules/.bin/snyk config set api=$SNYK_API
+            ./node_modules/.bin/snyk test
 
   build:
     parameters:
