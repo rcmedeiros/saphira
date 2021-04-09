@@ -4,9 +4,9 @@
     "plugins": ["@typescript-eslint", "no-null"],
     "extends": [
         "plugin:@typescript-eslint/recommended",
-        "prettier/@typescript-eslint",
         "plugin:@typescript-eslint/recommended",
-        "plugin:prettier/recommended"
+        "plugin:prettier/recommended",
+        "prettier"
     ],
     "rules": {
         "indent": "off",
