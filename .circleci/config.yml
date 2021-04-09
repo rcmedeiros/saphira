@@ -86,9 +86,9 @@ jobs:
           key: dependencies-{{ checksum "package-lock.json" }}
       - restore_cache:
           key: dev_dependencies-{{ checksum "package-lock.json" }}
-      - run:
-          name: Check for outdated packages
-          command: npm outdated
+      # - run:
+      #     name: Check for outdated packages
+      #     command: npm outdated
       - run:
           name: Audit with NPM
           command: npm audit
