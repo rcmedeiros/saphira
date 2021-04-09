@@ -31,7 +31,7 @@ import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { NameValue, Rejection, Resolution, StringSet } from './types';
 import bodyParser, { OptionsUrlencoded } from 'body-parser';
 import cert, { CertInfo } from 'cert-info';
-import { envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
+import { decodeJWT, envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
 import express, { Request as ERequest, Response, Router } from 'express';
 import sshpk, { Key } from 'sshpk';
 import yaml, { DEFAULT_SCHEMA, JSON_SCHEMA } from 'js-yaml';
@@ -550,6 +550,7 @@ export class Saphira {
 export {
     BadRequestError,
     Controller,
+    decodeJWT,
     DTO,
     Handler,
     Method,

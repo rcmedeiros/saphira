@@ -1,6 +1,6 @@
 {
   "name": "saphira",
-  "version": "1.0.0-dev",
+  "version": "1.1.0-dev",
   "description": "Simple Opinionated API Framwwork for Microservices",
   "main": "index",
   "scripts": {

@@ -99,7 +99,8 @@ export class Controller {
                 handler.params[0].name = PAYLOAD;
             }
 
-            if ((handler.params !== undefined ? handler.params.length : 0) === handler.action.length) {
+            const paramsLength: number = handler.params !== undefined ? handler.params.length : 0;
+            if ([paramsLength, paramsLength + 1].includes(handler.action.length)) {
                 const paths: Array<string> = [
                     `/${this.apiPath}/${this.constructor.name.charAt(0).toLowerCase()}` +
                         `${this.constructor.name.substring(1)}${
@@ -198,7 +199,7 @@ export class Controller {
             }
 
             if (!route.params) {
-                (route.action.apply(this) as Promise<unknown>).then((result: unknown) => {
+                (route.action.apply(this, [request]) as Promise<unknown>).then((result: unknown) => {
                     resolve(result);
                 }, reject);
             } else {
@@ -242,6 +243,7 @@ export class Controller {
                         }
                     })
                 ) {
+                    args.push(request);
                     (route.action.apply(this, args) as Promise<unknown>).then((result: unknown) => {
                         resolve(result);
                     }, reject);

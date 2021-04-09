@@ -204,6 +204,18 @@ export class Service1 extends Controller {
             params: [{ name: 'id', type: Type.Number, description: 'ID', example: 1 }],
             response: { type: Type.HttpAccepted },
         });
+
+        this.route('withParameterReturnRequest', {
+            method: Method.GET,
+            params: [{ name: 'id', type: Type.Number, description: 'ID', example: 1 }],
+            action: this.withParameterReturnRequest,
+            response: { type: Type.Object },
+        });
+        this.route('withoutParameterReturnRequest', {
+            method: Method.GET,
+            action: this.withoutParameterReturnRequest,
+            response: { type: Type.Object },
+        });
     }
 
     public operation1 = (
@@ -242,4 +254,24 @@ export class Service1 extends Controller {
         Promise.reject(new BadGatewayError('Something wrong. Rejecting.'));
     public willThrowError5 = (_id: number): Promise<void> =>
         Promise.reject(new ServerError(new Error('Something wrong. Rejecting.')));
+
+    public withParameterReturnRequest = (_id: number, request: Request): Promise<Request> => {
+        return Promise.resolve(({
+            body: request.body,
+            query: ((request as unknown) as { query: unknown }).query,
+            headers: request.headers,
+            url: request.url,
+            method: request.method,
+        } as unknown) as Request);
+    };
+
+    public withoutParameterReturnRequest = (request: Request): Promise<Request> => {
+        return Promise.resolve(({
+            body: request.body,
+            query: ((request as unknown) as { query: unknown }).query,
+            headers: request.headers,
+            url: request.url,
+            method: request.method,
+        } as unknown) as Request);
+    };
 }

@@ -23,6 +23,6 @@ export class BadControllerParametersMismatch extends Controller {
         });
     }
 
-    public operation2 = (_a?: unknown, _b?: unknown): Promise<Array<unknown>> =>
+    public operation2 = (_a: unknown, _b: unknown, _request: Request): Promise<Array<unknown>> =>
         Promise.reject(new Error('Should never be possible'));
 }

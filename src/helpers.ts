@@ -1,5 +1,6 @@
+import { NameValue } from './types';
+import { decode } from 'jsonwebtoken';
 import { v4 } from 'uuid';
-
 export const parseJson: (s: string, silent?: boolean) => unknown = (s: string, silent?: boolean): unknown => {
     try {
         return JSON.parse(s);
@@ -22,4 +23,8 @@ export const envVarAsString: (name: string) => string = (name: string): string =
 
 export const envVarAsBoolean: (name: string) => boolean = (name: string): boolean => {
     return ['true', 'TRUE', '1'].includes(envVarAsString(name));
+};
+
+export const decodeJWT: (jwt: string) => NameValue = (jwt: string): NameValue => {
+    return decode(jwt) as NameValue;
 };
