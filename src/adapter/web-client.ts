@@ -40,42 +40,46 @@ export class WebClient extends Connection implements WebConnection {
         this.setHeader('Authorization', `Bearer ${token}`);
     }
 
+    private buildPayload(payload: unknown): unknown {
+        if (typeof payload === 'object') {
+            return this.substitute(payload as NameValue, this._config.parameters);
+        } else if (typeof payload === 'string') {
+            return payload.interpolate(this._config.parameters);
+        } else {
+            return payload;
+        }
+    }
+
     private async request(verb: NeedleHttpVerbs, endpoint: string, payload?: string | unknown): Promise<WebResponse> {
         return this.do(
-            new Promise(
-                async (resolve: Resolution<WebResponse>, reject: Rejection): Promise<void> => {
-                    try {
-                        if (this._oauth2Client) {
-                            await this._oauth2Client.keepFresh();
-                            const jwt: JWT = await this._oauth2Client.getBearerToken();
-                            this.setBearerAuthentication(jwt.toString());
-                        }
-
-                        const options: NeedleOptions = this._config.webOptions as NeedleOptions;
-                        options.headers = {
-                            ...options.headers,
-                            ...{
-                                'Content-Type':
-                                    typeof payload === 'object' ? 'application/json' : 'text/html; charset=utf-8',
-                            },
-                        };
-
-                        const response: NeedleResponse = await needle(
-                            verb,
-                            `${this._config.host}${endpoint}`.interpolate(this._config.parameters),
-                            typeof payload === 'object'
-                                ? this.substitute(payload as NameValue, this._config.parameters)
-                                : typeof payload === 'string'
-                                ? payload.interpolate(this._config.parameters)
-                                : payload,
-                            options,
-                        );
-                        resolve(new WebResponse(response));
-                    } catch (e) {
-                        reject(e);
+            new Promise(async (resolve: Resolution<WebResponse>, reject: Rejection): Promise<void> => {
+                try {
+                    if (this._oauth2Client) {
+                        await this._oauth2Client.keepFresh();
+                        const jwt: JWT = await this._oauth2Client.getBearerToken();
+                        this.setBearerAuthentication(jwt.toString());
                     }
-                },
-            ),
+
+                    const options: NeedleOptions = this._config.webOptions as NeedleOptions;
+                    options.headers = {
+                        ...options.headers,
+                        ...{
+                            'Content-Type':
+                                typeof payload === 'object' ? 'application/json' : 'text/html; charset=utf-8',
+                        },
+                    };
+
+                    const response: NeedleResponse = await needle(
+                        verb,
+                        `${this._config.host}${endpoint}`.interpolate(this._config.parameters),
+                        this.buildPayload(payload),
+                        options,
+                    );
+                    resolve(new WebResponse(response));
+                } catch (e) {
+                    reject(e);
+                }
+            }),
         );
     }
 
@@ -103,27 +107,25 @@ export class WebClient extends Connection implements WebConnection {
 
     public async connect(): Promise<void> {
         return this.do(
-            new Promise(
-                async (resolve: Resolution<void>, reject: Rejection): Promise<void> => {
-                    try {
-                        const r: WebResponse = await this.request(
-                            GET,
-                            this._config.healthCheckEndpoint || ENDPOINT_HEALTH_CHECK,
-                        );
-                        if (r.statusCode >= HttpStatusCode.OK && r.statusCode < HttpStatusCode.PARTIAL_CONTENT) {
-                            this._connected = true;
-                            resolve();
-                        } else {
-                            const e: Error = new Error(`HTTP${r.statusCode}`);
-                            e.name = `HTTP${r.statusCode}`;
-                            reject(e);
-                        }
-                    } catch (e) {
-                        this._connected = false;
+            new Promise(async (resolve: Resolution<void>, reject: Rejection): Promise<void> => {
+                try {
+                    const r: WebResponse = await this.request(
+                        GET,
+                        this._config.healthCheckEndpoint || ENDPOINT_HEALTH_CHECK,
+                    );
+                    if (r.statusCode >= HttpStatusCode.OK && r.statusCode < HttpStatusCode.PARTIAL_CONTENT) {
+                        this._connected = true;
+                        resolve();
+                    } else {
+                        const e: Error = new Error(`HTTP${r.statusCode}`);
+                        e.name = `HTTP${r.statusCode}`;
                         reject(e);
                     }
-                },
-            ),
+                } catch (e) {
+                    this._connected = false;
+                    reject(e);
+                }
+            }),
         );
     }
 
