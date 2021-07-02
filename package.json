@@ -4,8 +4,8 @@
   "description": "Simple Opinionated API Framwwork for Microservices",
   "main": "index",
   "scripts": {
-    "build:dev": "tsc -p tsconfig.json --removeComments false --listFiles false --sourceMap false --inlineSourceMap true --inlineSources true --listEmittedFiles true --declaration true & cp \"package.json\" \"dist/\"",
-    "build:prod": "tsc -p tsconfig.json  --removeComments true --listFiles false --sourceMap false --inlineSourceMap false --inlineSources false --listEmittedFiles true --declaration true & cp \"package.json\" \"dist/\"",
+    "build:dev": "tsc -p tsconfig.json --removeComments false --listFiles false --sourceMap false --inlineSourceMap true --inlineSources true --listEmittedFiles true --declaration true && cp \"package.json\" \"dist/\"",
+    "build:prod": "tsc -p tsconfig.json  --removeComments true --listFiles false --sourceMap false --inlineSourceMap false --inlineSources false --listEmittedFiles true --declaration true && cp \"package.json\" \"dist/\"",
     "audit": "snyk test && npm audit",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",

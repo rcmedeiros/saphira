@@ -119,21 +119,13 @@ jobs:
           steps:
             - run:
                 name: Build for production
-                command:
-                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments true
-                  --listFiles false --sourceMap false --inlineSourceMap false
-                  --inlineSources false --listEmittedFiles false --declaration
-                  true
+                command: npm run build:prod
       - unless:
           condition: << parameters.production >>
           steps:
             - run:
                 name: Build for development
-                command:
-                  ./node_modules/.bin/tsc -p tsconfig.json --removeComments
-                  false --listFiles false --sourceMap false --inlineSourceMap
-                  true --inlineSources true --listEmittedFiles false
-                  --declaration true
+                command: npm run build:dev
       - run: node ./.circleci/stamp_saphira_version.js
       - persist_to_workspace:
           root: ./
@@ -237,7 +229,7 @@ jobs:
             - run:
                 name: Get release tag
                 command: |
-                  echo "v$(cat package.json | jq -r '.version' | cut -f1 -d'-')" > .circleci/.release
+                  echo "v$(cat dist/package.json | jq -r '.version' | cut -f1 -d'-')" > .circleci/.release
       - when:
           condition: << parameters.release_branch >>
           steps:
