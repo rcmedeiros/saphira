@@ -407,10 +407,13 @@ export class OpenAPIHelper {
                             endpoint.parameters = [];
                             action.handler.params.forEach((param: Param) => {
                                 // SEE: https://swagger.io/docs/specification/serialization/
+
                                 endpoint.parameters.push({
                                     in: param.path || param.parentPath ? 'path' : 'query',
                                     name: param.name,
-                                    schema: OpenAPIHelper.getSchemaType(param.type),
+                                    schema: param.reference
+                                        ? { $ref: `#/components/schemas/${param.reference}` }
+                                        : OpenAPIHelper.getSchemaType(param.type),
                                     required: param.required || param.path || param.parentPath,
                                     description: param.description,
                                     example: param.example,
