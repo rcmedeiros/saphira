@@ -1,5 +1,5 @@
-// cSpell:ignore yxxx
-import { NameValue, parseJson, uuid } from '../src';
+// cSpell:ignore yxxx xvcj qssw
+import { NameValue, decodeJWT, parseJson, uuid } from '../src';
 import { describe, it } from 'mocha';
 
 import { expect } from 'chai';
@@ -23,5 +23,19 @@ describe('UUID/v4 Helper', () => {
             expect(set.has(u)).to.be.false;
             set.add(u);
         }
+    });
+});
+
+describe('decodeJWT', () => {
+    it('Should return a JWT without validating it', () => {
+        const jwt: NameValue = decodeJWT(
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        );
+        expect(jwt.name).not.to.be.null;
+    });
+
+    it('Should return undefined when JWT is invalid', () => {
+        const jwt: NameValue = decodeJWT('invalid jwt');
+        expect(jwt).to.be.null;
     });
 });
