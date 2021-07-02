@@ -15,9 +15,42 @@ export class Responder {
     /* istanbul ignore next */
     private constructor() {}
 
-    public static route =
-        (controller: Controller, handler: Handler): RequestHandler =>
-        (request: Request, response: Response, next: NextFunction): void => {
+    private static handleByType(handler: Handler, response: Response, result: unknown, t: [number, number]): void {
+        switch (handler.response.type) {
+            case Type.HttpAccepted:
+                response.sendStatus(HttpStatusCode.ACCEPTED);
+                break;
+            case Type.HttpCreated:
+                response.sendStatus(HttpStatusCode.CREATED);
+                break;
+            case Type.HttpModified:
+                response.sendStatus(HttpStatusCode.NO_CONTENT);
+                break;
+            default:
+                if (result && (result as PagedResult<unknown>).entriesCount) {
+                    response.setHeader(
+                        HEADER_X_PAGINATION,
+                        `{"count": ${(result as PagedResult<unknown>).entriesCount},` +
+                            ` "pages": ${(result as PagedResult<unknown>).pagesCount}}`,
+                    );
+                    result = (result as PagedResult<unknown>).entries;
+                }
+
+                response.setHeader(
+                    HEADER_X_HRTIME,
+                    prettyHrtime(process.hrtime(t), { precise: true }).toString().safeReplace('μ', 'u'),
+                );
+
+                if (result === undefined) {
+                    // eslint-disable-next-line no-null/no-null
+                    result = null;
+                }
+
+                response.json(result);
+        }
+    }
+    public static route(controller: Controller, handler: Handler): RequestHandler {
+        return (request: Request, response: Response, next: NextFunction): void => {
             console.debug(`${request.method} ${request.path}`);
             console.debug('headers', request.headers);
             console.debug('params', request.params);
@@ -29,38 +62,7 @@ export class Responder {
                 .handle(handler, request)
                 .then((result: unknown) => {
                     if (!result || !(result as UnknownObj).rejectedByHandler) {
-                        switch (handler.response.type) {
-                            case Type.HttpAccepted:
-                                response.sendStatus(HttpStatusCode.ACCEPTED);
-                                break;
-                            case Type.HttpCreated:
-                                response.sendStatus(HttpStatusCode.CREATED);
-                                break;
-                            case Type.HttpModified:
-                                response.sendStatus(HttpStatusCode.NO_CONTENT);
-                                break;
-                            default:
-                                if (result && (result as PagedResult<unknown>).entriesCount) {
-                                    response.setHeader(
-                                        HEADER_X_PAGINATION,
-                                        `{"count": ${(result as PagedResult<unknown>).entriesCount},` +
-                                            ` "pages": ${(result as PagedResult<unknown>).pagesCount}}`,
-                                    );
-                                    result = (result as PagedResult<unknown>).entries;
-                                }
-
-                                response.setHeader(
-                                    HEADER_X_HRTIME,
-                                    prettyHrtime(process.hrtime(t), { precise: true }).toString().safeReplace('μ', 'u'),
-                                );
-
-                                if (result === undefined) {
-                                    // eslint-disable-next-line no-null/no-null
-                                    result = null;
-                                }
-
-                                response.json(result);
-                        }
+                        this.handleByType(handler, response, result, t);
                     }
                     console.debug('response:', result);
                 })
@@ -78,4 +80,5 @@ export class Responder {
                 .then(next)
                 .catch(console.error);
         };
+    }
 }
