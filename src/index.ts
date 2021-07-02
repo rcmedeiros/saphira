@@ -431,7 +431,7 @@ export class Saphira {
     public async listen(): Promise<void> {
         this.since = new Date();
         return new Promise((resolve: Resolution<void>, reject: Rejection) => {
-            this.server = ({ close: (): Promise<void> => Promise.resolve() } as unknown) as http.Server;
+            this.server = { close: (): Promise<void> => Promise.resolve() } as unknown as http.Server;
 
             const vault: Vault = Vault.getInstance();
 
@@ -506,7 +506,7 @@ export class Saphira {
                                                 key: httpsOptions.key,
                                                 cert: httpsOptions.cert,
                                             },
-                                            (this.app as unknown) as http.RequestListener,
+                                            this.app as unknown as http.RequestListener,
                                         )
                                         .listen(this.app.get(PORT), async () => {
                                             this.banner(connections.data)

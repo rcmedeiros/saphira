@@ -95,7 +95,7 @@ export class JWT {
                     tmp = tmp[prop] as NameValue;
                 }
             });
-            this._subject = (tmp as unknown) as string;
+            this._subject = tmp as unknown as string;
         }
         return this;
     }

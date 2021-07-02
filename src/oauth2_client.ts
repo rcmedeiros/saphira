@@ -125,7 +125,7 @@ export class Oauth2Client {
                                 response = response[prop] as NameValue;
                             });
 
-                            this.accessToken = new JWT((response as unknown) as string, this.publicKey)
+                            this.accessToken = new JWT(response as unknown as string, this.publicKey)
                                 .setSubjectFromPath(this.subjectProperty)
                                 .setExpiration(this.fixedExpiration);
 

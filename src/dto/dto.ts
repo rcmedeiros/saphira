@@ -16,9 +16,11 @@ export abstract class DTO {
                 if (typeof Object.getOwnPropertyDescriptor(current, name).get === 'function') {
                     /* istanbul ignore else */
                     if (!Saphira.TEST || (Saphira.TEST && name !== 'should')) {
-                        (serialized as { [idx: string]: unknown })[name] = ((this as unknown) as {
-                            [idx: string]: unknown;
-                        })[name];
+                        (serialized as { [idx: string]: unknown })[name] = (
+                            this as unknown as {
+                                [idx: string]: unknown;
+                            }
+                        )[name];
                     }
                 }
             });
