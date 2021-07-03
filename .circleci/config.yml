@@ -93,11 +93,10 @@ jobs:
           name: Audit with NPM
           command: npm audit
       - run:
-          name: Install Snyk
-          command: npm i snyk@latest
-      - run:
           name: Audit with Snyk
-          command: ./node_modules/.bin/snyk test
+          command: |
+            npm i snyk@latest &&\
+            ./node_modules/.bin/snyk test
 
   build:
     parameters:
