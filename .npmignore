@@ -5,3 +5,4 @@ tsconfig.json
 mkdocs*
 test
 docs
+sonar*

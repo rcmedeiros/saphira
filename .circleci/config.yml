@@ -86,18 +86,18 @@ jobs:
           key: dependencies-{{ checksum "package-lock.json" }}
       - restore_cache:
           key: dev_dependencies-{{ checksum "package-lock.json" }}
-      # - run:
-      #     name: Check for outdated packages
-      #     command: npm outdated
+      - run:
+          name: Check for outdated packages
+          command: npm outdated
       - run:
           name: Audit with NPM
           command: npm audit
-      # - run:
-      #     name: Install Snyk
-      #     command: npm i snyk@latest
-      # - run:
-      #     name: Audit with Snyk
-      #     command: ./node_modules/.bin/snyk test
+      - run:
+          name: Install Snyk
+          command: npm i snyk@latest
+      - run:
+          name: Audit with Snyk
+          command: ./node_modules/.bin/snyk test
 
   build:
     parameters:
@@ -308,25 +308,25 @@ jobs:
           steps:
             - run:
                 name: Publish Alpha Version
-                command: npm publish --access public --tag alpha --dry-run
+                command: npm publish --access public --tag alpha
       - when:
           condition: << parameters.beta >>
           steps:
             - run:
                 name: Publish Beta Version
-                command: npm publish --access public --tag beta --dry-run
+                command: npm publish --access public --tag beta
       - when:
           condition: << parameters.release_candidate >>
           steps:
             - run:
                 name: Publish Release Candidate
-                command: npm publish --access public --tag next --dry-run
+                command: npm publish --access public --tag next
       - when:
           condition: << parameters.stable >>
           steps:
             - run:
                 name: Publish Stable Version
-                command: npm publish --access public --dry-run
+                command: npm publish --access public
 
 workflows:
   development_commit:
