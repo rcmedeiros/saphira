@@ -431,6 +431,7 @@ workflows:
       - cache_release:
           release_branch: true
           requires:
+            - build
             - stamp
             - test
             - docs
@@ -440,6 +441,7 @@ workflows:
       - cache_release:
           master_branch: true
           requires:
+            - build
             - stamp
             - test
             - docs
