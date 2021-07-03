@@ -204,7 +204,7 @@ jobs:
           command: mv dist/* .
       - run:
           name: Show tree
-          command: sudo apt-get install tree -y && tree -a
+          command: sudo apt-get install tree -y && tree -a -I .git
       - run:
           name: Publish
           command: npm publish --access public --tag dev
@@ -274,7 +274,7 @@ jobs:
           command: cat .circleci/.release
       - restore_cache:
           key: release-{{ checksum ".circleci/.release" }}
-      - run: sudo apt-get install tree -y && tree -a
+      - run: sudo apt-get install tree -y && tree -a -I .git
       - persist_to_workspace:
           root: ./
           paths:
@@ -302,7 +302,7 @@ jobs:
       - run:
           name: Bring transpiled code to root
           command: mv dist/* .
-      - run: sudo apt-get install tree -y && tree -a
+      - run: sudo apt-get install tree -y && tree -a -I .git
       - when:
           condition: << parameters.alpha >>
           steps:
