@@ -151,7 +151,7 @@ export class Saphira {
         const port: string = this.options.port ? this.options.port.toString() : '';
         const servers: string = envVarAsString('SERVER_PATHS');
 
-        const result: Array<ServerInfo> = !servers
+        return !servers
             ? [{ url: new URL(`http${this.tls ? 's' : ''}://localhost:${port}/api`), description: 'Local Server' }]
             : servers.split(',').map<ServerInfo>((serverPath: string) => {
                   return {
@@ -159,8 +159,6 @@ export class Saphira {
                       description: `${process.env.NODE_ENV || 'undefined'} server`,
                   };
               });
-
-        return result;
     }
 
     private returnInfo(request: ERequest, response: Response): void {

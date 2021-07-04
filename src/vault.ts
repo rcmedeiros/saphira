@@ -5,7 +5,9 @@ export class Vault {
     private properties: NameValue = {};
 
     /* istanbul ignore next */
-    private constructor() {}
+    private constructor() {
+        // Singleton
+    }
 
     public static getInstance(): Vault {
         if (!this.instance) {

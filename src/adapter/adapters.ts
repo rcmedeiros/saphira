@@ -30,16 +30,17 @@ export class Adapters {
     private static readonly connections: Map<string, BaseAdapter> = new Map();
 
     /* istanbul ignore next */
-    private constructor() {}
+    private constructor() {
+        // static class
+    }
 
     private static getWebConnection(name: string): WebConnection {
         return Adapters.connections.get(name) as WebConnection;
     }
 
     public static setupWebConnection(config: WebConfig, name?: string): WebConnection {
-        // const isSoap: boolean = false/*!!(config as SoapConfig).wsdl*/;
-        name = name || /*(isSoap ? DEFAULT_SOAP : DEFAULT_WEB)*/ DEFAULT_WEB;
-        const c: BaseAdapter = /*isSoap ? new SoapClient(name, config as SoapConfig) :*/ new WebClient(name, config);
+        name = name || DEFAULT_WEB;
+        const c: BaseAdapter = new WebClient(name, config);
         c.isRequired = config.required;
         return (Adapters.connections.get(name) || Adapters.connections.set(name, c).get(name)) as WebConnection;
     }

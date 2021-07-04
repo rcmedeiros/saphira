@@ -1,24 +1,6 @@
-// import { CloudMetrics } from '../cloud_metrics';
 import { Rejection, Resolution } from '../types';
-// import { Vault } from '../vault';
 
-// const WATCH: string = 'watch';
-
-// interface Watch {
-//     name: string;
-//     error: {
-//         name: string;
-//         message: string;
-//     };
-//     metric: {
-//         name: string;
-//         value: number;
-//     };
-// }
-// type MonitorArray = Array<Watch>;
 export class Connection {
-    // private readonly monitor: MonitorArray;
-    // private readonly cloudMetrics: CloudMetrics;
     private _lastSuccess: Date;
     private _lastError: Error;
     private _isRequired: boolean = true;
@@ -26,22 +8,9 @@ export class Connection {
 
     constructor(name: string) {
         this.name = name;
-        // this.monitor = Vault.getInstance().get(WATCH) as MonitorArray || [];
-        // this.cloudMetrics = CloudMetrics.getInstance();
     }
-    /*
-        private watch(e: Error): void {
-            this.monitor.forEach((m: Watch) => {
-                if (m.name === this.name && m.error.name === e.name) {
-                    if (!m.error.message || e.message.contains(m.error.message)) {
-                        this.cloudMetrics.post(m.metric.name, m.metric.value).catch((err: Error) => { console.error(err); });
-                    }
-                }
-            });
-        }
-    */
+
     private fail(e: Error): void {
-        // this.watch(e);
         console.error(e);
         this._lastError = e;
     }

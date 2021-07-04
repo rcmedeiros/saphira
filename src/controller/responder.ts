@@ -13,7 +13,9 @@ import prettyHrtime from 'pretty-hrtime';
 
 export class Responder {
     /* istanbul ignore next */
-    private constructor() {}
+    private constructor() {
+        // static class
+    }
 
     private static handleByType(handler: Handler, response: Response, result: unknown, t: [number, number]): void {
         switch (handler.response.type) {
