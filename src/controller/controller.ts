@@ -101,11 +101,10 @@ export class Controller {
 
             const paramsLength: number = handler.params !== undefined ? handler.params.length : 0;
             if ([paramsLength, paramsLength + 1].includes(handler.action.length)) {
+                const operation: string = path !== '' ? `/${path.charAt(0).toLowerCase()}${path.substring(1)}` : '';
                 const paths: Array<string> = [
                     `/${this.apiPath}/${this.constructor.name.charAt(0).toLowerCase()}` +
-                        `${this.constructor.name.substring(1)}${
-                            path !== '' ? `/${path.charAt(0).toLowerCase()}${path.substring(1)}` : ''
-                        }`,
+                        `${this.constructor.name.substring(1)}${operation}`,
                 ];
                 let parentPathParameter: string;
                 if (handler.params) {
