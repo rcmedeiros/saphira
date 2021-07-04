@@ -408,6 +408,12 @@ export class OpenAPIHelper {
                             action.handler.params.forEach((param: Param) => {
                                 // SEE: https://swagger.io/docs/specification/serialization/
 
+                                let explode: boolean = undefined;
+                                if (param.type === Type.Object) {
+                                    explode = true;
+                                } else if (param.type === Type.StringArray || param.type === Type.NumberArray) {
+                                    explode = false;
+                                }
                                 endpoint.parameters.push({
                                     in: param.path || param.parentPath ? 'path' : 'query',
                                     name: param.name,
@@ -418,12 +424,7 @@ export class OpenAPIHelper {
                                     description: param.description,
                                     example: param.example,
                                     style: param.type === Type.Object ? ParameterStyle.deepObject : undefined,
-                                    explode:
-                                        param.type === Type.Object
-                                            ? true
-                                            : param.type === Type.StringArray || param.type === Type.NumberArray
-                                            ? false
-                                            : undefined,
+                                    explode: explode,
                                     allowReserved: param.type === Type.ObjectArray ? true : undefined,
                                 });
                             });
@@ -450,12 +451,23 @@ export class OpenAPIHelper {
                                 : { $ref: '#/components/responses/HTTP204' };
                             break;
                         default:
+                            const listOf: string = action.handler.response.type !== Type.ObjectArray ? '' : 'list of ';
+                            const responseSchema: Record<string, unknown> =
+                                action.handler.response.type === Type.ObjectArray
+                                    ? {
+                                          type: 'array',
+                                          items: {
+                                              $ref: `#/components/schemas/${action.handler.response.reference}`,
+                                          },
+                                      }
+                                    : {
+                                          $ref: `#/components/schemas/${action.handler.response.reference}`,
+                                      };
+
                             endpoint.responses[200] = {
                                 description:
                                     action.handler.response.description || action.handler.response.reference
-                                        ? `Result is ${
-                                              action.handler.response.type !== Type.ObjectArray ? '' : 'list of '
-                                          }${action.handler.response.reference} model`
+                                        ? `Result is ${listOf}${action.handler.response.reference} model`
                                         : 'OK',
                                 content: {
                                     'application/json': {
@@ -468,16 +480,7 @@ export class OpenAPIHelper {
                                                               action.handler.response.type,
                                                           ),
                                                       }
-                                                    : action.handler.response.type === Type.ObjectArray
-                                                    ? {
-                                                          type: 'array',
-                                                          items: {
-                                                              $ref: `#/components/schemas/${action.handler.response.reference}`,
-                                                          },
-                                                      }
-                                                    : {
-                                                          $ref: `#/components/schemas/${action.handler.response.reference}`,
-                                                      },
+                                                    : responseSchema,
                                                 timeStamp: { type: 'string', example: '2019-05-07T22:41:39.714Z' },
                                                 performance: { type: 'string', example: '2.328301 ms' },
                                             },

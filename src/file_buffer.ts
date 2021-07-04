@@ -8,11 +8,14 @@ export class FileBuffer {
     constructor(buffer: Buffer, fileName: string, contentType?: ContentType | Array<ContentType>) {
         this._buffer = buffer;
         this._fileName = fileName;
-        this._contentType = !contentType
-            ? [ContentType.Any_kind_of_binary_data]
-            : Array.isArray(contentType)
-            ? contentType
-            : [contentType];
+
+        if (!contentType) {
+            this._contentType = [ContentType.Any_kind_of_binary_data];
+        } else if (Array.isArray(contentType)) {
+            this._contentType = contentType;
+        } else {
+            this._contentType = [contentType];
+        }
     }
 
     get buffer(): Buffer {
