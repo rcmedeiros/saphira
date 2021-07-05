@@ -217,17 +217,20 @@ export class Saphira {
                   };
 
             const info: CertInfo = cert.info(result.cert.substringUpTo('END CERTIFICATE-----'));
+            let expiration: string;
+            if (Date.now() > info.expiresAt) {
+                expiration = 'EXPIRED';
+            } else {
+                expiration = Date.now() + 2592000000 > info.expiresAt ? 'expiring...' : 'Valid';
+            }
+
             this.tls = [
                 'to {0} from {1} to {2}.'.format(
                     info.subject,
                     new Date(info.issuedAt).toFormattedString('yyyy/MM/dd'),
                     new Date(info.expiresAt).toFormattedString('yyyy/MM/dd'),
                 ),
-                Date.now() > info.expiresAt
-                    ? 'EXPIRED'
-                    : Date.now() + 2592000000 > info.expiresAt
-                    ? 'expiring...'
-                    : 'Valid',
+                expiration,
             ];
 
             return result;
@@ -305,12 +308,12 @@ export class Saphira {
                     } else {
                         console.info(`\n${data}\n`);
 
-                        const versionStatus: string =
-                            __moduleInfo.version.indexOf('-dev') !== -1
-                                ? 'local'
-                                : __moduleInfo.version.indexOf('-') !== -1
-                                ? 'development'
-                                : 'release';
+                        let versionStatus: string;
+                        if (__moduleInfo.version.indexOf('-dev') !== -1) {
+                            versionStatus = 'local';
+                        } else {
+                            versionStatus = __moduleInfo.version.indexOf('-') !== -1 ? 'development' : 'release';
+                        }
 
                         const fingerprint: string = this.fingerprint();
 
