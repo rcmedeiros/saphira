@@ -153,6 +153,22 @@ export class Controller {
 
         return paths;
     }
+
+    private getValue(route: Handler, request: Request, param: Param): unknown {
+        if (param.name == PAYLOAD) {
+            return request.body;
+        } else {
+            if (param.path || param.parentPath) {
+                return (request.params as UnknownObj)[param.name];
+            } else {
+                if (route.method === Method.GET || route.method === Method.HEAD || route.method === Method.DELETE) {
+                    return (request.query as UnknownObj)[param.name];
+                } else {
+                    return (request.body as UnknownObj)[param.name];
+                }
+            }
+        }
+    }
     protected route(path: string, handler: Handler): void {
         this.testHandler(handler);
         if (handler.payload) {
@@ -219,16 +235,7 @@ export class Controller {
 
                 if (
                     route.params.every((param: Param) => {
-                        const v: unknown =
-                            param.name == PAYLOAD
-                                ? request.body
-                                : param.path || param.parentPath
-                                ? (request.params as UnknownObj)[param.name]
-                                : route.method === Method.GET ||
-                                  route.method === Method.HEAD ||
-                                  route.method === Method.DELETE
-                                ? (request.query as UnknownObj)[param.name]
-                                : (request.body as UnknownObj)[param.name];
+                        const v: unknown = this.getValue(route, request, param);
                         // eslint-disable-next-line no-null/no-null
                         if (v === null || v === undefined || v === '') {
                             if (param.required) {
