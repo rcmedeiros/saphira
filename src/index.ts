@@ -29,7 +29,6 @@ import {
 import { Express, Request } from './express';
 import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { NameValue, Rejection, Resolution, StringSet } from './types';
-import bodyParser, { OptionsUrlencoded } from 'body-parser';
 import cert, { CertInfo } from 'cert-info';
 import { decodeJWT, envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
 import express, { Request as ERequest, Response, Router } from 'express';
@@ -43,6 +42,7 @@ import { DTO } from './dto/dto';
 import { HttpError } from './errors/http-error';
 import { HttpStatusCode } from './constants/http_status_codes';
 import { JWT } from './jwt';
+import { OptionsUrlencoded } from './options_url_encoded';
 import { PagedResult } from './controller/paged_result';
 import { Responder } from './controller/responder';
 import { ServerError } from './errors/server-error';
@@ -129,13 +129,11 @@ export class Saphira {
                   ];
 
         this.app = express();
-        this.app.use(bodyParser.json({ limit: this.options.requestLimit }));
+        this.app.use(express.json({ limit: this.options.requestLimit }));
         this.app.use(
-            bodyParser.urlencoded(
-                this.options.urlencodedOptions || { extended: false, limit: this.options.requestLimit },
-            ),
+            express.urlencoded(this.options.urlencodedOptions || { extended: false, limit: this.options.requestLimit }),
         );
-        this.app.use(bodyParser.raw({ limit: this.options.requestLimit }));
+        this.app.use(express.raw({ limit: this.options.requestLimit }));
         this.app.use(compression());
 
         if (Saphira.PRODUCTION || !envVarAsString('SERVER_PATHS')?.contains('http:')) {
