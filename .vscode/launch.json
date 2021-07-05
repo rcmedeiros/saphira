@@ -43,6 +43,31 @@
             ],
             "cwd": "${workspaceRoot}",
             "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Run Tests",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "env": {
+                "TS_NODE_PROJECT": "test/tsconfig.json",
+                "NODE_ENV": "test"
+            },
+            "args": [
+                "--ui",
+                "tdd",
+                "--timeout",
+                "0",
+                "--colors",
+                "--require",
+                "ts-node/register",
+                "--check-leaks",
+                "--recursive",
+                "--exit",
+                "test/**/*test.ts"
+            ],
+            "cwd": "${workspaceRoot}",
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }

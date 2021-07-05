@@ -33,81 +33,95 @@ export class AdaptersManager {
         });
     }
 
+    private async connectWebServices(
+        name: Array<[string, string, boolean]>,
+        promises: Array<Promise<void | Error>>,
+    ): Promise<void> {
+        this.adapters.webServices.forEach((ws: WebServerConfig | string) => {
+            let webServer: WebServerConfig = typeof ws === 'string' ? { name: ws, envVar: ws } : ws;
+            const cfg: WebConfig =
+                (parseJson(process.env[webServer.envVar], true) as WebConfig) ||
+                (!process.env[webServer.envVar]
+                    ? undefined
+                    : {
+                          envVar: webServer.envVar,
+                          // host: process.env[webServer.envVar],
+                          host: new URL(process.env[webServer.envVar]).toString(),
+                      });
+            if (cfg) {
+                webServer = {
+                    ...webServer,
+                    ...cfg,
+                    ...{ parameters: { ...webServer?.parameters, ...cfg?.parameters } },
+                };
+                webServer.host =
+                    webServer.host.lastChar() === '/' ? webServer.host.substringUpToLast('/') : webServer.host;
+                name.push([webServer.name || 'Web Server', webServer.host, webServer.required]);
+                const c: WebConnection = Adapters.setupWebConnection(webServer, webServer.name);
+                if (webServer.systemAuth) {
+                    c.setOauth2Client(this.oauth2Clients[webServer.systemAuth]);
+                }
+                promises.push(this.resolve(c.connect()));
+            } else {
+                throw new Error(MISSING_ENV_VAR.format(webServer.envVar));
+            }
+        });
+    }
+
+    private async connectSysAuth(
+        name: Array<[string, string, boolean]>,
+        promises: Array<Promise<void | Error>>,
+    ): Promise<void> {
+        this.adapters.sysAuth.forEach((auth: AuthConfig) => {
+            const cfg: AuthConfig = parseJson(process.env[auth.envVar]) as AuthConfig;
+            if (cfg) {
+                auth = { ...auth, ...cfg };
+                name.push([auth.name, auth.serverURI, auth.required]);
+
+                const client: Oauth2Client = new Oauth2Client()
+                    .setClient(auth.clientId, auth.clientSecret, auth.serverURI, auth.tokenEndpoint)
+                    .setPublicKey(auth.publicKey)
+                    .setCustomArgs(
+                        auth.clientIdProp,
+                        auth.clientSecretProp,
+                        auth.tokenProp,
+                        auth.subjectProp,
+                        auth.fixedExpiration,
+                    );
+
+                const promise: Promise<void> = new Promise((resolve: Resolution<void>, reject: Rejection) => {
+                    new Resource(auth.publicKey)
+                        .get()
+                        .then((publicKey: string) => {
+                            client.setPublicKey(publicKey);
+                            client
+                                .keepFresh()
+                                .then(() => {
+                                    resolve();
+                                })
+                                .catch(reject);
+                        })
+                        .catch(reject);
+                });
+
+                this.oauth2Clients[auth.name] = client;
+                promises.push(this.resolve(promise));
+            } else {
+                throw new Error(MISSING_ENV_VAR.format(auth.envVar));
+            }
+        });
+    }
+
     public async connect(): Promise<AdaptersResult> {
         const name: Array<[string, string, boolean]> = [];
         const promises: Array<Promise<void | Error>> = [];
 
         if (this.adapters) {
             if (this.adapters.sysAuth) {
-                this.adapters.sysAuth.forEach((auth: AuthConfig) => {
-                    const cfg: AuthConfig = parseJson(process.env[auth.envVar]) as AuthConfig;
-                    if (cfg) {
-                        auth = { ...auth, ...cfg };
-                        name.push([auth.name, auth.serverURI, auth.required]);
-
-                        const client: Oauth2Client = new Oauth2Client()
-                            .setClient(auth.clientId, auth.clientSecret, auth.serverURI, auth.tokenEndpoint)
-                            .setPublicKey(auth.publicKey)
-                            .setCustomArgs(
-                                auth.clientIdProp,
-                                auth.clientSecretProp,
-                                auth.tokenProp,
-                                auth.subjectProp,
-                                auth.fixedExpiration,
-                            );
-
-                        const promise: Promise<void> = new Promise((resolve: Resolution<void>, reject: Rejection) => {
-                            new Resource(auth.publicKey)
-                                .get()
-                                .then((publicKey: string) => {
-                                    client.setPublicKey(publicKey);
-                                    client
-                                        .keepFresh()
-                                        .then(() => {
-                                            resolve();
-                                        })
-                                        .catch(reject);
-                                })
-                                .catch(reject);
-                        });
-
-                        this.oauth2Clients[auth.name] = client;
-                        promises.push(this.resolve(promise));
-                    } else {
-                        throw new Error(MISSING_ENV_VAR.format(auth.envVar));
-                    }
-                });
+                await this.connectSysAuth(name, promises);
             }
             if (this.adapters.webServices) {
-                this.adapters.webServices.forEach((ws: WebServerConfig | string) => {
-                    let webServer: WebServerConfig = typeof ws === 'string' ? { name: ws, envVar: ws } : ws;
-                    const cfg: WebConfig =
-                        (parseJson(process.env[webServer.envVar], true) as WebConfig) ||
-                        (!process.env[webServer.envVar]
-                            ? undefined
-                            : {
-                                  envVar: webServer.envVar,
-                                  // host: process.env[webServer.envVar],
-                                  host: new URL(process.env[webServer.envVar]).toString(),
-                              });
-                    if (cfg) {
-                        webServer = {
-                            ...webServer,
-                            ...cfg,
-                            ...{ parameters: { ...webServer?.parameters, ...cfg?.parameters } },
-                        };
-                        webServer.host =
-                            webServer.host.lastChar() === '/' ? webServer.host.substringUpToLast('/') : webServer.host;
-                        name.push([webServer.name || 'Web Server', webServer.host, webServer.required]);
-                        const c: WebConnection = Adapters.setupWebConnection(webServer, webServer.name);
-                        if (webServer.systemAuth) {
-                            c.setOauth2Client(this.oauth2Clients[webServer.systemAuth]);
-                        }
-                        promises.push(this.resolve(c.connect()));
-                    } else {
-                        throw new Error(MISSING_ENV_VAR.format(webServer.envVar));
-                    }
-                });
+                await this.connectWebServices(name, promises);
             }
         }
 

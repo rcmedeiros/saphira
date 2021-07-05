@@ -17,7 +17,7 @@ export interface Param {
     dto?: ConcreteDTO;
     required?: boolean;
     path?: boolean;
-    ignore?: Array<string>; // FIXME: Fast & lazy solution. Can be calculated.
+    ignore?: Array<string>; // TODO: Fast & lazy solution. Can be calculated.
     parentPath?: boolean;
     description?: string;
     example?: unknown;
@@ -81,7 +81,15 @@ export class Controller {
         this._tag = tag;
     }
 
-    protected route(path: string, handler: Handler): void {
+    private testParam(parameter: Param): void {
+        if (!parameter.name) {
+            throw new Error(`Missing parameter name`);
+        } else if ([Type.HttpAccepted, Type.HttpCreated, Type.HttpModified].indexOf(parameter.type) !== -1) {
+            throw new Error(`${parameter.type} is not a valid parameter type`);
+        }
+    }
+
+    private testHandler(handler: Handler): void {
         if (handler.params && handler.payload) {
             throw new Error("Declare either a payload, or it's params. Can't have both");
         } else {
@@ -95,78 +103,83 @@ export class Controller {
                 } else if ([Method.POST, Method.PUT].indexOf(handler.method) === -1) {
                     throw new Error(`Cannot ${handler.method.toUpperCase()} with a body payload`);
                 }
-                handler.params = [handler.payload];
-                handler.params[0].name = PAYLOAD;
             }
 
             const paramsLength: number = handler.params !== undefined ? handler.params.length : 0;
-            if ([paramsLength, paramsLength + 1].includes(handler.action.length)) {
-                const operation: string = path !== '' ? `/${path.charAt(0).toLowerCase()}${path.substring(1)}` : '';
-                const paths: Array<string> = [
-                    `/${this.apiPath}/${this.constructor.name.charAt(0).toLowerCase()}` +
-                        `${this.constructor.name.substring(1)}${operation}`,
-                ];
-                let parentPathParameter: string;
-                if (handler.params) {
-                    handler.params.forEach((parameter: Param) => {
-                        if (!parameter.name) {
-                            throw new Error(`Missing parameter name`);
-                        } else if (
-                            [Type.HttpAccepted, Type.HttpCreated, Type.HttpModified].indexOf(parameter.type) !== -1
-                        ) {
-                            throw new Error(`${parameter.type} is not a valid parameter type`);
-                        } else {
-                            if (parameter.path) {
-                                paths.push(`${paths.last()}/:${parameter.name}`);
-                                paths.shift();
-                            } else if (parameter.parentPath) {
-                                if (!parentPathParameter) {
-                                    paths.push(
-                                        `/${this.apiPath}/${this.constructor.name}/:${parameter.name}${
-                                            path !== '' ? `/${path}` : ''
-                                        }`,
-                                    );
-                                    paths.shift();
-                                    parentPathParameter = parameter.name;
-                                } else {
-                                    throw new Error(
-                                        `Only one path parameter allowed between. ${parentPathParameter} and ${parameter.name} are conflicting`,
-                                    );
-                                }
-                            }
-                            if (!parameter.ignore) {
-                                parameter.ignore = [];
-                            } else {
-                                // FIXME: This should be calculated, not declared
-                                for (let i: number = 0; i < parameter.ignore.length; i++) {
-                                    parameter.ignore[i] = parameter.ignore[i].toLowerCase();
-                                }
-                            }
-                        }
-                    });
-                }
-                handler.uuid = v4();
-
-                if (handler.restricted) {
-                    handler.restricted =
-                        typeof handler.restricted !== 'boolean' && !Array.isArray(handler.restricted?.systems)
-                            ? { systems: [handler.restricted.systems] }
-                            : handler.restricted;
-                }
-
-                paths.forEach((p: string) => {
-                    this.handlers[p] = this.handlers[p] || {};
-
-                    if (!this.handlers[p][handler.method]) {
-                        this.handlers[p][handler.method] = handler;
-                    } else {
-                        throw new Error(`The route for ${handler.method.toUpperCase()} ${p} is already handled`);
-                    }
-                });
-            } else {
+            if (![paramsLength, paramsLength + 1].includes(handler.action.length)) {
                 throw new Error('The operation and its method must declare the same parameters');
             }
         }
+    }
+
+    private buildParamPaths(path: string, handler: Handler, paths: Array<string>): void {
+        let parentPathParameter: string;
+        handler.params?.forEach((parameter: Param) => {
+            this.testParam(parameter);
+            if (parameter.path) {
+                paths.push(`${paths.last()}/:${parameter.name}`);
+                paths.shift();
+            } else if (parameter.parentPath) {
+                if (!parentPathParameter) {
+                    const slashPath: string = path !== '' ? `/${path}` : '';
+                    paths.push(`/${this.apiPath}/${this.constructor.name}/:${parameter.name}${slashPath}`);
+                    paths.shift();
+                    parentPathParameter = parameter.name;
+                } else {
+                    throw new Error(
+                        `Only one path parameter allowed between. ${parentPathParameter} and ${parameter.name} are conflicting`,
+                    );
+                }
+            }
+            if (!parameter.ignore) {
+                parameter.ignore = [];
+            } else {
+                // TODO: This should be calculated, not declared
+                for (let i: number = 0; i < parameter.ignore.length; i++) {
+                    parameter.ignore[i] = parameter.ignore[i].toLowerCase();
+                }
+            }
+        });
+    }
+
+    private buildPaths(path: string, handler: Handler): Array<string> {
+        const operation: string = path !== '' ? `/${path.charAt(0).toLowerCase()}${path.substring(1)}` : '';
+        const paths: Array<string> = [
+            `/${this.apiPath}/${this.constructor.name.charAt(0).toLowerCase()}` +
+                `${this.constructor.name.substring(1)}${operation}`,
+        ];
+
+        this.buildParamPaths(path, handler, paths);
+
+        return paths;
+    }
+    protected route(path: string, handler: Handler): void {
+        this.testHandler(handler);
+        if (handler.payload) {
+            handler.params = [handler.payload];
+            handler.params[0].name = PAYLOAD;
+        }
+
+        const paths: Array<string> = this.buildPaths(path, handler);
+
+        handler.uuid = v4();
+
+        if (handler.restricted) {
+            handler.restricted =
+                typeof handler.restricted !== 'boolean' && !Array.isArray(handler.restricted?.systems)
+                    ? { systems: [handler.restricted.systems] }
+                    : handler.restricted;
+        }
+
+        paths.forEach((p: string) => {
+            this.handlers[p] = this.handlers[p] || {};
+
+            if (!this.handlers[p][handler.method]) {
+                this.handlers[p][handler.method] = handler;
+            } else {
+                throw new Error(`The route for ${handler.method.toUpperCase()} ${p} is already handled`);
+            }
+        });
     }
 
     public get paths(): Array<string> {
