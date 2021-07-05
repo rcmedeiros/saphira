@@ -102,95 +102,83 @@ export class Oauth2Client {
             return error;
         }
     }
-
     private async authenticateClient(): Promise<JWT> {
-        return new Promise((resolve: Resolution<JWT>, reject: Rejection): void => {
-            const c: ClientCredentials = this.credentials as ClientCredentials;
-            needle(
+        const c: ClientCredentials = this.credentials as ClientCredentials;
+        let r: NeedleResponse;
+        try {
+            r = await needle(
                 POST,
                 c.serverURI + this.tokenEndpoint,
                 this.paramsClientCredentials.format(c.clientId, c.clientSecret),
                 {
                     parse: false,
                 },
-            )
-                .then((r: NeedleResponse) => {
-                    if (!r.body || r.body.toString().indexOf(this.tokenProperty.last()) === -1) {
-                        reject(this.getError(r.body));
-                    } else {
-                        try {
-                            let response: NameValue = JSON.parse(r.body.toString());
+            );
+        } catch (e) {
+            throw this.getError(e.message);
+        }
+        if (!r.body || r.body.toString().indexOf(this.tokenProperty.last()) === -1) {
+            throw this.getError(r.body);
+        } else {
+            try {
+                let response: NameValue = JSON.parse(r.body.toString());
 
-                            this.tokenProperty.forEach((prop: string) => {
-                                response = response[prop] as NameValue;
-                            });
-
-                            this.accessToken = new JWT(response as unknown as string, this.publicKey)
-                                .setSubjectFromPath(this.subjectProperty)
-                                .setExpiration(this.fixedExpiration);
-
-                            resolve(this.accessToken);
-                        } catch (e) {
-                            reject(this.getError(r.body));
-                        }
-                    }
-                })
-                .catch((e: Error) => {
-                    reject(this.getError(e.message));
+                this.tokenProperty.forEach((prop: string) => {
+                    response = response[prop] as NameValue;
                 });
-        });
+
+                this.accessToken = new JWT(response as unknown as string, this.publicKey)
+                    .setSubjectFromPath(this.subjectProperty)
+                    .setExpiration(this.fixedExpiration);
+
+                return this.accessToken;
+            } catch (e) {
+                throw this.getError(r.body);
+            }
+        }
     }
 
     private async authenticateUser(): Promise<JWT> {
-        return new Promise((resolve: Resolution<JWT>, reject: Rejection): void => {
+        try {
             const c: UserCredentials = this.credentials as UserCredentials;
             const pkce: PKCE = this.genPkce();
-            needle(
+            const r: NeedleResponse = await needle(
                 POST,
                 this.credentials.serverURI + AUTH,
                 PARAMS_CODE.format(c.clientId, c.callbackURI, c.username, c.password, pkce.challenge),
                 { parse: false },
-            )
-                .then((r: NeedleResponse) => {
-                    if (!r.body || r.body.toString().indexOf(CODE) === -1) {
-                        reject(this.getError(r.body));
-                    } else {
-                        needle(
-                            POST,
-                            c.serverURI + this.tokenEndpoint,
-                            PARAM_AUTH_CODE.format(
-                                encodeURIComponent(JSON.parse(r.body.toString()).code),
-                                pkce.verifier,
-                                c.clientId,
-                            ),
-                            { parse: false },
-                        )
-                            .then((r2: NeedleResponse) => {
-                                if (!r2.body || r2.body.indexOf(ACCESS_TOKEN) === -1) {
-                                    reject(this.getError(r2.body));
-                                } else {
-                                    try {
-                                        const response: Response = JSON.parse(r2.body.toString());
-                                        this.accessToken = new JWT(response.access_token);
-                                        if (response.refresh_token) {
-                                            this.refreshToken = new JWT(response.refresh_token);
-                                        }
-                                        resolve(this.accessToken);
-                                    } catch {
-                                        reject(this.getError(r2.body));
-                                    }
-                                }
-                            })
-                            .catch((e: Error) => {
-                                /* istanbul ignore next */
-                                reject(this.getError(e.message));
-                            });
-                    }
-                })
-                .catch((e: Error) => {
-                    reject(this.getError(e.message));
-                });
-        });
+            );
+            if (!r.body || r.body.toString().indexOf(CODE) === -1) {
+                throw this.getError(r.body);
+            }
+
+            const r2: NeedleResponse = await needle(
+                POST,
+                c.serverURI + this.tokenEndpoint,
+                PARAM_AUTH_CODE.format(
+                    encodeURIComponent(JSON.parse(r.body.toString()).code),
+                    pkce.verifier,
+                    c.clientId,
+                ),
+                { parse: false },
+            );
+            if (!r2.body || r2.body.indexOf(ACCESS_TOKEN) === -1) {
+                throw this.getError(r2.body);
+            }
+
+            try {
+                const response: Response = JSON.parse(r2.body.toString());
+                this.accessToken = new JWT(response.access_token);
+                if (response.refresh_token) {
+                    this.refreshToken = new JWT(response.refresh_token);
+                }
+                return this.accessToken;
+            } catch {
+                throw this.getError(r2.body);
+            }
+        } catch (e) {
+            throw !e.errno ? e : this.getError(e.message);
+        }
     }
 
     public isTokenExpired(): boolean {
@@ -198,49 +186,35 @@ export class Oauth2Client {
     }
 
     public async keepFresh(): Promise<void> {
-        return new Promise((resolve: Resolution<void>, reject: Rejection): void => {
-            if (this.accessToken && !this.isTokenExpired()) {
-                resolve();
+        if (this.accessToken && !this.isTokenExpired()) {
+            return;
+        }
+
+        if (this.refreshToken) {
+            const r: NeedleResponse = await needle(
+                POST,
+                this.credentials.serverURI + this.tokenEndpoint,
+                PARAMS_REFRESH_TOKEN.format(this.refreshToken.clientId, this.refreshToken.toString()),
+                { parse: false },
+            );
+            if (!r.body || r.body.toString().indexOf(ACCESS_TOKEN) === -1) {
+                throw this.getError(r.body);
             } else {
-                if (this.refreshToken) {
-                    needle(
-                        POST,
-                        this.credentials.serverURI + this.tokenEndpoint,
-                        PARAMS_REFRESH_TOKEN.format(this.refreshToken.clientId, this.refreshToken.toString()),
-                        { parse: false },
-                    )
-                        .then((r: NeedleResponse) => {
-                            if (!r.body || r.body.toString().indexOf(ACCESS_TOKEN) === -1) {
-                                reject(this.getError(r.body));
-                            } else {
-                                try {
-                                    const response: Response = JSON.parse(r.body.toString());
-                                    this.accessToken = new JWT(response.access_token);
-                                    this.refreshToken = new JWT(response.refresh_token);
-                                    resolve();
-                                } catch {
-                                    reject(this.getError(r.body));
-                                }
-                            }
-                        })
-                        .catch(reject);
-                } else {
-                    if ((this.credentials as UserCredentials).username) {
-                        this.authenticateUser()
-                            .then(() => {
-                                resolve();
-                            })
-                            .catch(reject);
-                    } else {
-                        this.authenticateClient()
-                            .then(() => {
-                                resolve();
-                            })
-                            .catch(reject);
-                    }
+                try {
+                    const response: Response = JSON.parse(r.body.toString());
+                    this.accessToken = new JWT(response.access_token);
+                    this.refreshToken = new JWT(response.refresh_token);
+                } catch (e) {
+                    throw this.getError(r.body);
                 }
             }
-        });
+        } else {
+            if ((this.credentials as UserCredentials).username) {
+                await this.authenticateUser();
+            } else {
+                await this.authenticateClient();
+            }
+        }
     }
 
     public setPublicKey(publicKey: string): Oauth2Client {
