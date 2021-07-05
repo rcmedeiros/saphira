@@ -39,27 +39,7 @@ export class JWT {
 
         if (token) {
             if (JWT.publicKey) {
-                verify(
-                    token.startsWith('Bearer ') ? token.substring(7) : token,
-                    JWT.publicKey,
-                    JWT.opts,
-                    (err: Error, decoded: Decoded): void => {
-                        if (err) {
-                            switch (err.message) {
-                                case 'jwt expired':
-                                case 'invalid token':
-                                case 'jwt malformed':
-                                    throw new UnauthorizedError(err.message);
-                                default:
-                                    throw new ServerError(err.message);
-                            }
-                        } else {
-                            this._token = token;
-                            this._subject = decoded.sub;
-                            this._expiresAt = new Date(decoded.exp * 1000);
-                        }
-                    },
-                );
+                this.verify(token);
             } else {
                 const decoded: unknown = decode(token.startsWith('Bearer ') ? token.substring(7) : token, {
                     json: true,
@@ -74,6 +54,30 @@ export class JWT {
         } else {
             throw new UnauthorizedError('No Bearer Token');
         }
+    }
+
+    private verify(token: string): void {
+        verify(
+            token.startsWith('Bearer ') ? token.substring(7) : token,
+            JWT.publicKey,
+            JWT.opts,
+            (err: Error, decoded: Decoded): void => {
+                if (err) {
+                    switch (err.message) {
+                        case 'jwt expired':
+                        case 'invalid token':
+                        case 'jwt malformed':
+                            throw new UnauthorizedError(err.message);
+                        default:
+                            throw new ServerError(err.message);
+                    }
+                } else {
+                    this._token = token;
+                    this._subject = decoded.sub;
+                    this._expiresAt = new Date(decoded.exp * 1000);
+                }
+            },
+        );
     }
 
     public tryForSubjects(allowedSubjects: Array<string>): void {
