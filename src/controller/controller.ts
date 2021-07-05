@@ -1,13 +1,13 @@
 import '@rcmedeiros/prototypes';
 
 import { DataTypes, Type } from '../data-types';
+import { Rejection, Resolution } from '../types';
 
 import { BadRequestError } from '../errors/bad_request-error';
 import { ConcreteDTO } from '../dto/dto';
 import { JWT } from '../';
 import { PAYLOAD } from '../constants/settings';
 import { Request } from 'express';
-import { Resolution } from '../types';
 import { UnknownObj } from './unknown-obj';
 import { v4 } from 'uuid';
 
@@ -169,6 +169,42 @@ export class Controller {
             }
         }
     }
+
+    private call(route: Handler, request: Request, resolve: Resolution<unknown>, reject: Rejection): void {
+        const args: Array<unknown> = [];
+
+        if (
+            route.params.every((param: Param) => {
+                const v: unknown = this.getValue(route, request, param);
+                // eslint-disable-next-line no-null/no-null
+                if (v === null || v === undefined || v === '') {
+                    if (param.required) {
+                        reject(new BadRequestError(`${param.name} is required`));
+                        return false;
+                    } else {
+                        args.push(undefined);
+                        return true;
+                    }
+                } else if (param.ignore && v.toString && param.ignore.indexOf(v.toString().toLocaleLowerCase()) >= 0) {
+                    resolve({ rejectedByHandler: 'FALSE_PATH_PARAM' });
+                } else {
+                    try {
+                        args.push(DataTypes.get(param.type).digest(v, param.dto));
+                        return true;
+                    } catch {
+                        reject(new BadRequestError(`${param.name} should be of type ${param.type}`));
+                        return false;
+                    }
+                }
+            })
+        ) {
+            args.push(request);
+            (route.action.apply(this, args) as Promise<unknown>).then((result: unknown) => {
+                resolve(result);
+            }, reject);
+        }
+    }
+
     protected route(path: string, handler: Handler): void {
         this.testHandler(handler);
         if (handler.payload) {
@@ -211,7 +247,7 @@ export class Controller {
     }
 
     public handle = async (route: Handler, request: Request): Promise<unknown> =>
-        new Promise<unknown>((resolve: Resolution<unknown>, reject: (reason: unknown) => void): void => {
+        new Promise<unknown>((resolve: Resolution<unknown>, reject: Rejection): void => {
             let jwt: JWT;
             if (route.restricted) {
                 try {
@@ -227,46 +263,12 @@ export class Controller {
             }
 
             if (!route.params) {
+                // TODO: jwt should go instead of request
                 (route.action.apply(this, [request]) as Promise<unknown>).then((result: unknown) => {
                     resolve(result);
                 }, reject);
             } else {
-                const args: Array<unknown> = [];
-
-                if (
-                    route.params.every((param: Param) => {
-                        const v: unknown = this.getValue(route, request, param);
-                        // eslint-disable-next-line no-null/no-null
-                        if (v === null || v === undefined || v === '') {
-                            if (param.required) {
-                                reject(new BadRequestError(`${param.name} is required`));
-                                return false;
-                            } else {
-                                args.push(undefined);
-                                return true;
-                            }
-                        } else if (
-                            param.ignore &&
-                            v.toString &&
-                            param.ignore.indexOf(v.toString().toLocaleLowerCase()) >= 0
-                        ) {
-                            resolve({ rejectedByHandler: 'FALSE_PATH_PARAM' });
-                        } else {
-                            try {
-                                args.push(DataTypes.get(param.type).digest(v, param.dto));
-                                return true;
-                            } catch {
-                                reject(new BadRequestError(`${param.name} should be of type ${param.type}`));
-                                return false;
-                            }
-                        }
-                    })
-                ) {
-                    args.push(request);
-                    (route.action.apply(this, args) as Promise<unknown>).then((result: unknown) => {
-                        resolve(result);
-                    }, reject);
-                }
+                this.call(route, request, resolve, reject);
             }
         });
 }
