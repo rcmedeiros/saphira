@@ -3,25 +3,28 @@ import { DataType } from './data_type';
 import { InvalidDataTypeError } from '../errors/invalid_data_type-error';
 
 export class ObjectArrayDataType extends DataType {
+    private isInvalid(v: unknown, result: Array<unknown>): boolean {
+        return !(v as Array<unknown>).every((e: unknown) => {
+            if (typeof e === 'string') {
+                try {
+                    result.push(JSON.parse(e));
+                } catch {
+                    return false;
+                }
+                return true;
+            } else if (typeof e === 'object' && e.constructor === Object) {
+                result.push(e);
+                return true;
+            } else {
+                return false;
+            }
+        });
+    }
     public digest(v: unknown, dto?: ConcreteDTO): Array<unknown> {
         let invalid: boolean = false;
         let result: Array<unknown> = [];
         if (typeof v === 'object' && v.constructor === Array) {
-            invalid = !(v as Array<unknown>).every((e: unknown) => {
-                if (typeof e === 'string') {
-                    try {
-                        result.push(JSON.parse(e));
-                    } catch {
-                        return false;
-                    }
-                    return true;
-                } else if (typeof e === 'object' && e.constructor === Object) {
-                    result.push(e);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+            invalid = this.isInvalid(v, result);
         } else if (typeof v === 'string') {
             try {
                 const x: string = v.trim();
