@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   stamp:
     parameters:
-      latest:
+      production:
         type: boolean
         default: false
     docker:
@@ -10,13 +10,13 @@ jobs:
     steps:
       - checkout
       - when:
-          condition: << parameters.latest >>
+          condition: << parameters.production >>
           steps:
             - run:
                 name: Stamp build number into package.json
                 command: sed -i "s/-dev/-${CIRCLE_BUILD_NUM}/g" package.json
       - unless:
-          condition: << parameters.latest >>
+          condition: << parameters.production >>
           steps:
             - run:
                 name: Strip version extension from package.json
@@ -344,7 +344,6 @@ workflows:
   development_commit:
     jobs:
       - stamp:
-          latest: false
           filters:
             branches:
               only: develop
@@ -388,7 +387,7 @@ workflows:
     jobs:
       - stamp:
           name: stamp_latest
-          latest: true
+          production: true
           filters:
             branches:
               only:
