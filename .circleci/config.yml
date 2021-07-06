@@ -1,13 +1,26 @@
 version: 2.1
 jobs:
   stamp:
+    parameters:
+      latest:
+        type: boolean
+        default: false
     docker:
       - image: circleci/node:lts
     steps:
       - checkout
-      - run:
-          name: Stamp build number into package.json
-          command: sed -i "s/-dev/-${CIRCLE_BUILD_NUM}/g" package.json
+      - when:
+          condition: << parameters.latest >>
+          steps:
+            - run:
+                name: Stamp build number into package.json
+                command: sed -i "s/-dev/-${CIRCLE_BUILD_NUM}/g" package.json
+      - unless:
+          condition: << parameters.latest >>
+          steps:
+            - run:
+                name: Strip version extension from package.json
+                command: sed -i "s/-dev//g" package.json
       - run:
           name: Create .npmrc file
           command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
@@ -373,10 +386,15 @@ workflows:
   staging_commit:
     jobs:
       - stamp:
+          latest: true
           filters:
             branches:
               only:
                 - master
+      - stamp:
+          filters:
+            branches:
+              only:
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - docs:
           filters:
