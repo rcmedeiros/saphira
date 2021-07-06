@@ -344,6 +344,7 @@ workflows:
   development_commit:
     jobs:
       - stamp:
+          latest: false
           filters:
             branches:
               only: develop
