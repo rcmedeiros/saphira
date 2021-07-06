@@ -459,7 +459,6 @@ workflows:
             branches:
               only:
                 - master
-                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - test:
           name: test_release
           requires:
@@ -470,7 +469,6 @@ workflows:
           filters:
             branches:
               only:
-                - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
       - cache_release:
           release_branch: true
