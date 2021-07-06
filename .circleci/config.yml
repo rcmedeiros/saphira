@@ -425,7 +425,7 @@ workflows:
               only:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
-      - build_latest:
+      - build:
           production: true
           requires:
             - dependencies
@@ -435,7 +435,7 @@ workflows:
             branches:
               only:
                 - master
-      - build_release:
+      - build:
           production: true
           requires:
             - dependencies
@@ -445,7 +445,7 @@ workflows:
             branches:
               only:
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
-      - test_latest:
+      - test:
           requires:
             - dependencies
             - dev_dependencies
@@ -456,7 +456,7 @@ workflows:
               only:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
-      - test_release:
+      - test:
           requires:
             - dependencies
             - dev_dependencies
