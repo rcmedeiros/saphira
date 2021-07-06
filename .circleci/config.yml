@@ -385,13 +385,15 @@ workflows:
               only: develop
   staging_commit:
     jobs:
-      - stamp_latest:
+      - stamp:
+          name: stamp_latest
           latest: true
           filters:
             branches:
               only:
                 - master
-      - stamp_release:
+      - stamp:
+          name: stamp_release
           filters:
             branches:
               only:
