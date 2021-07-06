@@ -1,5 +1,6 @@
 import { Controller, Handler, HandlersByMethod, Method, Param, ServiceTag } from './controller/controller';
 
+import { HttpStatusCode } from './constants/http_status_codes';
 import { PAYLOAD } from './constants/settings';
 import { Type } from './data-types';
 import { URL } from 'url';
@@ -288,10 +289,7 @@ export class OpenAPIHelper {
         return result;
     }
 
-    public static buildOpenApi(info: Info): OpenAPI {
-        const openAPI: OpenAPI = { openapi: '3.0.0' };
-
-        // header
+    private static buildHeader(info: Info, openAPI: OpenAPI): void {
         openAPI.info = {
             version: info.module.version,
             title: info.module.name,
@@ -313,6 +311,247 @@ export class OpenAPIHelper {
                 };
             }
         }
+    }
+
+    private static buildComponents(info: Info, openAPI: OpenAPI): void {
+        openAPI.components = info.components || {};
+        openAPI.components.responses = openAPI.components.responses || {};
+        openAPI.components.responses.HTTP201 = {
+            description: 'Created Successfully',
+        };
+        openAPI.components.responses.HTTP202 = {
+            description: 'Asynchronous call accepted',
+        };
+        openAPI.components.responses.HTTP204 = {
+            description: 'Modification successful',
+        };
+        openAPI.components.responses.HTTP400 = {
+            description: 'Bad request',
+            content: {
+                'application/json': {
+                    schema: {
+                        properties: {
+                            message: { type: 'string', example: 'Incorrect request message' },
+                        },
+                    },
+                },
+            },
+        };
+        openAPI.components.responses.HTTP500 = {
+            description: 'An unexpected error has occurred',
+            content: {
+                'application/json': {
+                    schema: {
+                        properties: {
+                            message: { type: 'string', example: "Cannot read property 'toString' of undefined" },
+                            stack: {
+                                type: 'string',
+                                example: `Error: Cannot read property \'toString\' of undefined
+    at constructor.handler.route.action.apply.then.catch
+    (C:\\...\\src\\controller\\controller.ts:425:70)
+    at process._tickCallback (internal/process/next_tick.js:68:7)`,
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        openAPI.components.securitySchemes = {
+            bearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+            },
+        };
+    }
+
+    private static tagService(service: ServiceHandlers, openAPI: OpenAPI): void {
+        if (!openAPI.tags.length || openAPI.tags.last().name !== service.name) {
+            const newTag: Tag = { name: service.name };
+            if (service.tag) {
+                newTag.description = service.tag.description;
+                if (service.tag.externalDocs) {
+                    newTag.externalDocs = service.tag.externalDocs;
+                }
+            }
+            openAPI.tags.push(newTag);
+        }
+    }
+
+    private static buildEndpointRequestBody(endpoint: Endpoint, action: Action): void {
+        // If expects a body, parameters are actually items in the schema of a single content object
+        const schema: Schema = {};
+        action.handler.params.forEach((param: Param) => {
+            // except for path parameters. Those goes separated.
+            if (param.path || param.parentPath) {
+                endpoint.parameters = endpoint.parameters || [];
+                endpoint.parameters.push({
+                    in: 'path',
+                    name: param.name,
+                    schema: OpenAPIHelper.getSchemaType(param.type),
+                    required: true,
+                    description: param.description,
+                    example: param.example,
+                });
+            } else {
+                if (param.reference) {
+                    schema[param.name] = { $ref: `#/components/schemas/${param.reference}` };
+                } else {
+                    schema[param.name] = OpenAPIHelper.getSchemaType(param.type);
+                    schema[param.name].example = param.example;
+                }
+            }
+        });
+
+        if (schema[PAYLOAD]) {
+            endpoint.requestBody = {
+                required: true,
+                content: {
+                    'application/json': {
+                        schema: schema[PAYLOAD] as Schema,
+                    },
+                },
+            };
+        } else {
+            endpoint.requestBody = {
+                required: true,
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: schema,
+                        },
+                    },
+                    'application/x-www-form-urlencoded': {
+                        schema: {
+                            type: 'object',
+                            properties: schema,
+                        },
+                    },
+                },
+            };
+        }
+    }
+
+    private static buildEndpointPathParameters(endpoint: Endpoint, action: Action): void {
+        endpoint.parameters = [];
+        action.handler.params.forEach((param: Param) => {
+            // SEE: https://swagger.io/docs/specification/serialization/
+
+            let explode: boolean = undefined;
+            if (param.type === Type.Object) {
+                explode = true;
+            } else if (param.type === Type.StringArray || param.type === Type.NumberArray) {
+                explode = false;
+            }
+            endpoint.parameters.push({
+                in: param.path || param.parentPath ? 'path' : 'query',
+                name: param.name,
+                schema: param.reference
+                    ? { $ref: `#/components/schemas/${param.reference}` }
+                    : OpenAPIHelper.getSchemaType(param.type),
+                required: param.required || param.path || param.parentPath,
+                description: param.description,
+                example: param.example,
+                style: param.type === Type.Object ? ParameterStyle.deepObject : undefined,
+                explode: explode,
+                allowReserved: param.type === Type.ObjectArray ? true : undefined,
+            });
+        });
+    }
+
+    private static getHTTPResponse(action: Action, httpStatus: HttpStatusCode): Response | { $ref: string } {
+        return action.handler.response.description
+            ? { description: action.handler.response.description }
+            : { $ref: `#/components/responses/HTTP${httpStatus}` };
+    }
+    private static buildEndpointResponse(endpoint: Endpoint, action: Action): void {
+        endpoint.responses = {};
+        switch (action.handler.response.type) {
+            case Type.HttpCreated:
+                endpoint.responses[HttpStatusCode.CREATED] = this.getHTTPResponse(action, HttpStatusCode.CREATED);
+                break;
+            case Type.HttpAccepted:
+                endpoint.responses[HttpStatusCode.ACCEPTED] = this.getHTTPResponse(action, HttpStatusCode.ACCEPTED);
+                break;
+            case Type.HttpModified:
+                endpoint.responses[HttpStatusCode.NO_CONTENT] = this.getHTTPResponse(action, HttpStatusCode.NO_CONTENT);
+                break;
+            default:
+                const listOf: string = action.handler.response.type !== Type.ObjectArray ? '' : 'list of ';
+                const responseSchema: Record<string, unknown> =
+                    action.handler.response.type === Type.ObjectArray
+                        ? {
+                              type: 'array',
+                              items: {
+                                  $ref: `#/components/schemas/${action.handler.response.reference}`,
+                              },
+                          }
+                        : {
+                              $ref: `#/components/schemas/${action.handler.response.reference}`,
+                          };
+
+                endpoint.responses[200] = {
+                    description:
+                        action.handler.response.description || action.handler.response.reference
+                            ? `Result is ${listOf}${action.handler.response.reference} model`
+                            : 'OK',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    result: !action.handler.response.reference
+                                        ? {
+                                              type: OpenAPIHelper.getResponseType(action.handler.response.type),
+                                          }
+                                        : responseSchema,
+                                    timeStamp: { type: 'string', example: '2019-05-07T22:41:39.714Z' },
+                                    performance: { type: 'string', example: '2.328301 ms' },
+                                },
+                            },
+                        },
+                    },
+                };
+        }
+        endpoint.responses[400] = { $ref: '#/components/responses/HTTP400' };
+        endpoint.responses[500] = { $ref: '#/components/responses/HTTP500' };
+    }
+    private static getEndpoint(action: Action, service: ServiceHandlers): Endpoint {
+        const result: Endpoint = {};
+
+        result.tags = [service.name];
+        result.summary = action.handler.tag ? action.handler.tag.summary : undefined;
+        result.description = action.handler.tag?.description ? action.handler.tag.description : undefined;
+
+        let requestBody: boolean;
+        switch (action.handler.method) {
+            case Method.POST:
+            case Method.PUT:
+            case Method.PATCH:
+                requestBody = true;
+                break;
+            default:
+                requestBody = false;
+        }
+        if (action.handler.params) {
+            if (requestBody) {
+                this.buildEndpointRequestBody(result, action);
+            } else {
+                this.buildEndpointPathParameters(result, action);
+            }
+        }
+
+        this.buildEndpointResponse(result, action);
+
+        return result;
+    }
+
+    public static buildOpenApi(info: Info): OpenAPI {
+        const openAPI: OpenAPI = { openapi: '3.0.0' };
+
+        this.buildHeader(info, openAPI);
 
         // controllers
         if (info.controllers) {
@@ -320,231 +559,15 @@ export class OpenAPIHelper {
             openAPI.tags = [];
             openAPI.paths = {};
             services.services.forEach((service: ServiceHandlers) => {
-                // tag new services
-                if (!openAPI.tags.length || openAPI.tags.last().name !== service.name) {
-                    const newTag: Tag = { name: service.name };
-                    if (service.tag) {
-                        newTag.description = service.tag.description;
-                        if (service.tag.externalDocs) {
-                            newTag.externalDocs = service.tag.externalDocs;
-                        }
-                    }
-                    openAPI.tags.push(newTag);
-                }
+                this.tagService(service, openAPI);
 
                 (service.handlers as Array<Action>).forEach((action: Action) => {
-                    const endpoint: Endpoint = {};
-
-                    endpoint.tags = [service.name];
-                    endpoint.summary = action.handler.tag ? action.handler.tag.summary : undefined;
-                    endpoint.description = action.handler.tag?.description ? action.handler.tag.description : undefined;
-                    let requestBody: boolean;
-                    switch (action.handler.method) {
-                        case Method.POST:
-                        case Method.PUT:
-                        case Method.PATCH:
-                            requestBody = true;
-                            break;
-                        default:
-                            requestBody = false;
-                    }
-
-                    if (action.handler.params) {
-                        // If expects a body, parameters are actually items in the schema of a single content object
-                        if (requestBody) {
-                            const schema: Schema = {};
-                            action.handler.params.forEach((param: Param) => {
-                                // except for path parameters. Those goes separated.
-                                if (param.path || param.parentPath) {
-                                    endpoint.parameters = endpoint.parameters || [];
-                                    endpoint.parameters.push({
-                                        in: 'path',
-                                        name: param.name,
-                                        schema: OpenAPIHelper.getSchemaType(param.type),
-                                        required: true,
-                                        description: param.description,
-                                        example: param.example,
-                                    });
-                                } else {
-                                    if (param.reference) {
-                                        schema[param.name] = { $ref: `#/components/schemas/${param.reference}` };
-                                    } else {
-                                        schema[param.name] = OpenAPIHelper.getSchemaType(param.type);
-                                        schema[param.name].example = param.example;
-                                    }
-                                }
-                            });
-
-                            if (schema[PAYLOAD]) {
-                                endpoint.requestBody = {
-                                    required: true,
-                                    content: {
-                                        'application/json': {
-                                            schema: schema[PAYLOAD] as Schema,
-                                        },
-                                    },
-                                };
-                            } else {
-                                endpoint.requestBody = {
-                                    required: true,
-                                    content: {
-                                        'application/json': {
-                                            schema: {
-                                                type: 'object',
-                                                properties: schema,
-                                            },
-                                        },
-                                        'application/x-www-form-urlencoded': {
-                                            schema: {
-                                                type: 'object',
-                                                properties: schema,
-                                            },
-                                        },
-                                    },
-                                };
-                            }
-                        } else {
-                            endpoint.parameters = [];
-                            action.handler.params.forEach((param: Param) => {
-                                // SEE: https://swagger.io/docs/specification/serialization/
-
-                                let explode: boolean = undefined;
-                                if (param.type === Type.Object) {
-                                    explode = true;
-                                } else if (param.type === Type.StringArray || param.type === Type.NumberArray) {
-                                    explode = false;
-                                }
-                                endpoint.parameters.push({
-                                    in: param.path || param.parentPath ? 'path' : 'query',
-                                    name: param.name,
-                                    schema: param.reference
-                                        ? { $ref: `#/components/schemas/${param.reference}` }
-                                        : OpenAPIHelper.getSchemaType(param.type),
-                                    required: param.required || param.path || param.parentPath,
-                                    description: param.description,
-                                    example: param.example,
-                                    style: param.type === Type.Object ? ParameterStyle.deepObject : undefined,
-                                    explode: explode,
-                                    allowReserved: param.type === Type.ObjectArray ? true : undefined,
-                                });
-                            });
-                        }
-                    }
-
                     openAPI.paths[action.path] = openAPI.paths[action.path] || {};
-
-                    endpoint.responses = {};
-                    switch (action.handler.response.type) {
-                        case Type.HttpCreated:
-                            endpoint.responses[201] = action.handler.response.description
-                                ? { description: action.handler.response.description }
-                                : { $ref: '#/components/responses/HTTP201' };
-                            break;
-                        case Type.HttpAccepted:
-                            endpoint.responses[202] = action.handler.response.description
-                                ? { description: action.handler.response.description }
-                                : { $ref: '#/components/responses/HTTP202' };
-                            break;
-                        case Type.HttpModified:
-                            endpoint.responses[204] = action.handler.response.description
-                                ? { description: action.handler.response.description }
-                                : { $ref: '#/components/responses/HTTP204' };
-                            break;
-                        default:
-                            const listOf: string = action.handler.response.type !== Type.ObjectArray ? '' : 'list of ';
-                            const responseSchema: Record<string, unknown> =
-                                action.handler.response.type === Type.ObjectArray
-                                    ? {
-                                          type: 'array',
-                                          items: {
-                                              $ref: `#/components/schemas/${action.handler.response.reference}`,
-                                          },
-                                      }
-                                    : {
-                                          $ref: `#/components/schemas/${action.handler.response.reference}`,
-                                      };
-
-                            endpoint.responses[200] = {
-                                description:
-                                    action.handler.response.description || action.handler.response.reference
-                                        ? `Result is ${listOf}${action.handler.response.reference} model`
-                                        : 'OK',
-                                content: {
-                                    'application/json': {
-                                        schema: {
-                                            type: 'object',
-                                            properties: {
-                                                result: !action.handler.response.reference
-                                                    ? {
-                                                          type: OpenAPIHelper.getResponseType(
-                                                              action.handler.response.type,
-                                                          ),
-                                                      }
-                                                    : responseSchema,
-                                                timeStamp: { type: 'string', example: '2019-05-07T22:41:39.714Z' },
-                                                performance: { type: 'string', example: '2.328301 ms' },
-                                            },
-                                        },
-                                    },
-                                },
-                            };
-                    }
-                    endpoint.responses[400] = { $ref: '#/components/responses/HTTP400' };
-                    endpoint.responses[500] = { $ref: '#/components/responses/HTTP500' };
-
-                    openAPI.paths[action.path][action.handler.method] = endpoint;
+                    openAPI.paths[action.path][action.handler.method] = this.getEndpoint(action, service);
                 });
             });
-            openAPI.components = info.components || {};
-            openAPI.components.responses = openAPI.components.responses || {};
-            openAPI.components.responses.HTTP201 = {
-                description: 'Created Successfully',
-            };
-            openAPI.components.responses.HTTP202 = {
-                description: 'Asynchronous call accepted',
-            };
-            openAPI.components.responses.HTTP204 = {
-                description: 'Modification successful',
-            };
-            openAPI.components.responses.HTTP400 = {
-                description: 'Bad request',
-                content: {
-                    'application/json': {
-                        schema: {
-                            properties: {
-                                message: { type: 'string', example: "You've send incorrect data" },
-                            },
-                        },
-                    },
-                },
-            };
-            openAPI.components.responses.HTTP500 = {
-                description: 'An unexpected error has occurred',
-                content: {
-                    'application/json': {
-                        schema: {
-                            properties: {
-                                message: { type: 'string', example: "Cannot read property 'toString' of undefined" },
-                                stack: {
-                                    type: 'string',
-                                    example: `Error: Cannot read property \'toString\' of undefined
-    at constructor.handler.route.action.apply.then.catch
-    (C:\\...\\src\\controller\\controller.ts:425:70)
-    at process._tickCallback (internal/process/next_tick.js:68:7)`,
-                                },
-                            },
-                        },
-                    },
-                },
-            };
 
-            openAPI.components.securitySchemes = {
-                bearerAuth: {
-                    type: 'http',
-                    scheme: 'bearer',
-                    bearerFormat: 'JWT',
-                },
-            };
+            this.buildComponents(info, openAPI);
             openAPI.security = [{ bearerAuth: [] }];
 
             return openAPI;
