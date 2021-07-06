@@ -24,7 +24,6 @@ import {
     JWT_KEY,
     JWT_OPTS,
     OAUTH2_SERVER,
-    UTF8,
 } from './constants/settings';
 import { Express, Request } from './express';
 import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
@@ -210,8 +209,8 @@ export class Saphira {
             const result: TLSOptions = s.contains('"')
                 ? (parseJson(s) as TLSOptions)
                 : {
-                      key: fs.readFileSync(path.join(s, FILENAME_TLS_KEY), UTF8),
-                      cert: fs.readFileSync(path.join(s, FILENAME_TLS_CERTIFICATE), UTF8),
+                      key: fs.readFileSync(path.join(s, FILENAME_TLS_KEY)).toString(),
+                      cert: fs.readFileSync(path.join(s, FILENAME_TLS_CERTIFICATE)).toString(),
                   };
 
             const info: CertInfo = cert.info(result.cert.substringUpTo('END CERTIFICATE-----'));
