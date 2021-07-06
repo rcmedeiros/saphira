@@ -385,13 +385,13 @@ workflows:
               only: develop
   staging_commit:
     jobs:
-      - stamp:
+      - stamp_latest:
           latest: true
           filters:
             branches:
               only:
                 - master
-      - stamp:
+      - stamp_release:
           filters:
             branches:
               only:
@@ -423,23 +423,43 @@ workflows:
               only:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
-      - build:
+      - build_latest:
           production: true
           requires:
             - dependencies
             - dev_dependencies
-            - stamp
+            - stamp_latest
+          filters:
+            branches:
+              only:
+                - master
+      - build_release:
+          production: true
+          requires:
+            - dependencies
+            - dev_dependencies
+            - stamp_release
+          filters:
+            branches:
+              only:
+                - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
+      - test_latest:
+          requires:
+            - dependencies
+            - dev_dependencies
+            - audit_dependencies
+            - stamp_latest
           filters:
             branches:
               only:
                 - master
                 - /release\/v\d+\.\d+\.\d+-(alpha|beta|rc)(\.\d){0,1}/
-      - test:
+      - test_release:
           requires:
             - dependencies
             - dev_dependencies
             - audit_dependencies
-            - stamp
+            - stamp_release
           filters:
             branches:
               only:
@@ -448,9 +468,9 @@ workflows:
       - cache_release:
           release_branch: true
           requires:
-            - build
-            - stamp
-            - test
+            - build_release
+            - stamp_release
+            - test_release
             - docs
           filters:
             branches:
@@ -458,9 +478,9 @@ workflows:
       - cache_release:
           master_branch: true
           requires:
-            - build
-            - stamp
-            - test
+            - build_latest
+            - stamp_latest
+            - test_latest
             - docs
           filters:
             branches:
