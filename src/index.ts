@@ -289,78 +289,66 @@ export class Saphira {
         }
     }
 
-    private async banner(connections?: NameValue): Promise<void> {
-        return new Promise((resolve: Resolution<void>, reject: Rejection): void => {
-            figlet.text(
-                __moduleInfo.name,
-                {
-                    font: 'Star Wars',
-                    horizontalLayout: 'default',
-                    verticalLayout: 'default',
-                },
-                (err: Error, data: string) => {
-                    /* istanbul ignore if */
-                    if (err) {
-                        reject(err);
-                    } else {
-                        console.info(`\n${data}\n`);
+    private bannerServices(table: NameValue): void {
+        if (this.options.servers) {
+            table['     '] = {};
+            this.options.servers.forEach((server: ServerInfo, idx: number) => {
+                const sIdx: string = `[${idx}]`;
+                const item: string = `${server.description.capitalize()}${this.options.servers.length > 1 ? sIdx : ''}`;
+                table[item] = {
+                    '': `${server.url}${Saphira.PRODUCTION ? '/' : '-docs/'}`,
+                };
+                if (!Saphira.PRODUCTION && server.url.protocol === 'http:') {
+                    (table[item] as { status: string }).status = 'Security off';
+                }
+            });
+        }
+    }
+    private banner(connections?: NameValue): void {
+        console.info(
+            figlet.textSync(__moduleInfo.name, {
+                font: 'Star Wars',
+                horizontalLayout: 'default',
+                verticalLayout: 'default',
+            }),
+        );
 
-                        let versionStatus: string;
-                        if (__moduleInfo.version.indexOf('-dev') !== -1) {
-                            versionStatus = 'local';
-                        } else {
-                            versionStatus = __moduleInfo.version.indexOf('-') !== -1 ? 'development' : 'release';
-                        }
+        let versionStatus: string;
+        if (__moduleInfo.version.indexOf('-dev') !== -1) {
+            versionStatus = 'local';
+        } else {
+            versionStatus = __moduleInfo.version.indexOf('-') !== -1 ? 'development' : 'release';
+        }
 
-                        const fingerprint: string = this.fingerprint();
+        const fingerprint: string = this.fingerprint();
 
-                        this.info = {
-                            name: __moduleInfo.name,
-                            version: __moduleInfo.version,
-                            description: __moduleInfo.description,
-                            certificate: this.tls ? this.tls[0] : undefined,
-                            jwtKey: fingerprint,
-                        };
+        this.info = {
+            name: __moduleInfo.name,
+            version: __moduleInfo.version,
+            description: __moduleInfo.description,
+            certificate: this.tls ? this.tls[0] : undefined,
+            jwtKey: fingerprint,
+        };
 
-                        const table: NameValue = {
-                            VERSION: { '': __moduleInfo.version, status: versionStatus },
-                            PORT: { '': this.app.get(PORT), status: 'open' },
-                            ENVIRONMENT: { '': process.env.NODE_ENV },
-                            /*Log: {
-                            '': Logger.outputDir ? path.join(Logger.outputDir, __moduleInfo.name.toLowerCase()) : undefined ||
-                                'CONSOLE ONLY', status: LogLevel[Logger.level],
-                        },*/
-                            'TLS Certificate': this.tls
-                                ? { '': this.tls[0], status: this.tls[1] }
-                                : { '': 'none', status: 'OFF' },
-                            ...(this.fingerprint
-                                ? { 'JWT Public Key': { '': fingerprint, status: fingerprint ? 'loaded' : 'FAILED' } }
-                                : {}),
-                            ...connections,
-                        };
+        const table: NameValue = {
+            VERSION: { '': __moduleInfo.version, status: versionStatus },
+            PORT: { '': this.app.get(PORT), status: 'open' },
+            ENVIRONMENT: { '': process.env.NODE_ENV },
+            /*Log: {
+            '': Logger.outputDir ? path.join(Logger.outputDir, __moduleInfo.name.toLowerCase()) : undefined ||
+                'CONSOLE ONLY', status: LogLevel[Logger.level],
+        },*/
+            'TLS Certificate': this.tls ? { '': this.tls[0], status: this.tls[1] } : { '': 'none', status: 'OFF' },
+            ...(this.fingerprint
+                ? { 'JWT Public Key': { '': fingerprint, status: fingerprint ? 'loaded' : 'FAILED' } }
+                : {}),
+            ...connections,
+        };
 
-                        if (this.options.servers) {
-                            table['     '] = {};
-                            this.options.servers.forEach((server: ServerInfo, idx: number) => {
-                                const item: string = `${server.description.capitalize()}${
-                                    this.options.servers.length > 1 ? `[${idx}]` : ''
-                                }`;
-                                table[item] = {
-                                    '': `${server.url}${Saphira.PRODUCTION ? '/' : '-docs/'}`,
-                                };
-                                if (!Saphira.PRODUCTION && server.url.protocol === 'http:') {
-                                    (table[item] as { status: string }).status = 'Security off';
-                                }
-                            });
-                        }
+        this.bannerServices(table);
 
-                        console.table(table);
-                        this.showRoutes();
-                        resolve();
-                    }
-                },
-            );
-        });
+        console.table(table);
+        this.showRoutes();
     }
 
     private route(app: Express, controllerTypes: Array<typeof Controller>): void {
@@ -491,11 +479,8 @@ export class Saphira {
 
                                 if (!httpsOptions) {
                                     this.server = this.app.listen(this.app.get(PORT), async () => {
-                                        this.banner(connections.data)
-                                            .then(() => {
-                                                resolve();
-                                            })
-                                            .catch(reject);
+                                        this.banner(connections.data);
+                                        resolve();
                                     });
                                 } else {
                                     this.server = https
@@ -507,19 +492,13 @@ export class Saphira {
                                             this.app as unknown as http.RequestListener,
                                         )
                                         .listen(this.app.get(PORT), async () => {
-                                            this.banner(connections.data)
-                                                .then(() => {
-                                                    resolve();
-                                                })
-                                                .catch(reject);
+                                            this.banner(connections.data);
+                                            resolve();
                                         });
                                 }
                             } else {
-                                this.banner(connections.data)
-                                    .then(() => {
-                                        reject(new Error('>>> FAILED TO LOAD CONFIGURATION <<<'));
-                                    })
-                                    .catch(console.error);
+                                this.banner(connections.data);
+                                reject(new Error('>>> FAILED TO LOAD CONFIGURATION <<<'));
                             }
                         })
                         .catch((e: Error) => {
