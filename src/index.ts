@@ -413,6 +413,20 @@ export class Saphira {
             });
         }
     }
+
+    private async expressListen(server: Express | http.Server, port: number): Promise<http.Server> {
+        return new Promise((resolve: Resolution<http.Server>, reject: Rejection) => {
+            const s: http.Server = server
+                .listen(port)
+                .once('listening', () => {
+                    resolve(s);
+                })
+                .once('error', (e: Error) => {
+                    reject(e);
+                });
+        });
+    }
+
     public async listen(): Promise<void> {
         this.since = new Date();
         this.server = { close: (): Promise<void> => Promise.resolve() } as unknown as http.Server;
@@ -454,27 +468,20 @@ export class Saphira {
         if (connections.success) {
             this.route(this.app, this.controllerTypes);
             if (!httpsOptions) {
-                await new Promise((resolve: Resolution<void>) => {
-                    this.server = this.app.listen(this.app.get(PORT), async () => {
-                        this.banner(connections.data);
-                        resolve();
-                    });
-                });
+                this.server = await this.expressListen(this.app, this.app.get(PORT));
+                this.banner(connections.data);
             } else {
-                await new Promise((resolve: Resolution<void>) => {
-                    this.server = https
-                        .createServer(
-                            {
-                                key: httpsOptions.key,
-                                cert: httpsOptions.cert,
-                            },
-                            this.app as unknown as http.RequestListener,
-                        )
-                        .listen(this.app.get(PORT), async () => {
-                            this.banner(connections.data);
-                            resolve();
-                        });
-                });
+                this.server = await this.expressListen(
+                    https.createServer(
+                        {
+                            key: httpsOptions.key,
+                            cert: httpsOptions.cert,
+                        },
+                        this.app as unknown as http.RequestListener,
+                    ),
+                    this.app.get(PORT),
+                );
+                this.banner(connections.data);
             }
         } else {
             this.banner(connections.data);

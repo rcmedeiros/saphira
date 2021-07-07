@@ -10,4 +10,6 @@ s.listen()
     .then(() => {
         console.info('server started');
     })
-    .catch(console.error);
+    .catch((e: Error) => {
+        console.error(e.message)
+    });
