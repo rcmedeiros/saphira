@@ -339,7 +339,7 @@ export class Saphira {
                 'CONSOLE ONLY', status: LogLevel[Logger.level],
         },*/
             'TLS Certificate': this.tls ? { '': this.tls[0], status: this.tls[1] } : { '': 'none', status: 'OFF' },
-            ...(this.fingerprint
+            ...(this.fingerprint()
                 ? { 'JWT Public Key': { '': fingerprint, status: fingerprint ? 'loaded' : 'FAILED' } }
                 : {}),
             ...connections,
@@ -413,102 +413,73 @@ export class Saphira {
             });
         }
     }
-
     public async listen(): Promise<void> {
         this.since = new Date();
-        return new Promise((resolve: Resolution<void>, reject: Rejection) => {
-            this.server = { close: (): Promise<void> => Promise.resolve() } as unknown as http.Server;
+        this.server = { close: (): Promise<void> => Promise.resolve() } as unknown as http.Server;
+        const vault: Vault = Vault.getInstance();
 
-            const vault: Vault = Vault.getInstance();
+        const httpsOptions: TLSOptions = this.loadSecurityLayer();
+        this.app.set(PORT, this.options.port || (this.tls ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
 
-            // Logger.setUp();
-            const httpsOptions: TLSOptions = this.loadSecurityLayer();
-            this.app.set(PORT, this.options.port || (this.tls ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
-
-            const oauth: boolean = !!process.env[OAUTH2_SERVER];
-
-            if (oauth) {
-                this.adapters.webServices = this.adapters.webServices || [];
-                if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER).length === 0) {
-                    this.adapters.webServices.push(OAUTH2_SERVER);
-                }
-
-                this.adapters.webServices
-                    .filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER)
-                    .forEach((ws: WebServerConfig) => {
-                        ws.name = OAUTH2_SERVER;
-                    });
+        const oauth: boolean = !!process.env[OAUTH2_SERVER];
+        if (oauth) {
+            this.adapters.webServices = this.adapters.webServices || [];
+            if (this.adapters.webServices.filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER).length === 0) {
+                this.adapters.webServices.push(OAUTH2_SERVER);
             }
 
-            const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
-            this.verifyRequiredEnvVars(adaptersMgr.environmentVariables);
-
-            adaptersMgr
-                .connect()
-                .then((connections: AdaptersResult) => {
-                    new Promise((res: Resolution<void>) => {
-                        if (oauth) {
-                            Adapters.getWebService(OAUTH2_SERVER)
-                                .get('/key')
-                                .then((response: WebResponse) => {
-                                    response.okOnly();
-                                    vault
-                                        .set(JWT_KEY, response.body)
-                                        .set(JWT_OPTS, { clockTolerance: JWT_CLOCK_TOLERANCE });
-                                    res();
-                                    Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
-                                })
-                                .catch((e: Error) => {
-                                    console.error('FAILED to obtain OAuth2 Server key');
-                                    console.error(e);
-                                    (connections.data[OAUTH2_SERVER] as { status: string }).status = e.name;
-                                    res();
-                                });
-                        } else {
-                            res();
-                        }
-                    })
-                        .then(() => {
-                            if (connections.success) {
-                                try {
-                                    this.route(this.app, this.controllerTypes);
-                                } catch (e) {
-                                    reject(e);
-                                    return undefined;
-                                }
-
-                                if (!httpsOptions) {
-                                    this.server = this.app.listen(this.app.get(PORT), async () => {
-                                        this.banner(connections.data);
-                                        resolve();
-                                    });
-                                } else {
-                                    this.server = https
-                                        .createServer(
-                                            {
-                                                key: httpsOptions.key,
-                                                cert: httpsOptions.cert,
-                                            },
-                                            this.app as unknown as http.RequestListener,
-                                        )
-                                        .listen(this.app.get(PORT), async () => {
-                                            this.banner(connections.data);
-                                            resolve();
-                                        });
-                                }
-                            } else {
-                                this.banner(connections.data);
-                                reject(new Error('>>> FAILED TO LOAD CONFIGURATION <<<'));
-                            }
-                        })
-                        .catch((e: Error) => {
-                            reject(e);
-                        });
-                })
-                .catch((e: Error) => {
-                    reject(e);
+            this.adapters.webServices
+                .filter((c: WebServerConfig) => c.envVar === OAUTH2_SERVER)
+                .forEach((ws: WebServerConfig) => {
+                    ws.name = OAUTH2_SERVER;
                 });
-        });
+        }
+
+        const adaptersMgr: AdaptersManager = new AdaptersManager(this.adapters);
+        this.verifyRequiredEnvVars(adaptersMgr.environmentVariables);
+
+        const connections: AdaptersResult = await adaptersMgr.connect();
+        if (oauth) {
+            try {
+                const response: WebResponse = await Adapters.getWebService(OAUTH2_SERVER).get('/key');
+                response.okOnly();
+                vault.set(JWT_KEY, response.body).set(JWT_OPTS, { clockTolerance: JWT_CLOCK_TOLERANCE });
+                Adapters.closeConnection(OAUTH2_SERVER).catch(console.warn);
+            } catch (e) {
+                console.error('FAILED to obtain OAuth2 Server key');
+                console.error(e);
+                (connections.data[OAUTH2_SERVER] as { status: string }).status = e.name;
+            }
+        }
+        if (connections.success) {
+            this.route(this.app, this.controllerTypes);
+            if (!httpsOptions) {
+                await new Promise((resolve: Resolution<void>) => {
+                    this.server = this.app.listen(this.app.get(PORT), async () => {
+                        this.banner(connections.data);
+                        resolve();
+                    });
+                });
+            } else {
+                await new Promise((resolve: Resolution<void>) => {
+                    this.server = https
+                        .createServer(
+                            {
+                                key: httpsOptions.key,
+                                cert: httpsOptions.cert,
+                            },
+                            this.app as unknown as http.RequestListener,
+                        )
+                        .listen(this.app.get(PORT), async () => {
+                            this.banner(connections.data);
+                            resolve();
+                        });
+                });
+            }
+        } else {
+            this.banner(connections.data);
+            throw new Error('>>> FAILED TO LOAD CONFIGURATION <<<');
+        }
     }
 
     public async close(): Promise<void> {
