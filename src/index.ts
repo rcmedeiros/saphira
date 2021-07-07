@@ -60,7 +60,6 @@ import fs from 'fs';
 import helmet from 'helmet';
 import https from 'https';
 import path from 'path';
-import swaggerUiExpress from 'swagger-ui-express';
 
 export interface ServerInfo {
     url: URL;
@@ -351,7 +350,7 @@ export class Saphira {
         this.showRoutes();
     }
 
-    private route(app: Express, controllerTypes: Array<typeof Controller>): void {
+    private async route(app: Express, controllerTypes: Array<typeof Controller>): Promise<void> {
         const expressRouter: Router = express.Router();
 
         app.get(ENDPOINT_HEALTH_CHECK, (_request: ERequest, response: Response) => {
@@ -398,6 +397,12 @@ export class Saphira {
                 components: this.options.openApiComponents,
             };
             const doc: OpenAPI = OpenAPIHelper.buildOpenApi(apiDocs);
+
+            const swaggerUiExpress: {
+                serve: core.RequestHandler[];
+                setup: (swaggerDoc?: unknown, opts?: unknown) => core.RequestHandler;
+            } = await import('swagger-ui-express');
+
             app.use(
                 ENDPOINT_OPEN_API,
                 swaggerUiExpress.serve,
