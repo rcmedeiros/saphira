@@ -28,3 +28,14 @@ export const envVarAsBoolean: (name: string) => boolean = (name: string): boolea
 export const decodeJWT: (jwt: string) => NameValue = (jwt: string): NameValue => {
     return decode(jwt) as NameValue;
 };
+
+export const unloadModule: (moduleName: string) => void = (moduleName: string) => {
+    const solvedName: string = require.resolve(moduleName),
+        nodeModule: NodeModule = require.cache[solvedName];
+    if (nodeModule) {
+        for (const child of nodeModule.children) {
+            unloadModule(child.filename);
+        }
+        delete require.cache[solvedName];
+    }
+};

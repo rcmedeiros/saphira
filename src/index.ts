@@ -28,11 +28,10 @@ import {
 import { Express, Request } from './express';
 import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { NameValue, Rejection, Resolution, StringSet } from './types';
-import cert, { CertInfo } from 'cert-info';
-import { decodeJWT, envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
+import cert, { CertInfo } from 'cert-info'; // TODO: lazy import
+import { decodeJWT, envVarAsBoolean, envVarAsString, parseJson, unloadModule, uuid } from './helpers';
 import express, { Request as ERequest, Response, Router } from 'express';
 import sshpk, { Key } from 'sshpk';
-import yaml, { DEFAULT_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
@@ -402,16 +401,22 @@ export class Saphira {
                 serve: core.RequestHandler[];
                 setup: (swaggerDoc?: unknown, opts?: unknown) => core.RequestHandler;
             } = await import('swagger-ui-express');
-
             app.use(
                 ENDPOINT_OPEN_API,
                 swaggerUiExpress.serve,
                 swaggerUiExpress.setup(doc, { customSiteTitle: __moduleInfo.name }),
             );
 
-            const spec: string = yaml.dump(yaml.load(JSON.stringify(doc), { schema: JSON_SCHEMA }), {
-                schema: DEFAULT_SCHEMA,
+            const yaml: {
+                load: (str: string, opts?: Record<string, unknown>) => unknown | string | number | null | undefined;
+                dump: (obj: unknown, opts?: Record<string, unknown>) => string;
+                DEFAULT_SCHEMA: unknown;
+                JSON_SCHEMA: unknown;
+            } = await import('js-yaml');
+            const spec: string = yaml.dump(yaml.load(JSON.stringify(doc), { schema: yaml.JSON_SCHEMA }), {
+                schema: yaml.DEFAULT_SCHEMA,
             });
+            unloadModule('js-yaml');
             app.use(ENDPOINT_API_SPEC, (_req: Request, res: Response) => {
                 res.setHeader('Content-Type', ContentType.YAML_from_users);
                 res.send(spec);
@@ -471,7 +476,7 @@ export class Saphira {
             }
         }
         if (connections.success) {
-            this.route(this.app, this.controllerTypes);
+            await this.route(this.app, this.controllerTypes);
             if (!httpsOptions) {
                 this.server = await this.expressListen(this.app, this.app.get(PORT));
                 this.banner(connections.data);
