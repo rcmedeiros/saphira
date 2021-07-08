@@ -10,7 +10,7 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc mocha --sort --trace-warnings --require ts-node/register --check-leaks --globals 'regeneratorRuntime' --globals 'CSS' --recursive --exit test/**/*test.ts",
-    "test:ci": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc mocha --sort --trace-warnings --require ts-node/register --check-leaks --globals 'regeneratorRuntime' --globals 'CSS' --recursive --exit --timeout 600 test/**/*test.ts --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml && mkdir coverage && nyc report --reporter=text-lcov > coverage/lcov.info",
+    "test:ci": "export TS_NODE_PROJECT=test/tsconfig.json && export NODE_ENV=test&& nyc mocha --sort --trace-warnings --require ts-node/register --check-leaks --globals 'regeneratorRuntime' --globals 'CSS' --recursive --exit --timeout 600 test/**/*test.ts --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml && mkdir coverage && nyc report --reporter=text-lcov > coverage/lcov.info",
     "coverage": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc --reporter=html mocha --sort --require ts-node/register --check-leaks --globals 'regeneratorRuntime' --globals 'CSS' --recursive --exit test/**/*test.ts",
     "coverage:one": "set TS_NODE_PROJECT=test/tsconfig.json&&set NODE_ENV=test&& nyc --reporter=html mocha --sort --require ts-node/register --check-leaks --globals 'regeneratorRuntime' --globals 'CSS' --recursive -exit test/**/*-test1.ts",
     "docs": "python -m mkdocs serve"
