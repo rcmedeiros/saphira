@@ -31,7 +31,7 @@ import { NameValue, Rejection, Resolution, StringSet } from './types';
 import cert, { CertInfo } from 'cert-info'; // TODO: lazy import
 import { decodeJWT, envVarAsBoolean, envVarAsString, parseJson, unloadModule, uuid } from './helpers';
 import express, { Request as ERequest, Response, Router } from 'express';
-import sshpk, { Key } from 'sshpk';
+import sshpk, { Key } from 'sshpk'; // TODO: lazy import
 
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
@@ -54,11 +54,11 @@ import { WebOptions } from './adapter/web-options';
 import { WebResponse } from './adapter/web-response';
 import compression from 'compression'; // compresses requests
 import cors from 'cors';
-import figlet from 'figlet';
-import fs from 'fs';
+import figlet from 'figlet'; // TODO: lazy import
+import fs from 'fs'; // TODO: lazy import
 import helmet from 'helmet';
 import https from 'https';
-import path from 'path';
+import path from 'path'; // TODO: lazy import
 
 export interface ServerInfo {
     url: URL;
