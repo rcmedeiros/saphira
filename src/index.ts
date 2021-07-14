@@ -29,7 +29,7 @@ import { Express, Request } from './express';
 import { Info, OpenAPI, OpenAPIHelper } from './open-api.helper';
 import { NameValue, Rejection, Resolution, StringSet } from './types';
 import cert, { CertInfo } from 'cert-info';
-import { decodeJWT, envVarAsBoolean, envVarAsString, parseJson, uuid } from './helpers';
+import { decodeJWT, envVarAsBoolean, envVarAsString, parseJson, safeStringify, uuid } from './helpers';
 import express, { Request as ERequest, Response, Router } from 'express';
 import sshpk, { Key } from 'sshpk';
 import yaml, { DEFAULT_SCHEMA, JSON_SCHEMA } from 'js-yaml';
@@ -515,6 +515,7 @@ export {
     Type,
     Vault,
     NameValue,
+    safeStringify,
     StringSet,
     Rejection,
     Resolution,

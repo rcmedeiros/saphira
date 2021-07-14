@@ -1,16 +1,34 @@
 // cSpell:ignore yxxx xvcj qssw
-import { NameValue, decodeJWT, parseJson, uuid } from '../src';
+import { NameValue, decodeJWT, parseJson, safeStringify, uuid } from '../src';
 import { describe, it } from 'mocha';
 
 import { expect } from 'chai';
 
-describe('JSON Helper', () => {
+describe('JSON Parser', () => {
     it('Should parse valid objects', () => {
         expect((parseJson('{"hello":"world"}') as NameValue).hello).to.be.equal('world');
     });
 
     it('Should return undefined for invalid objects', () => {
         expect(parseJson('{"hello":}')).to.be.undefined;
+    });
+});
+
+describe('JSON Stringify', () => {
+    it('Should stringify valid objects', () => {
+        expect(safeStringify({ hello: 'world' })).to.be.equal('{"hello":"world"}');
+    });
+
+    const circ: NameValue = {};
+    circ.circ = circ;
+
+    it('Should stringify invalid objects', () => {
+        expect(safeStringify(circ)).to.be.equal('{"circ":"[Circular]"}');
+    });
+
+    it('Should return non objects', () => {
+        expect(safeStringify('foobar')).to.be.equal('"foobar"');
+        expect(safeStringify(10)).to.be.equal('10');
     });
 });
 

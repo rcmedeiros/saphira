@@ -1,12 +1,12 @@
 import { Controller, Handler } from './controller';
 import { HEADER_X_HRTIME, HEADER_X_PAGINATION } from '../constants/settings';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { Saphira, safeStringify } from '../';
 
 import { HttpError } from '../errors/http-error';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { MSG_HTTP_UNEXPECTED_ERROR } from '../constants/messages';
 import { PagedResult } from './paged_result';
-import { Saphira } from '../';
 import { Type } from '../data-types';
 import { UnknownObj } from './unknown-obj';
 import prettyHrtime from 'pretty-hrtime';
@@ -53,12 +53,13 @@ export class Responder {
     }
     public static route(controller: Controller, handler: Handler): RequestHandler {
         return (request: Request, response: Response, next: NextFunction): void => {
-            console.debug(`${request.method} ${request.path}`);
-            console.debug('headers', request.headers);
-            console.debug('params', request.params);
-            console.debug('query', request.query);
-            console.debug('body', request.body);
-
+            if (!Saphira.PRODUCTION) {
+                console.debug(`${request.method} ${request.path}`);
+                console.debug('headers', request.headers);
+                console.debug('params', request.params);
+                console.debug('query', request.query);
+                console.debug('body', safeStringify(request.body));
+            }
             const t: [number, number] = process.hrtime();
             controller
                 .handle(handler, request)
