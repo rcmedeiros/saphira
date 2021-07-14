@@ -65,11 +65,7 @@ export class Responder {
 
                 response.json(result);
                 if (Responder.SHOULD_LOG) {
-                    console.debug(
-                        `====================================RESPONSE\n` +
-                            `body ${safeStringify(response)}\n` +
-                            '====================================END RESPONSE',
-                    );
+                    console.debug(`====================================RESPONSE\nbody ${safeStringify(response)}`);
                 }
         }
     }
@@ -82,8 +78,7 @@ export class Responder {
                         `\theaders: ${JSON.stringify(request.headers, undefined, 2)}\n` +
                         `\tparams: ${JSON.stringify(request.params, undefined, 2)}\n` +
                         `\tquery: ${JSON.stringify(request.query, undefined, 2)}\n` +
-                        `\tbody: ${safeStringify(request.body)}\n` +
-                        '====================================END REQUEST',
+                        `\tbody: ${safeStringify(request.body)}`,
                 );
             }
             const t: [number, number] = process.hrtime();

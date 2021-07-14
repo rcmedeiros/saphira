@@ -74,20 +74,18 @@ export class WebClient extends Connection implements WebConnection {
                     const data: unknown = this.buildPayload(payload);
                     if (this._config.logRequest) {
                         console.info(
-                            '====================================WEB SERVICE CALL\n' +
-                                `\t${verb.toUpperCase()} ${verb.charAt(0) === 'p ' ? 'to' : ''}${url}\n` +
+                            '....................................WEB SERVICE CALL\n' +
+                                `\t${verb.toUpperCase()} ${verb.charAt(0) === 'p' ? 'to ' : ''}${url}\n` +
                                 `\tHEADERS: ${safeStringify(options.headers)}\n` +
-                                `\tDATA:${payload ? safeStringify(payload) : ''}\n` +
-                                '====================================END OF WEB SERVICE CALL',
+                                `\tDATA:${payload ? safeStringify(payload) : ''}`,
                         );
                     }
 
                     const response: WebResponse = new WebResponse(await needle(verb, url, data, options));
                     if (this._config.logRequest) {
                         console.info(
-                            '====================================WEB SERVICE RESPONSE\n' +
-                                `\t${response ? safeStringify(response) : ''}\n` +
-                                '====================================END OF WEB SERVICE RESPONSE',
+                            '....................................WEB SERVICE RESPONSE\n' +
+                                `\t${response ? safeStringify(response) : ''}`,
                         );
                     }
                     resolve(response);
