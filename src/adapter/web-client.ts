@@ -1,5 +1,5 @@
 import { NameValue, Rejection, Resolution } from '../types';
-import needle, { NeedleHttpVerbs, NeedleOptions, NeedleResponse } from 'needle';
+import needle, { NeedleHttpVerbs, NeedleOptions } from 'needle';
 
 import { Connection } from './connection';
 import { ENDPOINT_HEALTH_CHECK } from '../constants/settings';
