@@ -1,6 +1,7 @@
 export const ENV_BASE_PATH: string = 'BASE_PATH';
 export const ENV_DEBUG_ROUTES: string = 'DEBUG_ROUTES';
 export const ENV_TLS: string = 'TLS';
+export const ENV_LOG_CALLS: string = 'LOG_REQUESTS';
 export const OAUTH2_SERVER: string = 'OAUTH2_SERVER';
 
 export const ENDPOINT_HEALTH_CHECK: string = '/';

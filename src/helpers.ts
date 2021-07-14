@@ -15,11 +15,19 @@ export const parseJson: (s: string, silent?: boolean) => unknown = (s: string, s
     }
 };
 
-export const safeStringify: (json: unknown) => string = (json: unknown): string => {
+export const safeStringify: (
+    value: unknown,
+    replacer?: (key: string, value: unknown) => unknown,
+    space?: string | number,
+) => string = (
+    value: unknown,
+    replacer?: (key: string, value: unknown) => unknown,
+    space?: string | number,
+): string => {
     try {
-        return JSON.stringify(json);
+        return JSON.stringify(value, replacer, space);
     } catch (e) {
-        return stringify(json);
+        return stringify(value, replacer, space);
     }
 };
 
@@ -28,7 +36,7 @@ export const uuid: () => string = (): string => {
 };
 
 export const envVarAsString: (name: string) => string = (name: string): string => {
-    return process.env[`${__moduleInfo.name.toUpperCase()}_${name}`];
+    return process.env[`${__moduleInfo.name.toUpperCase()}_${name}`] || process.env[name];
 };
 
 export const envVarAsBoolean: (name: string) => boolean = (name: string): boolean => {
