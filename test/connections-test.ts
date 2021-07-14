@@ -26,6 +26,7 @@ describe('Web Server test', () => {
                     parameters: {
                         revenant: 4,
                     },
+                    logRequest: true,
                 },
                 {
                     name: WEB_ID,

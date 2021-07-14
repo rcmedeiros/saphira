@@ -9,6 +9,7 @@ import { Oauth2Client } from '../oauth2_client';
 import { WebConfig } from './web-config';
 import { WebConnection } from './web-connection';
 import { WebResponse } from './web-response';
+import { safeStringify } from '../helpers';
 
 const POST: NeedleHttpVerbs = 'post';
 const GET: NeedleHttpVerbs = 'get';
@@ -69,13 +70,27 @@ export class WebClient extends Connection implements WebConnection {
                         },
                     };
 
-                    const response: NeedleResponse = await needle(
-                        verb,
-                        `${this._config.host}${endpoint}`.interpolate(this._config.parameters),
-                        this.buildPayload(payload),
-                        options,
-                    );
-                    resolve(new WebResponse(response));
+                    const url: string = `${this._config.host}${endpoint}`.interpolate(this._config.parameters);
+                    const data: unknown = this.buildPayload(payload);
+                    if (this._config.logRequest) {
+                        console.info(
+                            '====================================WEB SERVICE CALL\n' +
+                                `\t${verb.toUpperCase()} ${verb.charAt(0) === 'p ' ? 'to' : ''}${url}\n` +
+                                `\tHEADERS: ${safeStringify(options.headers)}\n` +
+                                `\tDATA:${payload ? safeStringify(payload) : ''}\n` +
+                                '====================================END OF WEB SERVICE CALL',
+                        );
+                    }
+
+                    const response: WebResponse = new WebResponse(await needle(verb, url, data, options));
+                    if (this._config.logRequest) {
+                        console.info(
+                            '====================================WEB SERVICE RESPONSE\n' +
+                                `\t${response ? safeStringify(response) : ''}\n` +
+                                '====================================END OF WEB SERVICE RESPONSE',
+                        );
+                    }
+                    resolve(response);
                 } catch (e) {
                     reject(e);
                 }
