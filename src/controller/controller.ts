@@ -103,6 +103,8 @@ export class Controller {
                 } else if ([Method.POST, Method.PUT].indexOf(handler.method) === -1) {
                     throw new Error(`Cannot ${handler.method.toUpperCase()} with a body payload`);
                 }
+                handler.params = [handler.payload];
+                handler.params[0].name = PAYLOAD;
             }
 
             const paramsLength: number = handler.params !== undefined ? handler.params.length : 0;

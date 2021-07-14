@@ -1,5 +1,5 @@
 // cSpell: ignore Kaladin Dalinar Adolin Renarin Sylphrena Glys Wyndle Stormfather
-import { Controller, Method, Type } from '../../../src/index';
+import { Controller, Method, NameValue, Type } from '../../../src/index';
 
 export class Service4 extends Controller {
     public constructor(apiPath?: string) {
@@ -32,5 +32,6 @@ export class Service4 extends Controller {
         });
     }
 
-    public returnWhateverIsSent = (payload: unknown): Promise<unknown> => Promise.resolve(payload);
+    public returnWhateverIsSent = (payload: unknown, _request: { headers: NameValue }): Promise<unknown> =>
+        Promise.resolve(payload);
 }
