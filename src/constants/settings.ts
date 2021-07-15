@@ -13,6 +13,7 @@ export const PAYLOAD: string = 'JSON_PAYLOAD';
 export const HEADER_X_PAGINATION: string = 'x-pagination';
 export const HEADER_X_SUMMARY: string = 'x-summary';
 export const HEADER_X_HRTIME: string = 'x-high-resolution-elapsed-time';
+export const HEADER_X_REQUEST_ID: string = 'x-request-id';
 
 export const UTF8: string = 'utf-8';
 export const DEFAULT_HTTP_PORT: number = 80;

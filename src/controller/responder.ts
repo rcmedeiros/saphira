@@ -1,20 +1,22 @@
 import { Controller, Handler } from './controller';
-import { ENV_LOG_CALLS, HEADER_X_HRTIME, HEADER_X_PAGINATION } from '../constants/settings';
+import { ENV_LOG_CALLS, HEADER_X_HRTIME, HEADER_X_PAGINATION, HEADER_X_REQUEST_ID } from '../constants/settings';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Saphira, safeStringify } from '../';
+import { envVarAsString, uuid } from '../helpers';
 
 import { HttpError } from '../errors/http-error';
 import { HttpStatusCode } from '../constants/http_status_codes';
 import { MSG_HTTP_UNEXPECTED_ERROR } from '../constants/messages';
 import { PagedResult } from './paged_result';
+import { SaphiraError } from '../errors/saphira-error';
 import { Type } from '../data-types';
 import { UnknownObj } from './unknown-obj';
-import { envVarAsString } from '../helpers';
 import prettyHrtime from 'pretty-hrtime';
 
 export class Responder {
     private static readonly SHOULD_LOG: boolean =
-        !(process.env.NODE_ENV || '').toLowerCase().startsWith('prod') || !!envVarAsString(ENV_LOG_CALLS);
+        (!(process.env.NODE_ENV || '').toLowerCase().startsWith('prod') && (process.env.NODE_ENV || '') !== 'test') ||
+        !!envVarAsString(ENV_LOG_CALLS);
 
     /* istanbul ignore next */
     private constructor() {
@@ -26,20 +28,20 @@ export class Responder {
             case Type.HttpAccepted:
                 response.sendStatus(HttpStatusCode.ACCEPTED);
                 if (this.SHOULD_LOG) {
-                    console.debug('====================================RESPONSE: ACCEPTED');
+                    console.debug(`==========RESPONSE ${response.getHeader(HEADER_X_REQUEST_ID)}: ACCEPTED`);
                 }
 
                 break;
             case Type.HttpCreated:
                 response.sendStatus(HttpStatusCode.CREATED);
                 if (this.SHOULD_LOG) {
-                    console.debug('====================================RESPONSE: CREATED');
+                    console.debug(`==========RESPONSE ${response.getHeader(HEADER_X_REQUEST_ID)}: CREATED`);
                 }
                 break;
             case Type.HttpModified:
                 response.sendStatus(HttpStatusCode.NO_CONTENT);
                 if (this.SHOULD_LOG) {
-                    console.debug('====================================RESPONSE: NO_CONTENT');
+                    console.debug(`==========RESPONSE ${response.getHeader(HEADER_X_REQUEST_ID)}: NO_CONTENT`);
                 }
                 break;
             default:
@@ -65,15 +67,23 @@ export class Responder {
 
                 response.json(result);
                 if (Responder.SHOULD_LOG) {
-                    console.debug(`====================================RESPONSE\nbody ${safeStringify(response)}`);
+                    console.debug(
+                        `==========RESPONSE ${response.getHeader(HEADER_X_REQUEST_ID)}\nbody ${safeStringify(
+                            response,
+                        )}`,
+                    );
                 }
         }
     }
     public static route(controller: Controller, handler: Handler): RequestHandler {
         return (request: Request, response: Response, next: NextFunction): void => {
+            // TODO: Propagate requestId throughout all errors and adapter calls
+            const id: string = uuid();
+            request.headers[HEADER_X_REQUEST_ID] = id;
+            response.setHeader(HEADER_X_REQUEST_ID, id);
             if (Responder.SHOULD_LOG) {
                 console.info(
-                    '====================================REQUEST\n' +
+                    `==========REQUEST ${id}\n` +
                         `\t${request.method} ${request.path}\n` +
                         `\theaders: ${JSON.stringify(request.headers, undefined, 2)}\n` +
                         `\tparams: ${JSON.stringify(request.params, undefined, 2)}\n` +
@@ -90,7 +100,11 @@ export class Responder {
                     }
                 })
                 .catch((err: Error) => {
-                    console.error(JSON.stringify(err));
+                    if ((err as SaphiraError).toJSON) {
+                        console.error((err as SaphiraError).toJSON());
+                    } else {
+                        console.error(err.message ? err.message : JSON.stringify(err));
+                    }
                     const code: number = (err as HttpError).status
                         ? (err as HttpError).status
                         : HttpStatusCode.INTERNAL_SERVER_ERROR;
