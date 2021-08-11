@@ -11,5 +11,5 @@ s.listen()
         console.info('server started');
     })
     .catch((e: Error) => {
-        console.error(e.message)
+        console.error(e.message);
     });
