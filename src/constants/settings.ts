@@ -2,6 +2,7 @@ export const ENV_BASE_PATH: string = 'BASE_PATH';
 export const ENV_DEBUG_ROUTES: string = 'DEBUG_ROUTES';
 export const ENV_TLS: string = 'TLS';
 export const ENV_LOG_CALLS: string = 'LOG_REQUESTS';
+export const ENV_RETRIES: string = 'RETRIES';
 export const OAUTH2_SERVER: string = 'OAUTH2_SERVER';
 
 export const ENDPOINT_HEALTH_CHECK: string = '/';
@@ -25,3 +26,5 @@ export const JWT_CLOCK_TOLERANCE: number = 30;
 
 export const FILENAME_TLS_KEY: string = 'privkey.pem';
 export const FILENAME_TLS_CERTIFICATE: string = 'fullchain.pem';
+
+export const HALF_MINUTES_IN_A_WEEK: number = 20160;

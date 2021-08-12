@@ -12,6 +12,19 @@ describe('Commitment', () => {
         expect(c.toString()).to.be.equal('[object Commitment]');
     });
 
+    it('Should behave as a regular promise in case of negative retry setting', (done: Done) => {
+        new Commitment(-1, (resolve: Resolution<void>): void => {
+            resolve();
+        })
+            .then(() => {
+                expect(true).to.be.true;
+                done();
+            })
+            .catch(() => {
+                expect(false, 'should never fail').to.be.true;
+            });
+    });
+
     it('Should behave as a regular promise in case of success', (done: Done) => {
         new Commitment(0, (resolve: Resolution<void>): void => {
             resolve();

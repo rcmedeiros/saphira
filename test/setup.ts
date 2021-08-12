@@ -1,5 +1,6 @@
 import { Done, after, before } from 'mocha';
 
+import { ENV_RETRIES } from '../src/constants/settings';
 import { Saphira } from '../src';
 import { Service1 } from './mocks/sample_server/service_1';
 import { Service2 } from './mocks/sample_server/service_2';
@@ -25,6 +26,8 @@ export const SERVICE_3_PAGED_LIST: string = `${SERVICE_3}/pagedList`;
 const SERVICE_4: string = '/api/service4';
 export const SERVICE_4_AN_OBJECT: string = `${SERVICE_4}/anObject`;
 export const SERVICE_4_AN_ARRAY: string = `${SERVICE_4}/anArray`;
+
+process.env[ENV_RETRIES] = '0';
 
 const s: Saphira = new Saphira([Service1, Service2, Service3, Service4], { port: PORT });
 before((done: Done) => {

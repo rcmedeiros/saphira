@@ -1,4 +1,5 @@
 import '@rcmedeiros/prototypes';
+import './setup';
 
 import { Done, after, before, describe, it } from 'mocha';
 import { HttpStatusCode, JWT, Rejection, Resolution, Saphira } from '../src';
