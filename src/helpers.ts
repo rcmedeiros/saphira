@@ -58,13 +58,13 @@ export const safeStringify: (
     value: unknown,
     replacer?: (key: string, value: unknown) => unknown,
     space?: string | number,
-    ): string => {
-        try {
-            return JSON.stringify(value, replacer, space);
-        } catch (e) {
-            return stringify(value, replacer, space);
-        }
-    };
+): string => {
+    try {
+        return JSON.stringify(value, replacer, space);
+    } catch (e) {
+        return stringify(value, replacer, space);
+    }
+};
 
 export const uuid: () => string = (): string => {
     return v4();

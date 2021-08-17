@@ -26,5 +26,3 @@ export const JWT_CLOCK_TOLERANCE: number = 30;
 
 export const FILENAME_TLS_KEY: string = 'privkey.pem';
 export const FILENAME_TLS_CERTIFICATE: string = 'fullchain.pem';
-
-export const HALF_MINUTES_IN_A_WEEK: number = 20160;

@@ -1,6 +1,6 @@
 {
   "name": "saphira",
-  "version": "1.4.0-dev",
+  "version": "1.4.1-dev",
   "description": "Simple Opinionated API Framwwork for Microservices",
   "main": "index",
   "scripts": {
@@ -80,8 +80,8 @@
     "@types/swagger-ui-express": "^4.1.3",
     "@types/uuid": "^8.3.1",
     "@types/winston": "^2.4.4",
-    "@typescript-eslint/eslint-plugin": "^4.29.1",
-    "@typescript-eslint/parser": "^4.29.1",
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@typescript-eslint/parser": "^4.29.2",
     "chai": "^4.3.4",
     "chai-http": "^4.3.0",
     "eslint": "^7.32.0",
@@ -107,7 +107,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "fast-safe-stringify": "^2.0.8",
-    "figlet": "^1.5.0",
+    "figlet": "^1.5.2",
     "helmet": "^4.6.0",
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^8.5.1",

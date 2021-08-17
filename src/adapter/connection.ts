@@ -1,7 +1,8 @@
 import { Commitment, Retries } from '../commitment';
-import { ENV_RETRIES, HALF_MINUTES_IN_A_WEEK } from '../constants/settings';
 import { Rejection, Resolution } from '../types';
 import { envVarAsNumber, envVarAsObject } from '../helpers';
+
+import { ENV_RETRIES } from '../constants/settings';
 
 export class Connection {
     private _lastSuccess: Date;
@@ -13,11 +14,13 @@ export class Connection {
     constructor(name: string) {
         this.name = name;
 
-        const retries2: number = envVarAsNumber(ENV_RETRIES);
+        const prefix: string = !!name ? name.toUpperCase() : undefined;
+
+        const retries: number = envVarAsNumber(ENV_RETRIES, prefix);
         this.retries =
-            (envVarAsObject(ENV_RETRIES) as Retries) || retries2 !== undefined
-                ? retries2
-                : { times: HALF_MINUTES_IN_A_WEEK, waitTime: 30 };
+            (envVarAsObject(ENV_RETRIES, prefix) as Retries) || retries !== undefined
+                ? retries
+                : { times: 20, waitTime: 30 };
     }
 
     private fail(e: Error): void {
