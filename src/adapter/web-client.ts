@@ -111,7 +111,7 @@ export class WebClient extends Connection implements WebConnection {
                     default:
                         o[k] = subst[s];
                 }
-            } else if (typeof o[k] === 'object') {
+            } else if (o[k] && typeof o[k] === 'object' && !(o[k] instanceof Date)) {
                 o[k] = this.substitute(o[k] as NameValue, subst);
             }
         });
