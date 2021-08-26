@@ -36,6 +36,7 @@ import yaml, { DEFAULT_SCHEMA, JSON_SCHEMA } from 'js-yaml';
 
 import { BadGatewayError } from './errors/bad_gateway-error';
 import { BadRequestError } from './errors/bad_request-error';
+import { Commitment } from './commitment';
 import { ContentType } from './constants/content_types';
 import { DTO } from './dto/dto';
 import { HttpError } from './errors/http-error';
@@ -504,6 +505,7 @@ export class Saphira {
 
 export {
     BadRequestError,
+    Commitment,
     Controller,
     decodeJWT,
     DTO,
