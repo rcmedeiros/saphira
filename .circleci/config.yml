@@ -182,7 +182,7 @@ jobs:
             ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
       - restore_cache:
           name: Restore SonarQube Scanner
-          key: -sonar-scanner-4.5.0.2216-linux
+          key: -sonar-scanner-4.6.2.2472-linux
       - run:
           name: Download SonarQube Scanner (if still necessary)
           command: |
@@ -194,13 +194,13 @@ jobs:
       - run:
           name: Sonarcloud Scan
           command: |
-            ./sonar-scanner-4.5.0.2216-linux/bin/sonar-scanner -Dsonar.login=${SONAR_LOGIN}
+            ./sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner -Dsonar.login=${SONAR_LOGIN}
             cat -n .scannerwork/report-task.txt
       - save_cache:
           name: Cache SonarQube Scanner
-          key: -sonar-scanner-4.5.0.2216-linux
+          key: -sonar-scanner-4.6.2.2472-linux
           paths:
-            - sonar-scanner-4.5.0.2216-linux
+            - sonar-scanner-4.6.2.2472-linux
             - /home/circleci/.sonar
       - store_test_results:
           path: reports
