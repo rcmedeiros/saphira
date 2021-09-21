@@ -20,7 +20,10 @@ jobs:
           steps:
             - run:
                 name: Stamp build number into package.json
-                command: sed -i "s/-dev/-${CIRCLE_WORKFLOW_ID}/g" package.json
+                command: |
+                  sed -i "s/-dev/-<<pipeline.number>>/g" package.json
+                  echo number is <<pipeline.number>>
+                  echo number is << pipeline.number >>
       - run:
           name: Create .npmrc file
           command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
