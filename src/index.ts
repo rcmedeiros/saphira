@@ -39,6 +39,7 @@ import { BadRequestError } from './errors/bad_request-error';
 import { Commitment } from './commitment';
 import { ContentType } from './constants/content_types';
 import { DTO } from './dto/dto';
+import { ForbiddenError } from './errors/forbidden-error';
 import { HttpError } from './errors/http-error';
 import { HttpStatusCode } from './constants/http_status_codes';
 import { JWT } from './jwt';
@@ -48,6 +49,7 @@ import { Responder } from './controller/responder';
 import { ServerError } from './errors/server-error';
 import { Type } from './data-types';
 import { URL } from 'url';
+import { UnauthorizedError } from './errors/unauthorized-error';
 import { Vault } from './vault';
 import { WebClient } from './adapter/web-client';
 import { WebConfig } from './adapter/web-config';
@@ -529,9 +531,12 @@ export {
     WebResponse,
     parseJson,
     uuid,
+    UnauthorizedError,
     envVarAsString,
     envVarAsBoolean,
     HttpStatusCode,
     JWT,
     ContentType,
+    ForbiddenError,
+    HttpError,
 };
