@@ -3,7 +3,7 @@ Jinja2==2.10.1
 livereload==2.6.0
 Markdown==3.0.1
 MarkupSafe==1.1.1
-mkdocs==1.0.4
+mkdocs==1.2.3
 mkdocs-ivory==0.3.0
 mkdocs-material==4.0.2
 mkdocs-windmill==0.1.8
