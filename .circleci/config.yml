@@ -163,12 +163,6 @@ jobs:
           name: Restore Dependencies
           key: dependencies-{{ checksum "package-lock.json" }}
       - run:
-          name: Avoid port conflicts
-          command: |
-            sed -i "s/80/8081/g" src/constants/settings.ts &&\
-            sed -i "s/443/4444/g" src/constants/settings.ts &&\
-            cat src/constants/settings.ts
-      - run:
           name: Run Lint
           command: |
             npm run lint
@@ -176,7 +170,7 @@ jobs:
           name: Run Tests!
           command: |
             ./node_modules/.bin/nyc ./node_modules/.bin/mocha \
-            --require ts-node/register --check-leaks --timeout 1000 \
+            --require ts-node/register --check-leaks --timeout 600 \
             --recursive -exit test/*-test.ts --reporter mocha-junit-reporter \
             --reporter-options mochaFile=reports/mocha/test-results.xml &&\
             mkdir coverage &&\
