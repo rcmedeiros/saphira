@@ -279,7 +279,7 @@ mockServers.resourceText = {
 
 // End of mock logic ]]::..
 
-let port: number = 10000;
+let port: number = 8000;
 Object.keys(mockServers).forEach((k: string) => {
     mockServers[k].port = port++;
 });
