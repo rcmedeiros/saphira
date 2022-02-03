@@ -17,8 +17,8 @@ export const HEADER_X_HRTIME: string = 'x-high-resolution-elapsed-time';
 export const HEADER_X_REQUEST_ID: string = 'x-request-id';
 
 export const UTF8: string = 'utf-8';
-export const DEFAULT_HTTP_PORT: number = 80;
-export const DEFAULT_HTTPS_PORT: number = 443;
+export const DEFAULT_HTTP_PORT: number = 8080;
+export const DEFAULT_HTTPS_PORT: number = 8443;
 
 export const JWT_KEY: string = 'jwt_key';
 export const JWT_OPTS: string = 'jwt_opts';

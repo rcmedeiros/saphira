@@ -7,7 +7,7 @@ import { Service2 } from './mocks/sample_server/service_2';
 import { Service3 } from './mocks/sample_server/service_3';
 import { Service4 } from './mocks/sample_server/service_4';
 
-const PORT: number = 8080;
+const PORT: number = 8888;
 export const URI: string = `http://localhost:${PORT}`;
 export const SERVICE_1: string = '/api/service1';
 const SERVICE_2: string = '/api/service2';
