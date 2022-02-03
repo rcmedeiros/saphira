@@ -163,6 +163,12 @@ jobs:
           name: Restore Dependencies
           key: dependencies-{{ checksum "package-lock.json" }}
       - run:
+          name: Avoid port conflicts
+          command: |
+            sed -i "s/8080/8081/g" src/constants/settings.ts &&\
+            sed -i "s/8443/4444/g" src/constants/settings.ts &&\
+            cat src/constants/settings.ts
+      - run:
           name: Run Lint
           command: |
             npm run lint
