@@ -109,7 +109,7 @@
     "figlet": "^1.5.2",
     "helmet": "^4.6.0",
     "js-yaml": "^4.1.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "logform": "^2.2.0",
     "needle": "^3.0.0",
     "pretty-hrtime": "^1.0.3",
